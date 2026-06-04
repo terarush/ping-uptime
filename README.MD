@@ -31,28 +31,13 @@ A self-hosted **uptime monitoring** service built with Go (Echo v4) and Vue 3. M
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started (Docker Installation)
 
-### Prerequisites
+The easiest way to run `ping-uptime` is using Docker.
 
-- Go `>= 1.21`
-- Node.js `>= 20`
-- MySQL or PostgreSQL
+### 1. Create a Configuration File
 
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/terarush/ping-uptime.git
-cd ping-uptime
-```
-
-### 2. Configure environment
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your settings:
+Create a `.env` file in your working directory and adjust the configurations as needed.
 
 ```env
 APP_NAME=ping-uptime
@@ -60,42 +45,53 @@ SERVER_MODE=info
 PORT=8080
 HTTP_TIMEOUT=60
 
-# Database
+# Database Configuration
 DB_DRIVER=mysql         # mysql | postgres
-DB_HOST=localhost
+DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_NAME=ping_uptime
 DB_USERNAME=root
 DB_PASSWORD=your_password
 
-# Connection Pool
+# Connection Pool (Optional)
 POOL_CONN_IDLE=200
 POOL_CONN_MAX=300
 POOL_CONN_LIFETIME=60
 
-# JWT
+# JWT Authentication
 JWT_SIGNATURE_KEY=your_secret_key
 JWT_DAY_EXPIRED=60
 
-# Discord
+# Discord Notifications (Webhook)
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your/webhook
 ```
 
-### 3. Run the backend
+### 2. Run with Docker
+
+Run the container using the following command, passing your `.env` file:
 
 ```bash
-go run main.go
-# API available at http://localhost:8080/api
+docker run -d \
+  --name ping-uptime \
+  -p 8080:8080 \
+  --env-file .env \
+  rafia9005/ping-uptime:latest
 ```
 
-### 4. Run the frontend (development)
+Once running, you can access the application:
+- **Dashboard**: `http://localhost:8080`
+- **REST API**: `http://localhost:8080/api`
 
+---
+
+## 🐳 Docker Compose
+
+Alternatively, you can run `ping-uptime` along with a MySQL database using `docker-compose`.
+
+1. Make sure you have `.env` configured.
+2. Run:
 ```bash
-cd web
-npm install
-npm run dev
-# Frontend at http://localhost:5173
-# /api requests are proxied to :8080 automatically
+docker-compose up -d
 ```
 
 ---
@@ -179,34 +175,6 @@ All endpoints are prefixed with `/api`.
 | `POST` | `/api/users` | Create user |
 | `PUT` | `/api/users/:id` | Update user |
 | `DELETE` | `/api/users/:id` | Delete user |
-
----
-
-## 📦 Production Build
-
-Build the Vue frontend and run everything from a single Go binary:
-
-```bash
-# 1. Build frontend → outputs to static/
-cd web && npm run build
-
-# 2. Start Go server (serves frontend + API on same port)
-cd .. && go run main.go
-```
-
-| URL | Serves |
-|---|---|
-| `http://localhost:8080/` | Vue SPA (dashboard) |
-| `http://localhost:8080/dashboard` | Vue Router handles it |
-| `http://localhost:8080/api/...` | Go REST API |
-
----
-
-## 🐳 Docker
-
-```bash
-docker-compose up -d
-```
 
 ---
 

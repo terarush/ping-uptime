@@ -29,7 +29,7 @@ type App struct {
 
 // NewApp creates a new application
 func NewApp(cfg *logger.Config) (*App, error) {
-	appLogger, err := logger.NewLogger(*cfg, config.GetString("APP_NAME"))
+	appLogger, err := logger.NewLogger(*cfg, config.GetString("APP_NAME", "ping-uptime"))
 	if err != nil {
 		return nil, err
 	}
