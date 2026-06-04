@@ -28,13 +28,19 @@ const router = createRouter({
           name: 'Monitors',
           component: AppIndex,
         },
+        {
+          path: 'users',
+          name: 'Users',
+          component: () => import('@/views/Users.vue'),
+          meta: { requiresAdmin: true },
+        },
       ],
     },
   ],
 })
 
 router.beforeEach(async (to, from, next) => {
-  const { isAuthenticated, verifyToken } = useAuth()
+  const { isAuthenticated, currentUser, verifyToken } = useAuth()
 
   if (!isAuthenticated.value) {
     await verifyToken()
@@ -43,6 +49,8 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAuth && !isAuthenticated.value) {
     next('/')
   } else if (to.meta.guestOnly && isAuthenticated.value) {
+    next(siteConfig.appPath)
+  } else if (to.meta.requiresAdmin && (!currentUser.value || currentUser.value.role !== 'admin')) {
     next(siteConfig.appPath)
   } else {
     next()
