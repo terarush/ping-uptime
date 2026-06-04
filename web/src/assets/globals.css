@@ -5,3 +5,9 @@
 body {
   font-family: 'Albert Sans', sans-serif;
 }
+
+@theme {
+	--animate-*: initial;
+}
+
+@custom-variant dark (&:where(.my-app-dark, .my-app-dark *));
