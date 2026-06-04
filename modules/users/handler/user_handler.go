@@ -4,7 +4,6 @@ package handler
 
 import (
 	"fmt"
-	"net/http"
 	"ping-uptime/internal/pkg/bus"
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/internal/pkg/middleware"
