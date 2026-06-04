@@ -1,10 +1,7 @@
-<script setup lang="ts">
-import ThemeButton from '@/components/theme-button.vue'
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <div>
-  	<h1>hello world</h1>
-   <ThemeButton />
+    <h1>hello world</h1>
   </div>
 </template>

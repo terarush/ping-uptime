@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import Button from 'primevue/button';
 import { Sun, Moon } from '@lucide/vue';
 
 const isDark = ref(false);
@@ -30,16 +29,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <Button
+  <button
     @click="toggleDarkMode"
-    severity="secondary"
-    variant="text"
-    rounded
+    class="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400 focus:outline-none"
     aria-label="Toggle Dark Mode"
   >
-    <template #icon>
-      <Sun v-if="isDark" class="w-5 h-5 text-yellow-500" />
-      <Moon v-else class="w-5 h-5 text-slate-700" />
-    </template>
-  </Button>
+    <Sun v-if="isDark" class="w-5 h-5 text-yellow-500" />
+    <Moon v-else class="w-5 h-5 text-slate-700" />
+  </button>
 </template>

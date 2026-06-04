@@ -14,14 +14,11 @@
   },
   "dependencies": {
     "@lucide/vue": "^1.17.0",
-    "@primeuix/themes": "^2.0.3",
     "@tailwindcss/vite": "^4.3.0",
     "axios": "^1.17.0",
     "js-cookie": "^3.0.8",
     "lucide-vue-next": "^1.0.0",
-    "primevue": "^4.5.5",
     "tailwindcss": "^4.3.0",
-    "tailwindcss-primeui": "^0.6.1",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4"
   },

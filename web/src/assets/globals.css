@@ -1,15 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
+
 @custom-variant dark (&:where(.my-app-dark, .my-app-dark *));
 
-@layer primevue {
-  @import "tailwindcss-primeui";
-}
-
 body {
-  font-family: 'Albert Sans', sans-serif;
+  font-family: sans-serif;
+  @apply bg-slate-50 text-slate-900 transition-colors duration-200;
 }
 
-@theme {
-	--animate-*: initial;
+.my-app-dark body {
+  @apply bg-slate-950 text-slate-50;
 }
