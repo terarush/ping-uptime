@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from '@lucide/vue';
+import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, ShieldAlert } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -13,35 +13,20 @@ import gsap from 'gsap';
 const router = useRouter();
 
 // Form States
-const isSignUp = ref(false);
 const name = ref('');
 const email = ref('');
 const password = ref('');
 const showPassword = ref(false);
 
-// UI States
+// UI & Logic States
+const isSetupMode = ref(false); // If true, first-time setup is active
+const checkingAuth = ref(true);
 const loading = ref(false);
 const error = ref('');
 const success = ref('');
-const checkingAuth = ref(true);
-
-// Clear messages on tab toggle
-watch(isSignUp, () => {
-  error.value = '';
-  success.value = '';
-});
 
 // Trigger GSAP entry animations on load
-onMounted(() => {
-  // Check if user is already authenticated via cookie
-  const token = Cookies.get('accessToken');
-  if (token) {
-    router.push('/app');
-    return;
-  }
-  checkingAuth.value = false;
-
-  // Run GSAP entry animations
+const runEntryAnimations = () => {
   gsap.fromTo('.ambient-orb-1',
     { opacity: 0, scale: 0.6 },
     { opacity: 0.6, scale: 1, duration: 2, ease: 'power3.out' }
@@ -66,17 +51,41 @@ onMounted(() => {
     { opacity: 0, y: -10 },
     { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: 0.7 }
   );
+};
+
+onMounted(async () => {
+  // 1. Check if user is already authenticated via cookie
+  const token = Cookies.get('accessToken');
+  if (token) {
+    router.push('/app');
+    return;
+  }
+
+  // 2. Query Setup Status from the backend
+  try {
+    const response = await ExtendedFetch.get('/auth/setup-status');
+    const isSetup = response.data?.data?.is_setup;
+    isSetupMode.value = !isSetup; // Show setup if not yet setup
+  } catch (err) {
+    console.error('Failed to query setup status:', err);
+    // Default to login mode if API fails or is unreachable
+    isSetupMode.value = false;
+  } finally {
+    checkingAuth.value = false;
+    // Delay slightly to allow the DOM to render before animating
+    setTimeout(runEntryAnimations, 50);
+  }
 });
 
-// Submit Authentication Request
+// Submit Authentication / Setup Request
 const handleSubmit = async () => {
   error.value = '';
   success.value = '';
   loading.value = true;
 
   try {
-    if (isSignUp.value) {
-      // Sign Up flow
+    if (isSetupMode.value) {
+      // 1. First-time Admin Setup flow
       if (!name.value.trim()) {
         error.value = 'Please enter your full name.';
         loading.value = false;
@@ -96,9 +105,9 @@ const handleSubmit = async () => {
         password: password.value,
       });
 
-      // Automatically sign in the user on registration success
-      success.value = 'Account created successfully! Logging in...';
+      success.value = 'Administrator registered successfully! Logging in...';
 
+      // Auto Login
       const loginResponse = await ExtendedFetch.post('/auth/login', {
         email: email.value,
         password: password.value,
@@ -111,11 +120,11 @@ const handleSubmit = async () => {
           router.push('/app');
         }, 800);
       } else {
-        error.value = 'Registration succeeded, but auto-login failed. Please sign in manually.';
-        isSignUp.value = false;
+        error.value = 'Setup succeeded, but auto-login failed. Please refresh and log in.';
+        isSetupMode.value = false;
       }
     } else {
-      // Sign In flow
+      // 2. Standard Login flow
       const response = await ExtendedFetch.post('/auth/login', {
         email: email.value,
         password: password.value,
@@ -161,10 +170,10 @@ const triggerShake = () => {
     <div class="ambient-orb-1 absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-[120px] pointer-events-none"></div>
     <div class="ambient-orb-2 absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-emerald-600/10 dark:bg-emerald-600/5 blur-[120px] pointer-events-none"></div>
 
-    <!-- Loading blocker while checking auth cookie -->
+    <!-- Loading blocker while checking auth cookie & setup status -->
     <div v-if="checkingAuth" class="flex flex-col items-center justify-center space-y-4">
       <Loader2 class="h-8 w-8 text-primary animate-spin" />
-      <span class="text-xs text-muted-foreground font-semibold">Resuming session...</span>
+      <span class="text-xs text-muted-foreground font-semibold">Checking system status...</span>
     </div>
 
     <div v-else class="w-full max-w-[420px] flex flex-col items-center space-y-6 z-10">
@@ -187,43 +196,28 @@ const triggerShake = () => {
         </p>
       </div>
 
-      <!-- Main Login Card -->
+      <!-- Setup Notice Banner -->
+      <div v-if="isSetupMode" class="w-full p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl flex gap-3 text-xs leading-relaxed animate-[fadeIn_0.3s_ease-out]">
+        <ShieldAlert class="h-5 w-5 shrink-0 mt-0.5" />
+        <div>
+          <span class="font-bold block">First-Time Setup Required</span>
+          There are no accounts registered on this instance. Create the initial administrator account below.
+        </div>
+      </div>
+
+      <!-- Main Auth Card -->
       <Card class="login-card w-full bg-card/60 dark:bg-card/40 backdrop-blur-xl border border-border/60 dark:border-border/20 shadow-2xl rounded-2xl overflow-hidden p-6 gap-0">
         <!-- Form Header -->
         <CardHeader class="p-0 pb-6 text-center">
           <CardTitle class="text-lg font-bold tracking-tight text-foreground">
-            {{ isSignUp ? 'Create your account' : 'Welcome back' }}
+            {{ isSetupMode ? 'Setup Admin Account' : 'Welcome back' }}
           </CardTitle>
           <CardDescription class="text-xs text-muted-foreground mt-1">
-            {{ isSignUp ? 'Enter your details below to get started' : 'Sign in to access your self-hosted panel' }}
+            {{ isSetupMode ? 'Register the main account for this application' : 'Sign in to access your self-hosted panel' }}
           </CardDescription>
         </CardHeader>
 
         <CardContent class="p-0 space-y-4">
-          <!-- Animated Tab Toggle (Sign In / Sign Up) -->
-          <div class="grid w-full grid-cols-2 p-1 bg-muted/65 dark:bg-muted/40 rounded-xl mb-2">
-            <button
-              type="button"
-              @click="isSignUp = false"
-              :class="[
-                'py-2 text-xs font-semibold rounded-lg transition-all duration-300 select-none cursor-pointer',
-                !isSignUp ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              ]"
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              @click="isSignUp = true"
-              :class="[
-                'py-2 text-xs font-semibold rounded-lg transition-all duration-300 select-none cursor-pointer',
-                isSignUp ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              ]"
-            >
-              Sign Up
-            </button>
-          </div>
-
           <!-- Alert Messages -->
           <div v-if="error" class="p-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive rounded-lg flex items-start gap-2 animate-[fadeIn_0.2s_ease-out]">
             <AlertCircle class="h-4 w-4 shrink-0 mt-0.5" />
@@ -237,22 +231,20 @@ const triggerShake = () => {
 
           <!-- Auth Form -->
           <form @submit.prevent="handleSubmit" class="space-y-4">
-            <!-- Full Name (Only visible when signing up) -->
-            <Transition name="expand">
-              <div v-if="isSignUp" class="space-y-1.5 overflow-hidden">
-                <label class="text-xs font-bold text-foreground/80">Full Name</label>
-                <div class="relative">
-                  <User class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    v-model="name"
-                    type="text"
-                    placeholder="John Doe"
-                    class="pl-9 h-10 rounded-lg"
-                    required
-                  />
-                </div>
+            <!-- Full Name (Only visible in setup mode) -->
+            <div v-if="isSetupMode" class="space-y-1.5 animate-[fadeIn_0.25s_ease-out]">
+              <label class="text-xs font-bold text-foreground/80">Full Name</label>
+              <div class="relative">
+                <User class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  v-model="name"
+                  type="text"
+                  placeholder="John Doe"
+                  class="pl-9 h-10 rounded-lg"
+                  required
+                />
               </div>
-            </Transition>
+            </div>
 
             <!-- Email Address -->
             <div class="space-y-1.5">
@@ -271,9 +263,7 @@ const triggerShake = () => {
 
             <!-- Password -->
             <div class="space-y-1.5">
-              <div class="flex items-center justify-between">
-                <label class="text-xs font-bold text-foreground/80">Password</label>
-              </div>
+              <label class="text-xs font-bold text-foreground/80">Password</label>
               <div class="relative">
                 <Lock class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -301,7 +291,7 @@ const triggerShake = () => {
               class="w-full h-10 rounded-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.01] bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center gap-2 cursor-pointer mt-2"
             >
               <Loader2 v-if="loading" class="h-4 w-4 animate-spin" />
-              <span v-else>{{ isSignUp ? 'Register & Sign In' : 'Sign In to Dashboard' }}</span>
+              <span v-else>{{ isSetupMode ? 'Create Admin & Get Started' : 'Sign In to Dashboard' }}</span>
             </Button>
           </form>
         </CardContent>
@@ -315,21 +305,3 @@ const triggerShake = () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.expand-enter-active,
-.expand-leave-active {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  max-height: 80px;
-  opacity: 1;
-}
-.expand-enter-from,
-.expand-leave-to {
-  max-height: 0px;
-  opacity: 0;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
-</style>

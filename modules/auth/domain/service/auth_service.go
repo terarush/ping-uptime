@@ -11,9 +11,10 @@ import (
 
 // Errors
 var (
-	ErrUserNotFound     = errors.New("user not found")
-	ErrEmailAlreadyUsed = errors.New("email already in use")
-	ErrInvalidPassword  = errors.New("invalid password")
+	ErrUserNotFound          = errors.New("user not found")
+	ErrEmailAlreadyUsed      = errors.New("email already in use")
+	ErrInvalidPassword       = errors.New("invalid password")
+	ErrRegistrationDisabled  = errors.New("registration is disabled")
 )
 
 // AuthService handles user authentication
@@ -32,10 +33,27 @@ func NewAuthService(userRepo repository.UserRepository) *AuthService {
 	}
 }
 
-// CreateUser creates a new user
+// IsSetupNeeded checks if there are no registered users in the database
+func (s *AuthService) IsSetupNeeded(ctx context.Context) (bool, error) {
+	users, err := s.userRepo.FindAll(ctx)
+	if err != nil {
+		return false, err
+	}
+	return len(users) == 0, nil
+}
+
+// CreateUser creates a new user (only permitted during initial setup)
 func (s *AuthService) CreateUser(ctx context.Context, user *entity.User) error {
 	if user.Email == "" || user.Password == "" {
 		return errors.New("email and password cannot be empty")
+	}
+
+	users, err := s.userRepo.FindAll(ctx)
+	if err != nil {
+		return err
+	}
+	if len(users) > 0 {
+		return ErrRegistrationDisabled
 	}
 
 	existingUser, err := s.userRepo.FindByEmail(ctx, user.Email)
@@ -52,6 +70,7 @@ func (s *AuthService) CreateUser(ctx context.Context, user *entity.User) error {
 		return err
 	}
 	user.Password = hashedPassword
+	user.Role = "admin" // First user is automatically Admin
 
 	return s.userRepo.Create(ctx, user)
 }
