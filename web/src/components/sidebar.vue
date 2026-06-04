@@ -66,14 +66,11 @@ const route = useRoute();
     <!-- Footer: Theme Toggle & Logout/User profile -->
     <SidebarFooter class="border-t border-border/50 p-4 flex flex-col gap-2">
       <!-- Theme switcher item -->
-      <div class="flex items-center justify-between gap-2 overflow-hidden">
-        <div class="flex items-center gap-3 group-data-[collapsible=icon]:hidden">
-          <div class="p-1 rounded bg-muted">
-            <span class="text-xs font-semibold text-muted-foreground">Theme</span>
-          </div>
-        </div>
-        <ThemeButton variant="rounded" />
-      </div>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <ThemeButton is-sidebar-item />
+        </SidebarMenuItem>
+      </SidebarMenu>
 
       <!-- User logout profile item -->
       <SidebarMenu>

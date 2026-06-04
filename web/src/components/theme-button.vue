@@ -2,13 +2,16 @@
 import { ref, onMounted } from 'vue';
 import { Sun, Moon } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
+import { SidebarMenuButton } from '@/components/ui/sidebar';
 
 interface ThemeToggleProps {
   variant?: 'default' | 'rounded';
+  isSidebarItem?: boolean;
 }
 
 withDefaults(defineProps<ThemeToggleProps>(), {
-  variant: 'default'
+  variant: 'default',
+  isSidebarItem: false
 });
 
 const theme = ref<'light' | 'dark'>('light');
@@ -39,7 +42,27 @@ onMounted(() => {
 </script>
 
 <template>
+  <SidebarMenuButton
+    v-if="isSidebarItem"
+    @click="toggleTheme"
+    tooltip="Toggle Theme"
+    variant="default"
+  >
+    <Sun
+      v-if="theme === 'dark'"
+      class="w-4 h-4 text-yellow-500 shrink-0"
+    />
+    <Moon
+      v-else
+      class="w-4 h-4 text-slate-700 dark:text-slate-400 shrink-0"
+    />
+    <span class="group-data-[collapsible=icon]:hidden text-sm">
+      {{ theme === 'dark' ? 'Light Mode' : 'Dark Mode' }}
+    </span>
+  </SidebarMenuButton>
+
   <Button
+    v-else
     :variant="variant === 'rounded' ? 'ghost' : 'outline'"
     :size="variant === 'rounded' ? 'icon' : 'default'"
     aria-label="Toggle theme"
