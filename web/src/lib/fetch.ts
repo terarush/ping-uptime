@@ -1,14 +1,14 @@
 import axios, { type AxiosInstance } from "axios";
+import Cookies from 'js-cookie';
 
 const Fetch = axios.create({
-	baseURL: `${import.meta.env.VITE_API_URL}/api/v1`,
+	baseURL: "/api",
 	headers: {
 		"Content-Type": "application/json",
 	},
 	withCredentials: true,
 }) as AxiosInstance;
 
-import Cookies from 'js-cookie';
 
 Fetch.interceptors.request.use(
 	(config) => {
