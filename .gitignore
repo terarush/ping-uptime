@@ -10,6 +10,7 @@ static/*
 !static/.gitkeep
 tmp/
 .agent
+bin/*
 
 # SQLite
 *.db

@@ -9,6 +9,11 @@ import (
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/internal/pkg/middleware"
 	"ping-uptime/modules/auth"
+	incident "ping-uptime/modules/incidents"
+	monitor "ping-uptime/modules/monitors"
+	notification "ping-uptime/modules/notifications"
+	setting "ping-uptime/modules/settings"
+	status_page "ping-uptime/modules/status_pages"
 	user "ping-uptime/modules/users"
 )
 
@@ -40,6 +45,11 @@ func main() {
 	// register modules
 	application.RegisterModule(user.NewModule())
 	application.RegisterModule(auth.NewModule())
+	application.RegisterModule(monitor.NewModule())
+	application.RegisterModule(incident.NewModule())
+	application.RegisterModule(notification.NewModule())
+	application.RegisterModule(status_page.NewModule())
+	application.RegisterModule(setting.NewModule())
 
 	// initialize the application
 	if err := application.Initialize(); err != nil {

@@ -1,4 +1,9 @@
 <script setup lang="ts">
+/**
+ * Theme Button Component
+ * Supports toggling between Light and Dark mode.
+ * Persists theme choice in localStorage and updates document classes for Tailwind CSS v4.
+ */
 import { ref, onMounted } from 'vue';
 import { Sun, Moon } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
@@ -9,13 +14,18 @@ interface ThemeToggleProps {
   isSidebarItem?: boolean;
 }
 
+// Set default values for props
 withDefaults(defineProps<ThemeToggleProps>(), {
   variant: 'default',
   isSidebarItem: false
 });
 
+// Reactive theme state
 const theme = ref<'light' | 'dark'>('light');
 
+/**
+ * Updates document body classes for Tailind CSS dark mode
+ */
 const updateThemeClasses = (currentTheme: 'light' | 'dark') => {
   const el = document.documentElement;
   if (currentTheme === 'dark') {
@@ -25,16 +35,21 @@ const updateThemeClasses = (currentTheme: 'light' | 'dark') => {
   }
 };
 
+/**
+ * Toggles theme state, updates HTML classes, and saves configuration to localStorage
+ */
 const toggleTheme = () => {
   theme.value = theme.value === 'dark' ? 'light' : 'dark';
   updateThemeClasses(theme.value);
   localStorage.setItem('theme', theme.value);
 };
 
+// Check client-side configuration settings on component mount
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   
+  // Default to system preference if no localStorage value is set
   const initialTheme = savedTheme === 'dark' || (!savedTheme && prefersDark) ? 'dark' : 'light';
   theme.value = initialTheme;
   updateThemeClasses(initialTheme);

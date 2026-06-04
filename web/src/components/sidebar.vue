@@ -1,4 +1,9 @@
 <script setup lang="ts">
+/**
+ * Navigation Sidebar Component
+ * Connects with Vue Router to highight active items,
+ * and calls the Auth composable logout actions on logout trigger.
+ */
 import {
   Sidebar,
   SidebarHeader,
@@ -19,10 +24,14 @@ import { LogOut } from '@lucide/vue'
 import { siteConfig } from '@/content/config'
 import { useAuth } from '@/composables/useAuth'
 
+// Initialize router and auth dependencies
 const route = useRoute()
 const router = useRouter()
 const { logout } = useAuth()
 
+/**
+ * Handles clearing sessions and redirecting standard users to the login index
+ */
 const handleLogout = () => {
   logout()
   router.push('/')
