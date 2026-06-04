@@ -33,7 +33,7 @@ const handleLogout = () => {
 <template>
   <Sidebar collapsible="icon" variant="sidebar">
     <!-- Header: App Logo -->
-    <SidebarHeader class="border-b border-border/50 py-4 px-4 flex items-center justify-between">
+    <SidebarHeader class="h-16 shrink-0 border-b border-border/50 px-4 flex items-center justify-between">
       <div
         class="flex items-center gap-2 overflow-hidden transition-[width] group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0"
       >
