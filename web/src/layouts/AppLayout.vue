@@ -16,14 +16,9 @@ const route = useRoute();
 const pageTitle = computed(() => {
   const path = route.path;
 
-  const appPath = siteConfig.appPath || '/app';
-  const dashboardPath = siteConfig.dashboardPath || '/dashboard';
-
-  // Find a match in the sidebarContent using normalized path
-  const regex = new RegExp(`^${appPath.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`);
-  const normalizedPath = path.replace(regex, dashboardPath);
+  // Find a match in the sidebarContent using raw path
   for (const group of sidebarContent) {
-    const matchedItem = group.items.find(item => item.href === normalizedPath || item.href === path);
+    const matchedItem = group.items.find(item => item.href === path);
     if (matchedItem) {
       return matchedItem.title;
     }

@@ -7,6 +7,7 @@ import {
   FileText,
   ShieldCheck
 } from '@lucide/vue';
+import { siteConfig } from './config';
 
 export interface SidebarItem {
   title: string;
@@ -26,12 +27,12 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Dashboard",
-        href: "/app",
+        href: `${siteConfig.appPath}`,
         icon: LayoutDashboard,
       },
       {
         title: "Monitors",
-        href: "/app/monitors",
+        href: `${siteConfig.appPath}/monitors`,
         icon: Activity,
         badge: "Live",
       },
@@ -42,12 +43,12 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Incident Logs",
-        href: "/app/incidents",
+        href: `${siteConfig.appPath}/incidents`,
         icon: FileText,
       },
       {
         title: "Status Pages",
-        href: "/app/status-pages",
+        href: `${siteConfig.appPath}/status-pages`,
         icon: ShieldCheck,
       },
     ],
@@ -57,17 +58,17 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Users",
-        href: "/app/users",
+        href: `${siteConfig.appPath}/users`,
         icon: Users,
       },
       {
         title: "Notifications",
-        href: "/app/settings/notifications",
+        href: `${siteConfig.appPath}/settings/notifications`,
         icon: Bell,
       },
       {
         title: "Settings",
-        href: "/app/settings",
+        href: `${siteConfig.appPath}/settings`,
         icon: Settings,
       },
     ],
