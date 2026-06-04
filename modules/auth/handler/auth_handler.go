@@ -59,6 +59,7 @@ func (h *AuthHandler) Setup(c echo.Context) error {
 	h.log.Debug("Request validated successfully:", req)
 
 	user := entity.NewUser(req.Name, req.Email, req.Password)
+	user.Role = "admin"
 	err := h.authService.CreateUser(c.Request().Context(), user)
 	if err != nil {
 		if err == service.ErrEmailAlreadyUsed {

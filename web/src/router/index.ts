@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Index from '@/views/Index.vue'
 import AppIndex from '@/views/App.vue'
+import AppUsers from '@/views/App.Users.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useAuth } from '@/composables/useAuth'
 import { siteConfig } from '@/content/config'
@@ -24,14 +25,9 @@ const router = createRouter({
           component: AppIndex,
         },
         {
-          path: 'monitors',
-          name: 'Monitors',
-          component: AppIndex,
-        },
-        {
           path: 'users',
           name: 'Users',
-          component: () => import('@/views/Users.vue'),
+          component: AppUsers,
           meta: { requiresAdmin: true },
         },
       ],
