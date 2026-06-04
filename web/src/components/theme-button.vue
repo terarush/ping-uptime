@@ -8,9 +8,9 @@ const isDark = ref(false);
 const updateThemeClasses = (dark: boolean) => {
   const el = document.documentElement;
   if (dark) {
-    el.classList.add('p-dark');
+    el.classList.add('my-app-dark');
   } else {
-    el.classList.remove('p-dark');
+    el.classList.remove('my-app-dark');
   }
 };
 
