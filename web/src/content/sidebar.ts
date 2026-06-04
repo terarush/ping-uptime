@@ -26,12 +26,12 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Dashboard",
-        href: "/",
+        href: "/dashboard",
         icon: LayoutDashboard,
       },
       {
         title: "Monitors",
-        href: "/monitors",
+        href: "/dashboard/monitors",
         icon: Activity,
         badge: "Live",
       },
@@ -42,12 +42,12 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Incident Logs",
-        href: "/incidents",
+        href: "/dashboard/incidents",
         icon: FileText,
       },
       {
         title: "Status Pages",
-        href: "/status-pages",
+        href: "/dashboard/status-pages",
         icon: ShieldCheck,
       },
     ],
@@ -57,17 +57,17 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Users",
-        href: "/users",
+        href: "/dashboard/users",
         icon: Users,
       },
       {
         title: "Notifications",
-        href: "/settings/notifications",
+        href: "/dashboard/settings/notifications",
         icon: Bell,
       },
       {
         title: "Settings",
-        href: "/settings",
+        href: "/dashboard/settings",
         icon: Settings,
       },
     ],
