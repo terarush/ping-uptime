@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import Button from 'primevue/button';
-import { Sun, Moon } from 'lucide-vue-next';
+import { Sun, Moon } from '@lucide/vue';
 
 const isDark = ref(false);
 
@@ -12,7 +12,6 @@ const toggleDarkMode = () => {
 };
 
 onMounted(() => {
-  // Initialize on app load
   const userTheme = localStorage.getItem('theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
@@ -27,11 +26,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <Button 
-    @click="toggleDarkMode" 
-    severity="secondary" 
-    variant="text" 
-    rounded 
+  <Button
+    @click="toggleDarkMode"
+    severity="secondary"
+    variant="text"
+    rounded
     aria-label="Toggle Dark Mode"
   >
     <template #icon>

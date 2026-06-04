@@ -13,6 +13,7 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "@lucide/vue": "^1.17.0",
     "@primeuix/themes": "^2.0.3",
     "@tailwindcss/vite": "^4.3.0",
     "primevue": "^4.5.5",
