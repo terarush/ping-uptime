@@ -2,6 +2,8 @@ package app
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"ping-uptime/internal/pkg/bus"
 	"ping-uptime/internal/pkg/config"
 	"ping-uptime/internal/pkg/database"
@@ -100,17 +102,30 @@ func (a *App) Initialize() error {
 	// Initialize HTTP server
 	a.server = a.SetServer()
 
-	// api version
-	version := fmt.Sprintf("/api/v%s", config.GetString("API_VERSION"))
 
-	// Register routes for all modules
 	for _, module := range a.modules {
 		a.logger.Info("Registering routes for module: %s", module.Name())
-		module.RegisterRoutes(a.r, version)
+		module.RegisterRoutes(a.r, "/api")
 		a.logger.Info("Routes registered for module: %s", module.Name())
 	}
 
-	// append handler to server
+	// SPA handler: serve actual files if they exist,
+	// otherwise fall back to index.html so Vue Router handles the path.
+	// e.g: /dashboard, /profile, /about → serve static/index.html
+	//      /assets/main.js, /favicon.ico → serve the real file
+	a.r.GET("/*", func(c echo.Context) error {
+		urlPath := c.Param("*")
+		filePath := filepath.Join("static", urlPath)
+
+		// If the file physically exists → serve it directly
+		if info, err := os.Stat(filePath); err == nil && !info.IsDir() {
+			return c.File(filePath)
+		}
+
+		// Otherwise → return index.html, let Vue Router take over
+		return c.File("static/index.html")
+	})
+
 	a.server.Handler = a.r
 
 	a.logger.Info("Application initialization completed")

@@ -38,3 +38,9 @@ Thumbs.db
 .vscode/
 .idea/
 *.iml
+
+# Frontend build output (keep the directory, ignore built files)
+
+# Frontend build output
+static/*
+!static/.gitkeep
