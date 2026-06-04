@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"os"
 	"ping-uptime/internal/pkg/bus"
 	"ping-uptime/internal/pkg/config"
 	"ping-uptime/internal/pkg/database"
@@ -55,6 +56,11 @@ func (a *App) RegisterModule(module Module) {
 // Initialize initializes the application
 func (a *App) Initialize() error {
 	a.logger.Info("Initializing application...")
+
+	// Make sure local public directory exists
+	if err := os.MkdirAll("public", os.ModePerm); err != nil {
+		a.logger.Error("Failed to create public directory: %v", err)
+	}
 
 	// Initialize database
 	var err *error
@@ -122,6 +128,9 @@ func (a *App) Initialize() error {
 			"method":  c.Request().Method,
 		})
 	})
+
+	// Serve public static folder for uploaded files and external assets
+	a.r.Static("/public", "public")
 
 	// SPA handler: serve actual files if they exist in embedded FS,
 	// otherwise fall back to index.html so Vue Router handles the path.
