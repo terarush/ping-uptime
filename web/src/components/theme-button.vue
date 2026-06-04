@@ -1,40 +1,62 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { Sun, Moon } from '@lucide/vue';
+import { Button } from '@/components/ui/button';
 
-const isDark = ref(false);
+interface ThemeToggleProps {
+  variant?: 'default' | 'rounded';
+}
 
-const updateThemeClasses = (dark: boolean) => {
+withDefaults(defineProps<ThemeToggleProps>(), {
+  variant: 'default'
+});
+
+const theme = ref<'light' | 'dark'>('light');
+
+const updateThemeClasses = (currentTheme: 'light' | 'dark') => {
   const el = document.documentElement;
-  if (dark) {
-    el.classList.add('my-app-dark');
+  if (currentTheme === 'dark') {
+    el.classList.add('dark');
   } else {
-    el.classList.remove('my-app-dark');
+    el.classList.remove('dark');
   }
 };
 
-const toggleDarkMode = () => {
-  isDark.value = !isDark.value;
-  updateThemeClasses(isDark.value);
-  localStorage.setItem('theme', isDark.value ? 'dark' : 'light');
+const toggleTheme = () => {
+  theme.value = theme.value === 'dark' ? 'light' : 'dark';
+  updateThemeClasses(theme.value);
+  localStorage.setItem('theme', theme.value);
 };
 
 onMounted(() => {
-  const userTheme = localStorage.getItem('theme');
+  const savedTheme = localStorage.getItem('theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-  isDark.value = userTheme === 'dark' || (!userTheme && prefersDark);
-  updateThemeClasses(isDark.value);
+  
+  const initialTheme = savedTheme === 'dark' || (!savedTheme && prefersDark) ? 'dark' : 'light';
+  theme.value = initialTheme;
+  updateThemeClasses(initialTheme);
 });
 </script>
 
 <template>
-  <button
-    @click="toggleDarkMode"
-    class="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400 focus:outline-none"
-    aria-label="Toggle Dark Mode"
+  <Button
+    :variant="variant === 'rounded' ? 'ghost' : 'outline'"
+    :size="variant === 'rounded' ? 'icon' : 'default'"
+    aria-label="Toggle theme"
+    @click="toggleTheme"
+    :class="variant === 'rounded' ? 'rounded-full border p-2' : ''"
   >
-    <Sun v-if="isDark" class="w-5 h-5 text-yellow-500" />
-    <Moon v-else class="w-5 h-5 text-slate-700" />
-  </button>
+    <Sun
+      :class="[
+        'h-[1.2rem] w-[1.2rem] transition-all',
+        theme === 'dark' ? 'scale-0 rotate-90 absolute' : 'scale-100 rotate-0'
+      ]"
+    />
+    <Moon
+      :class="[
+        'h-[1.2rem] w-[1.2rem] transition-all',
+        theme === 'dark' ? 'scale-100 rotate-0' : 'scale-0 -rotate-90 absolute'
+      ]"
+    />
+  </Button>
 </template>
