@@ -1,9 +1,9 @@
-import { 
-  LayoutDashboard, 
-  Activity, 
-  Settings, 
-  Users, 
-  Bell, 
+import {
+  LayoutDashboard,
+  Activity,
+  Settings,
+  Users,
+  Bell,
   FileText,
   ShieldCheck
 } from '@lucide/vue';
@@ -26,12 +26,12 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Dashboard",
-        href: "/dashboard",
+        href: "/app",
         icon: LayoutDashboard,
       },
       {
         title: "Monitors",
-        href: "/dashboard/monitors",
+        href: "/app/monitors",
         icon: Activity,
         badge: "Live",
       },
@@ -42,12 +42,12 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Incident Logs",
-        href: "/dashboard/incidents",
+        href: "/app/incidents",
         icon: FileText,
       },
       {
         title: "Status Pages",
-        href: "/dashboard/status-pages",
+        href: "/app/status-pages",
         icon: ShieldCheck,
       },
     ],
@@ -57,17 +57,17 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Users",
-        href: "/dashboard/users",
+        href: "/app/users",
         icon: Users,
       },
       {
         title: "Notifications",
-        href: "/dashboard/settings/notifications",
+        href: "/app/settings/notifications",
         icon: Bell,
       },
       {
         title: "Settings",
-        href: "/dashboard/settings",
+        href: "/app/settings",
         icon: Settings,
       },
     ],

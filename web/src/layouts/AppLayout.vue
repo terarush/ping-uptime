@@ -9,14 +9,19 @@ import AvatarFallback from '@/components/ui/avatar/AvatarFallback.vue';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { sidebarContent } from '@/content/sidebar';
+import { siteConfig } from '@/content/config';
 
 const route = useRoute();
 
 const pageTitle = computed(() => {
   const path = route.path;
 
-  // 1. Try to find a match in the sidebarContent using normalized path (/app -> /dashboard)
-  const normalizedPath = path.replace(/^\/app/, '/dashboard');
+  const appPath = siteConfig.appPath || '/app';
+  const dashboardPath = siteConfig.dashboardPath || '/dashboard';
+
+  // Find a match in the sidebarContent using normalized path
+  const regex = new RegExp(`^${appPath.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}`);
+  const normalizedPath = path.replace(regex, dashboardPath);
   for (const group of sidebarContent) {
     const matchedItem = group.items.find(item => item.href === normalizedPath || item.href === path);
     if (matchedItem) {
@@ -24,22 +29,7 @@ const pageTitle = computed(() => {
     }
   }
 
-  // 2. Fallback: Parse path segments if no match is found in the config
-  if (!path || path === '/' || path === '/dashboard' || path === '/app') {
-    return 'Dashboard';
-  }
-
-  const segments = path.split('/').filter(s => s && s !== 'dashboard' && s !== 'app');
-  if (segments.length === 0) return 'Dashboard';
-
-  const formattedSegments = segments.map(segment => {
-    return segment
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  });
-
-  return formattedSegments.join(' / ');
+  return 'Dashboard';
 });
 </script>
 

@@ -13,6 +13,7 @@ import { useAuth } from '@/composables/useAuth';
 import { loginSchema, setupSchema } from '@/validations/auth';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { toTypedSchema } from '@vee-validate/zod';
+import { siteConfig } from '@/content/config';
 
 const router = useRouter();
 const { isAuthenticated, setSession } = useAuth();
@@ -92,7 +93,7 @@ onMounted(async () => {
   } else {
     // If the router guard already authenticated us, redirect to app directly
     if (isAuthenticated.value) {
-      router.push('/app');
+      router.push(siteConfig.appPath);
       return;
     }
   }
@@ -130,7 +131,7 @@ const onSubmit = async (values: any) => {
       if (accessToken && refreshToken && user) {
         setSession(accessToken, refreshToken, user);
         setTimeout(() => {
-          router.push('/app');
+          router.push(siteConfig.appPath);
         }, 800);
       } else {
         error.value = 'Setup succeeded, but auto-login failed. Please refresh and log in.';
@@ -149,7 +150,7 @@ const onSubmit = async (values: any) => {
         success.value = 'Login successful! Entering dashboard...';
         setSession(accessToken, refreshToken, user);
         setTimeout(() => {
-          router.push('/app');
+          router.push(siteConfig.appPath);
         }, 800);
       } else {
         error.value = 'Failed to retrieve login session.';
