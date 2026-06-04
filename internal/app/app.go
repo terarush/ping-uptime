@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"ping-uptime/internal/pkg/bus"
@@ -108,6 +109,17 @@ func (a *App) Initialize() error {
 		module.RegisterRoutes(a.r, "/api")
 		a.logger.Info("Routes registered for module: %s", module.Name())
 	}
+
+	// API 404 handler — must be registered AFTER all module routes.
+	// Any /api/* path that didn't match a real route returns JSON 404
+	// instead of falling through to the Vue SPA.
+	a.r.Any("/api/*", func(c echo.Context) error {
+		return c.JSON(http.StatusNotFound, map[string]interface{}{
+			"error":   "API endpoint not found",
+			"path":    c.Request().URL.Path,
+			"method":  c.Request().Method,
+		})
+	})
 
 	// SPA handler: serve actual files if they exist,
 	// otherwise fall back to index.html so Vue Router handles the path.
