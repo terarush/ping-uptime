@@ -26,16 +26,28 @@ func checkKey(key string) {
 	}
 }
 
-// GetString returns the value of an environment variable as a string.
-func GetString(key string) string {
-	checkKey(key)
-	return os.Getenv(key)
+// GetString returns the value of an environment variable as a string, with a fallback default.
+func GetString(key string, defaultValue ...string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		checkKey(key)
+	}
+	return val
 }
 
-// GetInt returns the value of an environment variable as an int.
-func GetInt(key string) int {
-	checkKey(key)
-	val, err := strconv.Atoi(os.Getenv(key))
+// GetInt returns the value of an environment variable as an int, with a fallback default.
+func GetInt(key string, defaultValue ...int) int {
+	valStr := os.Getenv(key)
+	if valStr == "" {
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		checkKey(key)
+	}
+	val, err := strconv.Atoi(valStr)
 	if err != nil {
 		log.Fatalf("Configuration key %s is not a valid integer: %v\n", key, err)
 		os.Exit(1)
@@ -43,10 +55,16 @@ func GetInt(key string) int {
 	return val
 }
 
-// GetBool returns the value of an environment variable as a bool.
-func GetBool(key string) bool {
-	checkKey(key)
-	val, err := strconv.ParseBool(os.Getenv(key))
+// GetBool returns the value of an environment variable as a bool, with a fallback default.
+func GetBool(key string, defaultValue ...bool) bool {
+	valStr := os.Getenv(key)
+	if valStr == "" {
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		checkKey(key)
+	}
+	val, err := strconv.ParseBool(valStr)
 	if err != nil {
 		log.Fatalf("Configuration key %s is not a valid boolean: %v\n", key, err)
 		os.Exit(1)
@@ -56,9 +74,7 @@ func GetBool(key string) bool {
 
 // GetJWTService returns a JWT service using the signature key from the environment.
 func GetJWTService() jwt.JWT {
-	signatureKey := GetString("JWT_SIGNATURE_KEY")
-	if signatureKey == "" {
-		panic("JWT signature key not found in configuration")
-	}
-	return jwt.NewJWTImpl(signatureKey, 7)
+	signatureKey := GetString("JWT_SIGNATURE_KEY", "4WSRLWxJdm")
+	jwtExpiredDays := GetInt("JWT_DAY_EXPIRED", 60)
+	return jwt.NewJWTImpl(signatureKey, jwtExpiredDays)
 }
