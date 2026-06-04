@@ -49,7 +49,7 @@ const pageTitle = computed(() => {
 
           <!-- User Profile & Quick Actions -->
           <div class="flex items-center gap-4">
-            <div class="flex flex-col text-right hidden sm:flex">
+            <div class="flex flex-col text-right sm:flex">
               <span class="text-xs font-bold text-foreground">Administrator</span>
               <span class="text-[10px] text-muted-foreground">admin@ping-uptime.com</span>
             </div>

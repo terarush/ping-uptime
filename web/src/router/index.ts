@@ -1,25 +1,24 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Index from '@/views/Index.vue'
-import DashboardLayout from '@/layouts/DashboardLayout.vue'
-import DashboardIndex from '@/views/dashboard/Index.vue'
+import AppIndex from '@/views/app/Index.vue'
+import AppLayout from '@/layouts/AppLayout.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      redirect: '/dashboard',
+      component: Index,
     },
     {
-      path: '/dashboard',
-      component: DashboardLayout,
+      path: '/app',
+      component: AppLayout,
       children: [
         {
           path: '',
-          name: 'dashboard',
-          component: DashboardIndex,
+          name: 'app',
+          component: AppIndex,
         },
-
       ],
     },
     // {

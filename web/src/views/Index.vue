@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import ThemeButton from '@/components/theme-button.vue'
+import Navbar from "@/components/navbar.vue"
 </script>
 
 <template>
-  <div>
-    <h1>hello world</h1>
-    <ThemeButton />
-  </div>
+  <Navbar />
 </template>
