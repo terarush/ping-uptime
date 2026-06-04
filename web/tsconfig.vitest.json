@@ -7,6 +7,7 @@
   "exclude": [],
 
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     // Vitest runs in a different environment than the application code.
     // Adjust lib and types accordingly.
     "lib": [],
