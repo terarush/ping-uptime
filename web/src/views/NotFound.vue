@@ -15,20 +15,20 @@ const goBack = () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-surface-50 p-6">
-    <div class="max-w-md w-full text-center space-y-8 bg-surface-0 p-8 rounded-2xl shadow-xl border border-surface-100">
+  <div class="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-950 p-6 transition-colors duration-300">
+    <div class="max-w-md w-full text-center space-y-8 bg-surface-0 dark:bg-surface-900 p-8 rounded-2xl shadow-xl border border-surface-100 dark:border-surface-800 transition-all duration-300">
       <!-- Icon & Number -->
       <div class="relative flex justify-center">
         <div class="absolute inset-0 bg-primary/10 rounded-full blur-2xl w-24 h-24 mx-auto"></div>
-        <div class="relative w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+        <div class="relative w-20 h-20 rounded-2xl bg-primary/10 dark:bg-primary/5 flex items-center justify-center border border-primary/20 dark:border-primary/90">
           <FileQuestion class="w-10 h-10 text-primary" />
         </div>
       </div>
 
       <div class="space-y-3">
-        <h1 class="text-7xl font-black text-surface-900 tracking-tight">404</h1>
-        <h2 class="text-xl font-bold text-surface-700">Page Not Found</h2>
-        <p class="text-surface-500 text-sm max-w-xs mx-auto">
+        <h1 class="text-7xl font-black text-surface-900 dark:text-surface-0 tracking-tight">404</h1>
+        <h2 class="text-xl font-bold text-surface-700 dark:text-surface-200">Page Not Found</h2>
+        <p class="text-surface-500 dark:text-surface-400 text-sm max-w-xs mx-auto">
           The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
         </p>
       </div>
