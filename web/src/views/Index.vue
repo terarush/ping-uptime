@@ -51,30 +51,49 @@ const runEntryAnimations = () => {
     { opacity: 0, y: -10 },
     { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: 0.7 }
   );
+
+  if (isSetupMode.value) {
+    gsap.fromTo('.setup-banner',
+      { opacity: 0, y: -20, scale: 0.95 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: 'back.out(1.5)', delay: 0.4 }
+    );
+
+    gsap.fromTo('.setup-banner-icon',
+      { scale: 0.9 },
+      { scale: 1.15, repeat: -1, yoyo: true, duration: 1.2, ease: 'sine.inOut', delay: 1.0 }
+    );
+  }
 };
 
 onMounted(async () => {
-  // 1. Check if user is already authenticated via cookie
-  const token = Cookies.get('accessToken');
-  if (token) {
-    router.push('/app');
-    return;
-  }
+  let isSetup = false;
 
-  // 2. Query Setup Status from the backend
+  // 1. Query Setup Status from the backend first
   try {
     const response = await ExtendedFetch.get('/auth/setup-status');
-    const isSetup = response.data?.data?.is_setup;
+    isSetup = response.data?.data?.is_setup;
     isSetupMode.value = !isSetup; // Show setup if not yet setup
   } catch (err) {
     console.error('Failed to query setup status:', err);
     // Default to login mode if API fails or is unreachable
     isSetupMode.value = false;
-  } finally {
-    checkingAuth.value = false;
-    // Delay slightly to allow the DOM to render before animating
-    setTimeout(runEntryAnimations, 50);
+    isSetup = true; // assume setup is done so we check login
   }
+
+  // 2. Clear stale cookies if setup is still required; otherwise, redirect if logged in
+  if (!isSetup) {
+    Cookies.remove('accessToken');
+  } else {
+    const token = Cookies.get('accessToken');
+    if (token) {
+      router.push('/app');
+      return;
+    }
+  }
+
+  checkingAuth.value = false;
+  // Delay slightly to allow the DOM to render before animating
+  setTimeout(runEntryAnimations, 50);
 });
 
 // Submit Authentication / Setup Request
@@ -197,8 +216,8 @@ const triggerShake = () => {
       </div>
 
       <!-- Setup Notice Banner -->
-      <div v-if="isSetupMode" class="w-full p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl flex gap-3 text-xs leading-relaxed animate-[fadeIn_0.3s_ease-out]">
-        <ShieldAlert class="h-5 w-5 shrink-0 mt-0.5" />
+      <div v-if="isSetupMode" class="setup-banner w-full p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl flex gap-3 text-xs leading-relaxed opacity-0">
+        <ShieldAlert class="setup-banner-icon h-5 w-5 shrink-0 mt-0.5 text-amber-500" />
         <div>
           <span class="font-bold block">First-Time Setup Required</span>
           There are no accounts registered on this instance. Create the initial administrator account below.
