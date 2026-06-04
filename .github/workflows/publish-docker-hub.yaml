@@ -1,7 +1,8 @@
 name: Publish to Docker Hub
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - main
   release:
@@ -12,7 +13,8 @@ jobs:
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
-    environment: buiild
+    environment: build
+    if: github.event_name == 'release' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
 
     steps:
       - name: Checkout repository
