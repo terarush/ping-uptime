@@ -158,13 +158,53 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+// Verify verifies the authenticated user's token and returns user details
+func (h *UserHandler) Verify(c echo.Context) error {
+	ctx := c.Request().Context()
+	userClaims, ok := c.Get("user").(map[string]interface{})
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
+
+	userIDVal, ok := userClaims["user_id"]
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token payload: user_id missing"})
+	}
+
+	var userID uint
+	switch v := userIDVal.(type) {
+	case float64:
+		userID = uint(v)
+	case int64:
+		userID = uint(v)
+	case int:
+		userID = uint(v)
+	default:
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token payload: invalid user_id type"})
+	}
+
+	user, err := h.userService.GetUserByID(ctx, userID)
+	if err != nil {
+		if err == service.ErrUserNotFound {
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "User not found"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, response.FromEntity(user))
+}
+
 // RegisterRoutes registers the user routes
 func (h *UserHandler) RegisterRoutes(e *echo.Echo, basePath string) {
-	group := e.Group(basePath+"/users", middleware.Auth)
+	// Standard auth validation route accessible to any valid session
+	authGroup := e.Group(basePath+"/users", middleware.Auth)
+	authGroup.GET("/verify", h.Verify)
 
-	group.GET("", h.GetAllUsers)
-	group.GET("/:id", h.GetUser)
-	group.POST("", h.CreateUser)
-	group.PUT("/:id", h.UpdateUser)
-	group.DELETE("/:id", h.DeleteUser)
+	// Restricted admin-only routes
+	adminGroup := e.Group(basePath+"/users", middleware.Auth, middleware.Admin)
+	adminGroup.GET("", h.GetAllUsers)
+	adminGroup.GET("/:id", h.GetUser)
+	adminGroup.POST("", h.CreateUser)
+	adminGroup.PUT("/:id", h.UpdateUser)
+	adminGroup.DELETE("/:id", h.DeleteUser)
 }
