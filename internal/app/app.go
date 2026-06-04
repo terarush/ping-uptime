@@ -184,14 +184,7 @@ func (a *App) Start() {
 func (a *App) SetDatabase() *database.DBModel {
 	return &database.DBModel{
 		ServerMode:   config.GetString("SERVER_MODE"),
-		Driver:       config.GetString("DB_DRIVER"),
-		Host:         config.GetString("DB_HOST"),
-		Port:         config.GetString("DB_PORT"),
-		Name:         config.GetString("DB_NAME"),
-		Username:     config.GetString("DB_USERNAME"),
-		Password:     config.GetString("DB_PASSWORD"),
-		MaxIdleConn:  config.GetInt("POOL_CONN_IDLE", 200),
-		MaxOpenConn:  config.GetInt("POOL_CONN_MAX", 300),
+		Name:         config.GetString("DB_NAME", "ping-uptime"),
 		ConnLifeTime: config.GetInt("POOL_CONN_LIFETIME", 60),
 	}
 }

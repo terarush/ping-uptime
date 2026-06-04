@@ -4,51 +4,49 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
-	"gorm.io/driver/mysql"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 var (
-	DB             *gorm.DB
-	POSGRES_CONFIG = "user=%s password=%s dbname=%s host=%s port=%s sslmode=%s"
-	MYSQL_CONFIG   = "%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local"
+	DB *gorm.DB
 )
 
 type DBModel struct {
 	ServerMode   string `config:"server_mode"`
-	Driver       string `config:"db_driver"`
-	Host         string `config:"db_host"`
-	Port         string `config:"db_port"`
 	Name         string `config:"db_name"`
-	Username     string `config:"db_username"`
-	Password     string `config:"db_password"`
-	MaxIdleConn  int    `config:"conn_idle"`
-	MaxOpenConn  int    `config:"conn_max"`
 	ConnLifeTime int    `config:"conn_lifetime"`
 }
 
 func (c *DBModel) OpenDB() (*gorm.DB, *error) {
-
-	var connection gorm.Dialector
-
-	switch c.Driver {
-	case "postgres":
-		connectionUrl := fmt.Sprintf(POSGRES_CONFIG, c.Username, c.Password, c.Name, c.Host, c.Port, "disable")
-		connection = postgres.Open(connectionUrl)
-	case "mysql":
-		connectionUrl := fmt.Sprintf(MYSQL_CONFIG, c.Username, c.Password, c.Host, c.Port, c.Name)
-		connection = mysql.Open(connectionUrl)
-	default:
-		log.Fatal("No Database Selected!, Please check config.toml")
-		os.Exit(1)
+	dbPath := c.Name
+	if dbPath == "" {
+		dbPath = "ping-uptime"
 	}
+	// Append .db extension if no extension is present
+	if filepath.Ext(dbPath) == "" {
+		dbPath = dbPath + ".db"
+	}
+
+	// Make sure parent directory exists if a custom path is specified
+	dir := filepath.Dir(dbPath)
+	if dir != "." && dir != "/" {
+		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+			log.Fatalf("Cannot create directory for SQLite database: %s", err.Error())
+			return nil, &err
+		}
+	}
+
+	// Enable WAL mode and busy timeout to handle concurrent read/writes smoothly
+	dsn := fmt.Sprintf("%s?_journal_mode=WAL&_busy_timeout=5000", dbPath)
+	connection := sqlite.Open(dsn)
 
 	db, err := gorm.Open(connection, &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Cannot Connect to DB With Message %s", err.Error())
+		log.Fatalf("Cannot Connect to SQLite DB With Message %s", err.Error())
 		return nil, &err
 	}
 
@@ -58,16 +56,9 @@ func (c *DBModel) OpenDB() (*gorm.DB, *error) {
 		return nil, &err
 	}
 
-	/** SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
-	**/
-	conPool.SetMaxIdleConns(c.MaxIdleConn)
-
-	/** SetMaxOpenConns sets the maximum number of open connections to the database.
-	**/
-	conPool.SetMaxOpenConns(c.MaxOpenConn)
-
-	/** SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
-	**/
+	// Optimize connection pool for SQLite
+	conPool.SetMaxIdleConns(2)
+	conPool.SetMaxOpenConns(5)
 	conPool.SetConnMaxLifetime(time.Duration(c.ConnLifeTime) * time.Minute)
 
 	return db, nil
