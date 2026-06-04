@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"ping-uptime/internal/pkg/utils"
 	"ping-uptime/modules/users/domain/entity"
 	"ping-uptime/modules/users/domain/repository"
 )
@@ -42,20 +43,24 @@ func (s *UserService) GetUserByID(ctx context.Context, id uint) (*entity.User, e
 	return user, nil
 }
 
-// CreateUser creates a new user
+// CreateUser creates a new user and hashes the password
 func (s *UserService) CreateUser(ctx context.Context, user *entity.User) error {
-	// existingUser, err := s.userRepo.FindByEmail(ctx, user.Email)
-	// if err != nil && err != repository.ERR_RECORD_NOT_FOUND {
-	// 	return err
-	// }
-	// if existingUser != nil {
-	// 	return ErrEmailAlreadyUsed
-	// }
+	existingUser, err := s.userRepo.FindByEmail(ctx, user.Email)
+	if err == nil && existingUser != nil {
+		return ErrEmailAlreadyUsed
+	}
 
-	return s.userRepo.Create(ctx, user) //
+	// Hash password
+	hashedPassword, err := utils.HashPassword(user.Password)
+	if err != nil {
+		return err
+	}
+	user.Password = hashedPassword
+
+	return s.userRepo.Create(ctx, user)
 }
 
-// UpdateUser updates a user
+// UpdateUser updates a user and hashes the password if changed
 func (s *UserService) UpdateUser(ctx context.Context, user *entity.User) error {
 	existingUser, err := s.userRepo.FindByID(ctx, user.ID)
 	if err != nil {
@@ -63,6 +68,15 @@ func (s *UserService) UpdateUser(ctx context.Context, user *entity.User) error {
 	}
 	if existingUser == nil {
 		return ErrUserNotFound
+	}
+
+	// Only hash if password was updated and is not already hashed
+	if user.Password != "" && user.Password != existingUser.Password {
+		hashedPassword, err := utils.HashPassword(user.Password)
+		if err != nil {
+			return err
+		}
+		user.Password = hashedPassword
 	}
 
 	return s.userRepo.Update(ctx, user)

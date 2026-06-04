@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"ping-uptime/internal/pkg/bus"
+	"ping-uptime/internal/pkg/database"
 	"ping-uptime/internal/pkg/jwt"
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/internal/pkg/utils"
@@ -94,9 +95,27 @@ func (h *AuthHandler) SetupStatus(c echo.Context) error {
 		return h.r.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
+	var settings []struct {
+		Key   string
+		Value string
+	}
+	_ = database.DB.WithContext(c.Request().Context()).Table("settings").Where("key IN ?", []string{"system_name", "allow_registration"}).Find(&settings).Error
+
+	systemName := "ping-uptime"
+	allowRegistration := "true"
+	for _, s := range settings {
+		if s.Key == "system_name" {
+			systemName = s.Value
+		} else if s.Key == "allow_registration" {
+			allowRegistration = s.Value
+		}
+	}
+
 	// Setup is done if setup is NOT needed
 	return h.r.SuccessResponse(c, map[string]interface{}{
-		"is_setup": !isSetupNeeded,
+		"is_setup":           !isSetupNeeded,
+		"system_name":        systemName,
+		"allow_registration": allowRegistration == "true",
 	}, "Setup status retrieved successfully")
 }
 
@@ -218,6 +237,48 @@ func (h *AuthHandler) Refresh(c echo.Context) error {
 	}, "Token refreshed successfully")
 }
 
+// Register handles public user registration.
+func (h *AuthHandler) Register(c echo.Context) error {
+	h.log.Info("Handling public registration request")
+
+	req := new(request.CreateUserRequest)
+	if err := c.Bind(req); err != nil {
+		h.log.Error("Failed to bind request:", err)
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	if err := c.Validate(req); err != nil {
+		h.log.Error("Validation failed:", err)
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	h.log.Debug("Request validated successfully:", req)
+
+	user := entity.NewUser(req.Name, req.Email, req.Password)
+	user.Role = "user"
+
+	err := h.authService.Register(c.Request().Context(), user)
+	if err != nil {
+		if err == service.ErrEmailAlreadyUsed {
+			h.log.Warn("Email already in use:", req.Email)
+			return h.r.ErrorResponse(c, http.StatusConflict, "Email already in use")
+		}
+		if err == service.ErrRegistrationDisabled {
+			h.log.Warn("Registration is disabled by administrator")
+			return h.r.ErrorResponse(c, http.StatusForbidden, "Registration is disabled by administrator")
+		}
+		h.log.Error("Failed to register user:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	h.log.Debug("User registered successfully:", user)
+	h.event.Publish(bus.Event{Type: "user.created", Payload: user})
+
+	return h.r.SuccessResponse(c, map[string]interface{}{
+		"user": response.FromEntity(user),
+	}, "Registered successfully")
+}
+
 // RegisterRoutes sets up the auth routes.
 func (h *AuthHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group := e.Group(basePath + "/auth")
@@ -225,4 +286,5 @@ func (h *AuthHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group.POST("/setup", h.Setup)
 	group.POST("/login", h.Login)
 	group.POST("/refresh", h.Refresh)
+	group.POST("/register", h.Register)
 }

@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useAuth } from '@/composables/useAuth';
-import ExtendedFetch from '@/lib/fetch';
+import { useUsers, type User } from '@/composables/useUsers';
+import { userSchema } from '@/validations/user';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import UserTable from '@/components/user-table.vue';
 import {
   Dialog,
   DialogContent,
@@ -18,42 +17,34 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  Users,
+  Users as UsersIcon,
   UserPlus,
-  Trash2,
-  Edit,
-  Mail,
-  Search,
   Lock,
   Loader2,
-  Shield,
-  UserCheck,
+  Search,
   ShieldAlert,
-  UserX,
-  Plus
+  UserCheck,
+  UserX
 } from '@lucide/vue';
 import gsap from 'gsap';
-
-// Types
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  is_blocked: boolean;
-  avatar?: string;
-  created_at: string;
-}
-
-// Refs & States
-const users = ref<User[]>();
-const loading = ref(true);
-const searchQuery = ref('');
-const error = ref('');
-const success = ref('');
+import { toast } from 'vue-sonner';
 
 // Current logged in user (to prevent self-deletion or self-blocking)
 const { currentUser } = useAuth();
+
+// Use external Users composable
+const {
+  users,
+  loading,
+  error,
+  fetchUsersData,
+  createUser,
+  updateUser,
+  deleteUser
+} = useUsers();
+
+const searchQuery = ref('');
+const success = ref('');
 
 // Dialog states
 const isFormDialogOpen = ref(false);
@@ -70,19 +61,13 @@ const formIsBlocked = ref(false);
 
 const isEditMode = computed(() => !!actionUser.value);
 
-// Fetch all users
-const fetchUsers = async () => {
-  loading.value = true;
-  error.value = '';
+// Fetch all users with animation callback
+const fetchAll = async () => {
   try {
-    const response = await ExtendedFetch.get('/users');
-    // Ensure we parse correctly depending on standardized response wrapper
-    users.value = response.data?.data || response.data || [];
-  } catch (err: any) {
-    console.error('Failed to fetch users:', err);
-    error.value = err.response?.data?.error || 'Failed to load user accounts.';
+    await fetchUsersData();
+  } catch (err) {
+    console.error('Failed to load users:', err);
   } finally {
-    loading.value = false;
     setTimeout(animateTableRows, 50);
   }
 };
@@ -140,37 +125,48 @@ const handleFormSubmit = async () => {
   success.value = '';
   formLoading.value = true;
 
+  const rawPayload: any = {
+    name: formName.value,
+    email: formEmail.value,
+    role: formRole.value,
+    is_blocked: formIsBlocked.value,
+    password: formPassword.value || undefined,
+  };
+
+  // Perform client-side Zod validation
+  const validation = userSchema.safeParse(rawPayload);
+  if (!validation.success) {
+    const firstError = validation.error.errors[0]?.message || 'Validation failed';
+    toast.error(firstError);
+    error.value = firstError;
+    formLoading.value = false;
+    return;
+  }
+
   try {
-    const payload: any = {
-      name: formName.value,
-      email: formEmail.value,
-      role: formRole.value,
-      is_blocked: formIsBlocked.value,
-    };
-
-    if (formPassword.value) {
-      payload.password = formPassword.value;
-    }
-
     if (isEditMode.value && actionUser.value) {
-      await ExtendedFetch.put(`/users/${actionUser.value.id}`, payload);
+      await updateUser(actionUser.value.id, rawPayload);
+      toast.success(`User "${formName.value}" updated successfully!`);
       success.value = `User "${formName.value}" updated successfully!`;
     } else {
       if (!formPassword.value) {
         error.value = 'Password is required for new users.';
+        toast.error('Password is required for new users.');
         formLoading.value = false;
         return;
       }
-      payload.password = formPassword.value;
-      await ExtendedFetch.post('/users', payload);
+      await createUser(rawPayload);
+      toast.success(`User "${formName.value}" created successfully!`);
       success.value = `User "${formName.value}" created successfully!`;
     }
 
     isFormDialogOpen.value = false;
-    await fetchUsers();
+    await fetchAll();
   } catch (err: any) {
     console.error('Failed to save user:', err);
-    error.value = err.response?.data?.error || 'Failed to save user data.';
+    const msg = err.response?.data?.error || 'Failed to save user data.';
+    toast.error(msg);
+    error.value = msg;
   } finally {
     formLoading.value = false;
   }
@@ -183,13 +179,16 @@ const handleDeleteConfirm = async () => {
   formLoading.value = true;
 
   try {
-    await ExtendedFetch.delete(`/users/${actionUser.value.id}`);
+    await deleteUser(actionUser.value.id);
+    toast.success(`User "${actionUser.value.name}" deleted successfully!`);
     success.value = `User "${actionUser.value.name}" deleted successfully!`;
     isDeleteDialogOpen.value = false;
-    await fetchUsers();
+    await fetchAll();
   } catch (err: any) {
     console.error('Failed to delete user:', err);
-    error.value = err.response?.data?.error || 'Failed to delete user.';
+    const msg = err.response?.data?.error || 'Failed to delete user.';
+    toast.error(msg);
+    error.value = msg;
   } finally {
     formLoading.value = false;
   }
@@ -204,7 +203,7 @@ const animateTableRows = () => {
 };
 
 onMounted(() => {
-  fetchUsers();
+  fetchAll();
   gsap.fromTo('.ambient-orb',
     { opacity: 0, scale: 0.8 },
     { opacity: 0.6, scale: 1, duration: 2.5, ease: 'power3.out' }
@@ -213,7 +212,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="relative p-8 space-y-8 max-w-400 mx-auto min-h-[calc(100vh-4rem)]">
+  <div class="relative p-8 space-y-8 max-w-7xl mx-auto min-h-[calc(100vh-4rem)]">
     <!-- Ambient Background Orb -->
     <div class="ambient-orb absolute top-[-5%] right-[-5%] w-[45%] h-[45%] rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-[100px] pointer-events-none"></div>
 
@@ -221,7 +220,7 @@ onMounted(() => {
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 z-10 relative">
       <div>
         <h2 class="text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
-          <Users class="w-6 h-6 text-primary" />
+          <UsersIcon class="w-6 h-6 text-primary" />
           <span>User Accounts</span>
         </h2>
         <p class="text-xs text-muted-foreground">Manage administrator permissions and dashboard access accounts.</p>
@@ -269,7 +268,7 @@ onMounted(() => {
         </div>
 
         <!-- Loading Skeleton -->
-        <div v-if="loading" class="p-8 space-y-4">
+        <div v-if="loading && users.length === 0" class="p-8 space-y-4">
           <div v-for="n in 3" :key="n" class="flex items-center space-x-4">
             <div class="h-10 w-10 rounded-full bg-muted animate-pulse"></div>
             <div class="space-y-2 flex-1">
@@ -287,89 +286,14 @@ onMounted(() => {
           <p class="text-xs text-muted-foreground max-w-64">No user records matched your criteria or search query.</p>
         </div>
 
-        <!-- User Table -->
-        <Table v-else>
-          <TableHeader>
-            <TableRow>
-              <TableHead class="w-14"></TableHead>
-              <TableHead class="text-xs font-bold uppercase text-muted-foreground">User</TableHead>
-              <TableHead class="text-xs font-bold uppercase text-muted-foreground">Role</TableHead>
-              <TableHead class="text-xs font-bold uppercase text-muted-foreground">Status</TableHead>
-              <TableHead class="text-xs font-bold uppercase text-muted-foreground text-right pr-6">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="user in filteredUsers" :key="user.id" class="user-row hover:bg-muted/40 transition-colors">
-              <!-- Avatar -->
-              <TableCell class="py-4 pl-6">
-                <Avatar class="h-9 w-9 ring-1 ring-primary/10">
-                  <AvatarImage :src="user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`" alt="Avatar" />
-                  <AvatarFallback class="font-bold text-xs uppercase">{{ user.name.slice(0, 2) }}</AvatarFallback>
-                </Avatar>
-              </TableCell>
-
-              <!-- Profile Details -->
-              <TableCell class="py-4">
-                <div class="flex flex-col gap-0.5">
-                  <span class="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    {{ user.name }}
-                    <Badge v-if="currentUser && currentUser.id === user.id" variant="secondary" class="text-[9px] font-bold px-1 py-0 h-4 bg-muted text-muted-foreground">You</Badge>
-                  </span>
-                  <span class="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Mail class="w-2.5 h-2.5" />
-                    {{ user.email }}
-                  </span>
-                </div>
-              </TableCell>
-
-              <!-- Role Badge -->
-              <TableCell class="py-4">
-                <Badge variant="outline" :class="[
-                  'text-[10px] font-bold py-0.5 px-2 border/50',
-                  user.role === 'admin'
-                    ? 'bg-primary/5 text-primary border-primary/20'
-                    : 'bg-muted text-muted-foreground border-border'
-                ]">
-                  <Shield v-if="user.role === 'admin'" class="w-2.5 h-2.5 inline mr-1" />
-                  {{ user.role === 'admin' ? 'Administrator' : 'Standard User' }}
-                </Badge>
-              </TableCell>
-
-              <!-- Status Badge -->
-              <TableCell class="py-4">
-                <Badge variant="outline" :class="[
-                  'text-[10px] font-bold py-0.5 px-2 border/50',
-                  user.is_blocked
-                    ? 'bg-destructive/5 text-destructive border-destructive/20'
-                    : 'bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                ]">
-                  {{ user.is_blocked ? 'Blocked' : 'Active' }}
-                </Badge>
-              </TableCell>
-
-              <!-- Action Menu -->
-              <TableCell class="py-4 text-right pr-6">
-                <div class="flex items-center justify-end gap-1.5">
-                  <!-- Edit Action -->
-                  <Button @click="openEditDialog(user)" size="icon" variant="ghost" class="h-8 w-8 text-muted-foreground hover:text-foreground">
-                    <Edit class="w-4 h-4" />
-                  </Button>
-
-                  <!-- Delete Action (Disabled for logged-in user itself) -->
-                  <Button
-                    @click="openDeleteDialog(user)"
-                    size="icon"
-                    variant="ghost"
-                    class="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    :disabled="currentUser && currentUser.id === user.id"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <!-- User Table Component -->
+        <UserTable
+          v-else
+          :users="filteredUsers"
+          :current-user="currentUser"
+          @edit="openEditDialog"
+          @delete="openDeleteDialog"
+        />
       </CardContent>
     </Card>
 
