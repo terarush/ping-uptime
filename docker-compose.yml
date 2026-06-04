@@ -1,48 +1,50 @@
-version: "3.8"
-
 services:
-  backend_modules:
-    container_name: backend_modules
+  app:
+    container_name: ping-uptime
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "9000:9000"
-    restart: always
-    links:
-      - db
-    networks:
-      - infrastructure
+      - "${PORT:-8080}:8080"
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+    restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - ping-net
 
-  db:
+  database:
     image: mysql:8.0
-    container_name: db
-    restart: always
+    container_name: ping-uptime-db
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: root_admin
-      MYSQL_DATABASE: backend_modules
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
       TZ: "Asia/Jakarta"
     ports:
-      - "3307:3306"
+      - "${DB_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - infrastructure
+      - ping-net
     healthcheck:
-      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot_admin || exit 1" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-secret}"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 30s
 
 volumes:
   mysql_data:
 
-
 networks:
-  infrastructure:
+  ping-net:
     driver: bridge

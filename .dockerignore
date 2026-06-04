@@ -1,34 +1,45 @@
-# Ignore Terraform state files
+# Git
+.git/
+.gitignore
+
+# Terraform
 *.tfstate
 *.tfstate.*
-
-# Ignore Terraform override files
 *.tfvars
 *.tfvars.json
-
-# Ignore Terraform local directories
 .terraform/
+*.tfplan
+*.backup
+*.hcl
 
-# Ignore local development files and directories
+# Local dev files
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+*.iml
 
-# Ignore log files
+# Logs
 *.log
+logs/
 
-# Ignore build directories
-build/
-dist/
-node_modules/
-
-# Ignore credentials and sensitive files
+# Sensitive files
 .env
 *.pem
 *.key
 
-# Ignore Docker-related temporary files
+# Frontend — node_modules rebuilt inside Docker
+web/node_modules/
+
+# Build output — rebuilt inside Docker
+static/
+build/
+dist/
+
+# Docker temp files
 Dockerfile~
 *.dockerfile~
 docker-compose.override.yml
+
+# Go binary
+main
