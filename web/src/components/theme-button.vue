@@ -5,23 +5,27 @@ import { Sun, Moon } from '@lucide/vue';
 
 const isDark = ref(false);
 
+const updateThemeClasses = (dark: boolean) => {
+  const el = document.documentElement;
+  if (dark) {
+    el.classList.add('my-app-dark', 'p-dark');
+  } else {
+    el.classList.remove('my-app-dark', 'p-dark');
+  }
+};
+
 const toggleDarkMode = () => {
-  const isDarkVal = document.documentElement.classList.toggle('my-app-dark');
-  isDark.value = isDarkVal;
-  localStorage.setItem('theme', isDarkVal ? 'dark' : 'light');
+  isDark.value = !isDark.value;
+  updateThemeClasses(isDark.value);
+  localStorage.setItem('theme', isDark.value ? 'dark' : 'light');
 };
 
 onMounted(() => {
   const userTheme = localStorage.getItem('theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-  if (userTheme === 'dark' || (!userTheme && prefersDark)) {
-    document.documentElement.classList.add('my-app-dark');
-    isDark.value = true;
-  } else {
-    document.documentElement.classList.remove('my-app-dark');
-    isDark.value = false;
-  }
+  isDark.value = userTheme === 'dark' || (!userTheme && prefersDark);
+  updateThemeClasses(isDark.value);
 });
 </script>
 
