@@ -29,7 +29,7 @@ type App struct {
 
 // NewApp creates a new application
 func NewApp(cfg *logger.Config) (*App, error) {
-	appLogger, err := logger.NewLogger(*cfg, config.GetString("APP_NAME"))
+	appLogger, err := logger.NewLogger(*cfg, config.GetString("APP_NAME", "ping-uptime"))
 	if err != nil {
 		return nil, err
 	}
@@ -165,17 +165,17 @@ func (a *App) SetDatabase() *database.DBModel {
 		Name:         config.GetString("DB_NAME"),
 		Username:     config.GetString("DB_USERNAME"),
 		Password:     config.GetString("DB_PASSWORD"),
-		MaxIdleConn:  config.GetInt("POOL_CONN_IDLE"),
-		MaxOpenConn:  config.GetInt("POOL_CONN_MAX"),
-		ConnLifeTime: config.GetInt("POOL_CONN_LIFETIME"),
+		MaxIdleConn:  config.GetInt("POOL_CONN_IDLE", 200),
+		MaxOpenConn:  config.GetInt("POOL_CONN_MAX", 300),
+		ConnLifeTime: config.GetInt("POOL_CONN_LIFETIME", 60),
 	}
 }
 
 // Setup Web Server
 func (a *App) SetServer() *server.ServerContext {
 	return &server.ServerContext{
-		Host:         ":" + config.GetString("PORT"),
-		ReadTimeout:  time.Duration(config.GetInt("HTTP_TIMEOUT")),
-		WriteTimeout: time.Duration(config.GetInt("HTTP_TIMEOUT")),
+		Host:         ":" + config.GetString("PORT", "8080"),
+		ReadTimeout:  time.Duration(config.GetInt("HTTP_TIMEOUT", 60)),
+		WriteTimeout: time.Duration(config.GetInt("HTTP_TIMEOUT", 60)),
 	}
 }

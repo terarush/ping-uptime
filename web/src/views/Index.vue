@@ -1,0 +1,326 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, ShieldAlert } from '@lucide/vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import ThemeButton from '@/components/theme-button.vue';
+import ExtendedFetch from '@/lib/fetch';
+import Cookies from 'js-cookie';
+import gsap from 'gsap';
+
+const router = useRouter();
+
+// Form States
+const name = ref('');
+const email = ref('');
+const password = ref('');
+const showPassword = ref(false);
+
+// UI & Logic States
+const isSetupMode = ref(false); // If true, first-time setup is active
+const checkingAuth = ref(true);
+const loading = ref(false);
+const error = ref('');
+const success = ref('');
+
+// Trigger GSAP entry animations on load
+const runEntryAnimations = () => {
+  gsap.fromTo('.ambient-orb-1',
+    { opacity: 0, scale: 0.6 },
+    { opacity: 0.6, scale: 1, duration: 2, ease: 'power3.out' }
+  );
+
+  gsap.fromTo('.ambient-orb-2',
+    { opacity: 0, scale: 0.6 },
+    { opacity: 0.5, scale: 1, duration: 2.2, ease: 'power3.out', delay: 0.2 }
+  );
+
+  gsap.fromTo('.login-logo',
+    { opacity: 0, y: -30 },
+    { opacity: 1, y: 0, duration: 0.8, ease: 'back.out(1.5)', delay: 0.3 }
+  );
+
+  gsap.fromTo('.login-card',
+    { opacity: 0, y: 40, scale: 0.95 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: 'power4.out', delay: 0.5 }
+  );
+
+  gsap.fromTo('.theme-toggle-container',
+    { opacity: 0, y: -10 },
+    { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: 0.7 }
+  );
+
+  if (isSetupMode.value) {
+    gsap.fromTo('.setup-banner',
+      { opacity: 0, y: -20, scale: 0.95 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: 'back.out(1.5)', delay: 0.4 }
+    );
+
+    gsap.fromTo('.setup-banner-icon',
+      { scale: 0.9 },
+      { scale: 1.15, repeat: -1, yoyo: true, duration: 1.2, ease: 'sine.inOut', delay: 1.0 }
+    );
+  }
+};
+
+onMounted(async () => {
+  let isSetup = false;
+
+  // 1. Query Setup Status from the backend first
+  try {
+    const response = await ExtendedFetch.get('/auth/setup-status');
+    isSetup = response.data?.data?.is_setup;
+    isSetupMode.value = !isSetup; // Show setup if not yet setup
+  } catch (err) {
+    console.error('Failed to query setup status:', err);
+    // Default to login mode if API fails or is unreachable
+    isSetupMode.value = false;
+    isSetup = true; // assume setup is done so we check login
+  }
+
+  // 2. Clear stale cookies if setup is still required; otherwise, redirect if logged in
+  if (!isSetup) {
+    Cookies.remove('accessToken');
+  } else {
+    const token = Cookies.get('accessToken');
+    if (token) {
+      router.push('/app');
+      return;
+    }
+  }
+
+  checkingAuth.value = false;
+  // Delay slightly to allow the DOM to render before animating
+  setTimeout(runEntryAnimations, 50);
+});
+
+// Submit Authentication / Setup Request
+const handleSubmit = async () => {
+  error.value = '';
+  success.value = '';
+  loading.value = true;
+
+  try {
+    if (isSetupMode.value) {
+      // 1. First-time Admin Setup flow
+      if (!name.value.trim()) {
+        error.value = 'Please enter your full name.';
+        loading.value = false;
+        triggerShake();
+        return;
+      }
+      if (password.value.length < 6) {
+        error.value = 'Password must be at least 6 characters.';
+        loading.value = false;
+        triggerShake();
+        return;
+      }
+
+      await ExtendedFetch.post('/auth/register', {
+        name: name.value,
+        email: email.value,
+        password: password.value,
+      });
+
+      success.value = 'Administrator registered successfully! Logging in...';
+
+      // Auto Login
+      const loginResponse = await ExtendedFetch.post('/auth/login', {
+        email: email.value,
+        password: password.value,
+      });
+
+      const token = loginResponse.data?.data?.token;
+      if (token) {
+        Cookies.set('accessToken', token, { expires: 7 });
+        setTimeout(() => {
+          router.push('/app');
+        }, 800);
+      } else {
+        error.value = 'Setup succeeded, but auto-login failed. Please refresh and log in.';
+        isSetupMode.value = false;
+      }
+    } else {
+      // 2. Standard Login flow
+      const response = await ExtendedFetch.post('/auth/login', {
+        email: email.value,
+        password: password.value,
+      });
+
+      const token = response.data?.data?.token;
+      if (token) {
+        success.value = 'Login successful! Entering dashboard...';
+        Cookies.set('accessToken', token, { expires: 7 });
+        setTimeout(() => {
+          router.push('/app');
+        }, 800);
+      } else {
+        error.value = 'Failed to retrieve login session.';
+        triggerShake();
+      }
+    }
+  } catch (err: any) {
+    console.error('Authentication Error:', err);
+    error.value = err.response?.data?.error || err.message || 'An error occurred. Please try again.';
+    triggerShake();
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Error shake feedback animation
+const triggerShake = () => {
+  const tl = gsap.timeline();
+  tl.to('.login-card', { x: -6, duration: 0.05 })
+    .to('.login-card', { x: 6, duration: 0.05 })
+    .to('.login-card', { x: -6, duration: 0.05 })
+    .to('.login-card', { x: 6, duration: 0.05 })
+    .to('.login-card', { x: -3, duration: 0.05 })
+    .to('.login-card', { x: 3, duration: 0.05 })
+    .to('.login-card', { x: 0, duration: 0.05 });
+};
+</script>
+
+<template>
+  <div class="relative min-h-screen flex flex-col justify-center items-center px-4 overflow-hidden bg-background">
+    <!-- Beautiful Ambient Background Orbs -->
+    <div class="ambient-orb-1 absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-[120px] pointer-events-none"></div>
+    <div class="ambient-orb-2 absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-emerald-600/10 dark:bg-emerald-600/5 blur-[120px] pointer-events-none"></div>
+
+    <!-- Loading blocker while checking auth cookie & setup status -->
+    <div v-if="checkingAuth" class="flex flex-col items-center justify-center space-y-4">
+      <Loader2 class="h-8 w-8 text-primary animate-spin" />
+      <span class="text-xs text-muted-foreground font-semibold">Checking system status...</span>
+    </div>
+
+    <div v-else class="w-full max-w-[420px] flex flex-col items-center space-y-6 z-10">
+      <!-- Theme Toggle in top corner -->
+      <div class="theme-toggle-container absolute top-6 right-6">
+        <ThemeButton variant="rounded" />
+      </div>
+
+      <!-- App Logo Section -->
+      <div class="login-logo flex flex-col items-center text-center">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="relative flex h-3.5 w-3.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+          </div>
+          <h1 class="text-2xl font-black tracking-tight text-foreground select-none">Ping Uptime</h1>
+        </div>
+        <p class="text-xs text-muted-foreground max-w-[280px]">
+          Monitor your services with custom real-time alerts and uptime statistics.
+        </p>
+      </div>
+
+      <!-- Setup Notice Banner -->
+      <div v-if="isSetupMode" class="setup-banner w-full p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl flex gap-3 text-xs leading-relaxed opacity-0">
+        <ShieldAlert class="setup-banner-icon h-5 w-5 shrink-0 mt-0.5 text-amber-500" />
+        <div>
+          <span class="font-bold block">First-Time Setup Required</span>
+          There are no accounts registered on this instance. Create the initial administrator account below.
+        </div>
+      </div>
+
+      <!-- Main Auth Card -->
+      <Card class="login-card w-full bg-card/60 dark:bg-card/40 backdrop-blur-xl border border-border/60 dark:border-border/20 shadow-2xl rounded-2xl overflow-hidden p-6 gap-0">
+        <!-- Form Header -->
+        <CardHeader class="p-0 pb-6 text-center">
+          <CardTitle class="text-lg font-bold tracking-tight text-foreground">
+            {{ isSetupMode ? 'Setup Admin Account' : 'Welcome back' }}
+          </CardTitle>
+          <CardDescription class="text-xs text-muted-foreground mt-1">
+            {{ isSetupMode ? 'Register the main account for this application' : 'Sign in to access your self-hosted panel' }}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent class="p-0 space-y-4">
+          <!-- Alert Messages -->
+          <div v-if="error" class="p-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive rounded-lg flex items-start gap-2 animate-[fadeIn_0.2s_ease-out]">
+            <AlertCircle class="h-4 w-4 shrink-0 mt-0.5" />
+            <span>{{ error }}</span>
+          </div>
+
+          <div v-if="success" class="p-3 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-start gap-2 animate-[fadeIn_0.2s_ease-out]">
+            <CheckCircle2 class="h-4 w-4 shrink-0 mt-0.5" />
+            <span>{{ success }}</span>
+          </div>
+
+          <!-- Auth Form -->
+          <form @submit.prevent="handleSubmit" class="space-y-4">
+            <!-- Full Name (Only visible in setup mode) -->
+            <div v-if="isSetupMode" class="space-y-1.5 animate-[fadeIn_0.25s_ease-out]">
+              <label class="text-xs font-bold text-foreground/80">Full Name</label>
+              <div class="relative">
+                <User class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  v-model="name"
+                  type="text"
+                  placeholder="John Doe"
+                  class="pl-9 h-10 rounded-lg"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Email Address -->
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-foreground/80">Email Address</label>
+              <div class="relative">
+                <Mail class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  v-model="email"
+                  type="email"
+                  placeholder="admin@ping-uptime.com"
+                  class="pl-9 h-10 rounded-lg"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-foreground/80">Password</label>
+              <div class="relative">
+                <Lock class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  v-model="password"
+                  :type="showPassword ? 'text' : 'password'"
+                  placeholder="••••••••"
+                  class="pl-9 pr-10 h-10 rounded-lg"
+                  required
+                />
+                <button
+                  type="button"
+                  @click="showPassword = !showPassword"
+                  class="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                >
+                  <Eye v-if="!showPassword" class="h-4 w-4" />
+                  <EyeOff v-else class="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <Button
+              type="submit"
+              :disabled="loading"
+              class="w-full h-10 rounded-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.01] bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center gap-2 cursor-pointer mt-2"
+            >
+              <Loader2 v-if="loading" class="h-4 w-4 animate-spin" />
+              <span v-else>{{ isSetupMode ? 'Create Admin & Get Started' : 'Sign In to Dashboard' }}</span>
+            </Button>
+          </form>
+        </CardContent>
+
+        <CardFooter class="p-0 pt-6 text-center justify-center">
+          <p class="text-[10px] text-muted-foreground">
+            Self-hosted service status dashboard. Built with Vue 3 & Go.
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
+  </div>
+</template>

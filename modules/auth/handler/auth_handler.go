@@ -64,6 +64,10 @@ func (h *AuthHandler) Register(c echo.Context) error {
 			h.log.Warn("Email already in use:", req.Email)
 			return h.r.ErrorResponse(c, http.StatusConflict, "Email already in use")
 		}
+		if err == service.ErrRegistrationDisabled {
+			h.log.Warn("Registration is disabled: setup already completed")
+			return h.r.ErrorResponse(c, http.StatusForbidden, "Setup already completed. Registration is disabled.")
+		}
 		h.log.Error("Failed to create user:", err)
 		return h.r.ErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
@@ -76,6 +80,22 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	return h.r.SuccessResponse(c, map[string]interface{}{
 		"user": response.FromEntity(user),
 	}, "User registered successfully")
+}
+
+// SetupStatus checks if the application is set up (i.e., has at least one user).
+func (h *AuthHandler) SetupStatus(c echo.Context) error {
+	h.log.Info("Checking setup status")
+
+	isSetupNeeded, err := h.authService.IsSetupNeeded(c.Request().Context())
+	if err != nil {
+		h.log.Error("Failed to check setup status:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, err.Error())
+	}
+
+	// Setup is done if setup is NOT needed
+	return h.r.SuccessResponse(c, map[string]interface{}{
+		"is_setup": !isSetupNeeded,
+	}, "Setup status retrieved successfully")
 }
 
 // Login handles user login.
@@ -128,6 +148,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 // RegisterRoutes sets up the auth routes.
 func (h *AuthHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group := e.Group(basePath + "/auth")
+	group.GET("/setup-status", h.SetupStatus)
 	group.POST("/register", h.Register)
 	group.POST("/login", h.Login)
 }
