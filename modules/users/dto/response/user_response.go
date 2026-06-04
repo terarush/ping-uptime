@@ -12,6 +12,8 @@ type UserResponse struct {
 	ID        uint      `json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
+	Role      string    `json:"role"`
+	IsBlocked bool      `json:"is_blocked"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -22,6 +24,8 @@ func FromEntity(user *entity.User) *UserResponse {
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
+		Role:      user.Role,
+		IsBlocked: user.IsBlocked,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}
