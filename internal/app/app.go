@@ -1,10 +1,11 @@
 package app
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
-	"path/filepath"
 	"ping-uptime/internal/pkg/bus"
 	"ping-uptime/internal/pkg/config"
 	"ping-uptime/internal/pkg/database"
@@ -20,23 +21,25 @@ import (
 
 // App represents the application
 type App struct {
-	db      *gorm.DB
-	server  *server.ServerContext
-	modules []Module
-	r       *echo.Echo
-	logger  *logger.Logger
+	db       *gorm.DB
+	server   *server.ServerContext
+	modules  []Module
+	r        *echo.Echo
+	logger   *logger.Logger
+	staticFS embed.FS
 }
 
 // NewApp creates a new application
-func NewApp(cfg *logger.Config) (*App, error) {
+func NewApp(cfg *logger.Config, staticFS embed.FS) (*App, error) {
 	appLogger, err := logger.NewLogger(*cfg, config.GetString("APP_NAME", "ping-uptime"))
 	if err != nil {
 		return nil, err
 	}
 	defer appLogger.Sync()
 	return &App{
-		modules: make([]Module, 0),
-		logger:  appLogger,
+		modules:  make([]Module, 0),
+		logger:   appLogger,
+		staticFS: staticFS,
 	}, nil
 }
 
@@ -53,6 +56,11 @@ func (a *App) RegisterModule(module Module) {
 // Initialize initializes the application
 func (a *App) Initialize() error {
 	a.logger.Info("Initializing application...")
+
+	// Make sure local public directory exists
+	if err := os.MkdirAll("public", os.ModePerm); err != nil {
+		a.logger.Error("Failed to create public directory: %v", err)
+	}
 
 	// Initialize database
 	var err *error
@@ -121,21 +129,47 @@ func (a *App) Initialize() error {
 		})
 	})
 
-	// SPA handler: serve actual files if they exist,
+	// Serve public static folder for uploaded files and external assets
+	a.r.Static("/public", "public")
+
+	// SPA handler: serve actual files if they exist in embedded FS,
 	// otherwise fall back to index.html so Vue Router handles the path.
 	// e.g: /dashboard, /profile, /about → serve static/index.html
 	//      /assets/main.js, /favicon.ico → serve the real file
+	staticContent, fsErr := fs.Sub(a.staticFS, "static")
+	if fsErr != nil {
+		a.logger.Error("Failed to get subdirectory in static embed FS: %v", fsErr)
+	}
+	httpFS := http.FS(staticContent)
+
 	a.r.GET("/*", func(c echo.Context) error {
 		urlPath := c.Param("*")
-		filePath := filepath.Join("static", urlPath)
 
-		// If the file physically exists → serve it directly
-		if info, err := os.Stat(filePath); err == nil && !info.IsDir() {
-			return c.File(filePath)
+		// If a path is specified, check if it exists in the embedded FS
+		if urlPath != "" {
+			file, err := httpFS.Open(urlPath)
+			if err == nil {
+				defer file.Close()
+				info, err := file.Stat()
+				if err == nil && !info.IsDir() {
+					http.ServeContent(c.Response(), c.Request(), info.Name(), info.ModTime(), file)
+					return nil
+				}
+			}
 		}
 
 		// Otherwise → return index.html, let Vue Router take over
-		return c.File("static/index.html")
+		indexFile, err := httpFS.Open("index.html")
+		if err != nil {
+			return c.String(http.StatusNotFound, "index.html not found")
+		}
+		defer indexFile.Close()
+		info, err := indexFile.Stat()
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		http.ServeContent(c.Response(), c.Request(), info.Name(), info.ModTime(), indexFile)
+		return nil
 	})
 
 	a.server.Handler = a.r
@@ -159,14 +193,7 @@ func (a *App) Start() {
 func (a *App) SetDatabase() *database.DBModel {
 	return &database.DBModel{
 		ServerMode:   config.GetString("SERVER_MODE"),
-		Driver:       config.GetString("DB_DRIVER"),
-		Host:         config.GetString("DB_HOST"),
-		Port:         config.GetString("DB_PORT"),
-		Name:         config.GetString("DB_NAME"),
-		Username:     config.GetString("DB_USERNAME"),
-		Password:     config.GetString("DB_PASSWORD"),
-		MaxIdleConn:  config.GetInt("POOL_CONN_IDLE", 200),
-		MaxOpenConn:  config.GetInt("POOL_CONN_MAX", 300),
+		Name:         config.GetString("DB_NAME", "ping-uptime"),
 		ConnLifeTime: config.GetInt("POOL_CONN_LIFETIME", 60),
 	}
 }

@@ -27,5 +27,14 @@ export default defineConfig({
   build: {
     outDir: '../static',
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      onwarn(warning, defaultHandler) {
+        if (warning.code === 'INVALID_ANNOTATION') {
+          return;
+        }
+        defaultHandler(warning);
+      },
+    },
   },
 })

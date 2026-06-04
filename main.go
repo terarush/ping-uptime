@@ -1,15 +1,24 @@
 package main
 
 import (
+	"embed"
+	"log"
+	"os"
 	"ping-uptime/internal/app"
 	"ping-uptime/internal/pkg/config"
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/internal/pkg/middleware"
 	"ping-uptime/modules/auth"
+	incident "ping-uptime/modules/incidents"
+	monitor "ping-uptime/modules/monitors"
+	notification "ping-uptime/modules/notifications"
+	setting "ping-uptime/modules/settings"
+	status_page "ping-uptime/modules/status_pages"
 	user "ping-uptime/modules/users"
-	"log"
-	"os"
 )
+
+//go:embed static
+var staticFS embed.FS
 
 func main() {
 
@@ -23,7 +32,7 @@ func main() {
 	logCfg := logger.DefaultConfig()
 
 	// Start the application
-	application, err := app.NewApp(&logCfg)
+	application, err := app.NewApp(&logCfg, staticFS)
 	if err != nil {
 		log.Fatalf("Error creating application : %v", err)
 		os.Exit(1)
@@ -36,6 +45,11 @@ func main() {
 	// register modules
 	application.RegisterModule(user.NewModule())
 	application.RegisterModule(auth.NewModule())
+	application.RegisterModule(monitor.NewModule())
+	application.RegisterModule(incident.NewModule())
+	application.RegisterModule(notification.NewModule())
+	application.RegisterModule(status_page.NewModule())
+	application.RegisterModule(setting.NewModule())
 
 	// initialize the application
 	if err := application.Initialize(); err != nil {

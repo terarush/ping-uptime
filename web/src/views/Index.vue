@@ -18,18 +18,21 @@ import { siteConfig } from '@/content/config';
 const router = useRouter();
 const { isAuthenticated, setSession } = useAuth();
 
-// Form Schema
-const formSchema = computed(() => {
-  return toTypedSchema(isSetupMode.value ? setupSchema : loginSchema);
-});
-
 // UI & Logic States
 const isSetupMode = ref(false); // If true, first-time setup is active
+const isRegisterMode = ref(false);
+const allowRegistration = ref(true);
+const systemName = ref('Ping Uptime');
 const checkingAuth = ref(true);
 const loading = ref(false);
 const error = ref('');
 const success = ref('');
 const showPassword = ref(false);
+
+// Form Schema
+const formSchema = computed(() => {
+  return toTypedSchema(isSetupMode.value || isRegisterMode.value ? setupSchema : loginSchema);
+});
 
 // Trigger GSAP entry animations on load
 const runEntryAnimations = () => {
@@ -79,6 +82,8 @@ onMounted(async () => {
     const response = await ExtendedFetch.get('/auth/setup-status');
     isSetup = response.data?.data?.is_setup;
     isSetupMode.value = !isSetup; // Show setup if not yet setup
+    systemName.value = response.data?.data?.system_name || 'Ping Uptime';
+    allowRegistration.value = response.data?.data?.allow_registration ?? true;
   } catch (err) {
     console.error('Failed to query setup status:', err);
     // Default to login mode if API fails or is unreachable
@@ -136,6 +141,33 @@ const onSubmit = async (values: any) => {
       } else {
         error.value = 'Setup succeeded, but auto-login failed. Please refresh and log in.';
         isSetupMode.value = false;
+      }
+    } else if (isRegisterMode.value) {
+      await ExtendedFetch.post('/auth/register', {
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      });
+
+      success.value = 'Account registered successfully! Logging in...';
+
+      // Auto Login
+      const loginResponse = await ExtendedFetch.post('/auth/login', {
+        email: values.email,
+        password: values.password,
+      });
+
+      const accessToken = loginResponse.data?.data?.accessToken;
+      const refreshToken = loginResponse.data?.data?.refreshToken;
+      const user = loginResponse.data?.data?.user;
+      if (accessToken && refreshToken && user) {
+        setSession(accessToken, refreshToken, user);
+        setTimeout(() => {
+          router.push(siteConfig.appPath);
+        }, 800);
+      } else {
+        error.value = 'Registration succeeded, but auto-login failed. Please sign in.';
+        isRegisterMode.value = false;
       }
     } else {
       const response = await ExtendedFetch.post('/auth/login', {
@@ -208,7 +240,7 @@ const triggerShake = () => {
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
           </div>
-          <h1 class="text-2xl font-black tracking-tight text-foreground select-none">Ping Uptime</h1>
+          <h1 class="text-2xl font-black tracking-tight text-foreground select-none">{{ systemName }}</h1>
         </div>
         <p class="text-xs text-muted-foreground max-w-70">
           Monitor your services with custom real-time alerts and uptime statistics.
@@ -229,10 +261,10 @@ const triggerShake = () => {
         <!-- Form Header -->
         <CardHeader class="p-0 pb-6 text-center">
           <CardTitle class="text-lg font-bold tracking-tight text-foreground">
-            {{ isSetupMode ? 'Setup Admin Account' : 'Welcome back' }}
+            {{ isSetupMode ? 'Setup Admin Account' : (isRegisterMode ? 'Create Account' : 'Welcome back') }}
           </CardTitle>
           <CardDescription class="text-xs text-muted-foreground mt-1">
-            {{ isSetupMode ? 'Register the main account for this application' : 'Sign in to access your self-hosted panel' }}
+            {{ isSetupMode ? 'Register the main account for this application' : (isRegisterMode ? 'Sign up to register your dashboard account' : 'Sign in to access your self-hosted panel') }}
           </CardDescription>
         </CardHeader>
 
@@ -250,8 +282,8 @@ const triggerShake = () => {
 
           <!-- Auth Form -->
           <Form :validation-schema="formSchema" @submit="onSubmit" @invalid-submit="onInvalidSubmit" class="space-y-4">
-            <!-- Full Name (Only visible in setup mode) -->
-            <FormField v-if="isSetupMode" name="name" v-slot="{ componentField }">
+            <!-- Full Name (Only visible in setup/register mode) -->
+            <FormField v-slot="{ componentField }" v-if="isSetupMode || isRegisterMode" name="name">
               <FormItem class="space-y-1.5 animate-[fadeIn_0.25s_ease-out]">
                 <FormLabel class="text-xs font-bold text-foreground/80">Full Name</FormLabel>
                 <FormControl>
@@ -322,9 +354,20 @@ const triggerShake = () => {
               class="w-full h-10 rounded-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.01] bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center gap-2 cursor-pointer mt-2"
             >
               <Loader2 v-if="loading" class="h-4 w-4 animate-spin" />
-              <span v-else>{{ isSetupMode ? 'Create Admin & Get Started' : 'Sign In to Dashboard' }}</span>
+              <span v-else>{{ isSetupMode ? 'Create Admin & Get Started' : (isRegisterMode ? 'Sign Up' : 'Sign In to Dashboard') }}</span>
             </Button>
           </Form>
+
+          <!-- Toggle Register / Login links -->
+          <div v-if="!isSetupMode && allowRegistration" class="text-center text-xs mt-4 pt-2 border-t border-border/40">
+            <a
+              href="#"
+              @click.prevent="isRegisterMode = !isRegisterMode; error = ''; success = '';"
+              class="text-primary hover:underline font-semibold"
+            >
+              {{ isRegisterMode ? 'Already have an account? Sign in' : "Don't have an account? Register" }}
+            </a>
+          </div>
         </CardContent>
 
         <CardFooter class="p-0 pt-6 text-center justify-center">

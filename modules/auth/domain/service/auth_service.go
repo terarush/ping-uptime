@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"ping-uptime/internal/pkg/database"
 	"ping-uptime/internal/pkg/jwt"
 	"ping-uptime/internal/pkg/utils"
 	"ping-uptime/modules/users/domain/entity"
@@ -105,27 +106,34 @@ func (s *AuthService) ProcessLogin(ctx context.Context, email, password string) 
 	return existingUser, nil
 }
 
-func (s *AuthService) ChangePassword(ctx context.Context, userID uint, password string) (*entity.User, error) {
-	if password == "" {
-		return nil, errors.New("password cannot be empty")
+func (s *AuthService) Register(ctx context.Context, user *entity.User) error {
+	if user.Email == "" || user.Password == "" {
+		return errors.New("email and password cannot be empty")
 	}
 
-	hashedPassword, err := utils.HashPassword(password)
+	// Check setting allow_registration directly
+	var regVal string
+	err := database.DB.WithContext(ctx).Table("settings").Select("value").Where("key = ?", "allow_registration").Scan(&regVal).Error
+	if err == nil && regVal == "false" {
+		return ErrRegistrationDisabled
+	}
+
+	existingUser, err := s.userRepo.FindByEmail(ctx, user.Email)
+	if err != nil && err != repository.ERR_RECORD_NOT_FOUND {
+		return err
+	}
+	if existingUser != nil {
+		return ErrEmailAlreadyUsed
+	}
+
+	// Hash the password before saving
+	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
-		return nil, errors.New("failed to hash password")
+		return err
 	}
-
-	user, err := s.userRepo.FindByID(ctx, userID)
-	if err != nil {
-		return nil, errors.New("user not found")
-	}
-
 	user.Password = hashedPassword
+	user.Role = "user" // Standard user role
 
-	err = s.userRepo.Update(ctx, user)
-	if err != nil {
-		return nil, errors.New("failed to update password")
-	}
-
-	return user, nil
+	return s.userRepo.Create(ctx, user)
 }
+

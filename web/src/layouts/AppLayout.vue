@@ -37,7 +37,7 @@ const pageTitle = computed(() => {
       <!-- Content Area -->
       <SidebarInset class="flex flex-col flex-1">
         <!-- Top Navbar -->
-        <header class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border/50 px-6 bg-card/50 backdrop-blur-md sticky top-0 z-10">
+        <header class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border/50 px-6 bg-card/50 backdrop-blur-md sticky top-0 z-50">
           <div class="flex items-center gap-4">
             <SidebarTrigger />
             <div class="h-4 w-px bg-border/60"></div>

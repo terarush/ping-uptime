@@ -86,6 +86,11 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 	}
 
 	user := entity.NewUser(req.Name, req.Email, req.Password)
+	if req.Role != "" {
+		user.Role = req.Role
+	}
+	user.IsBlocked = req.IsBlocked
+
 	err := h.userService.CreateUser(ctx, user)
 	if err != nil {
 		if err == service.ErrEmailAlreadyUsed {
@@ -131,6 +136,10 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 	if req.Password != "" {
 		user.Password = req.Password
 	}
+	if req.Role != "" {
+		user.Role = req.Role
+	}
+	user.IsBlocked = req.IsBlocked
 
 	err = h.userService.UpdateUser(ctx, user)
 	if err != nil {

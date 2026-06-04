@@ -6,10 +6,14 @@ Thumbs.db
 .vscode/
 .idea/
 *.iml
-
-# Frontend build output — ignore content, keep folder via .gitkeep
 static/*
 !static/.gitkeep
 tmp/
-
 .agent
+bin/*
+
+# SQLite
+*.db
+*.db-journal
+*.db-shm
+*.db-wal

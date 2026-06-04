@@ -9,7 +9,9 @@ type User struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
-	Role      string    `json:"role" gorm:"type:enum('admin', 'user');default:'user'"`
+	Avatar    string    `json:"avatar"`
+	Role      string    `json:"role" gorm:"type:varchar(50);default:'user'"`
+	IsBlocked bool      `json:"is_blocked" gorm:"default:false"`
 	Password  string    `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
