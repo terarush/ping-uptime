@@ -17,13 +17,14 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import ThemeButton from '@/components/theme-button.vue'
 import { LogOut } from '@lucide/vue'
 import { siteConfig } from '@/content/config'
-import Cookies from 'js-cookie'
+import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
 const router = useRouter()
+const { logout } = useAuth()
 
 const handleLogout = () => {
-  Cookies.remove('accessToken')
+  logout()
   router.push('/')
 }
 </script>
