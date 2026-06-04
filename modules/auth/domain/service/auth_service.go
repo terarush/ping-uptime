@@ -7,6 +7,7 @@ import (
 	"ping-uptime/internal/pkg/utils"
 	"ping-uptime/modules/users/domain/entity"
 	"ping-uptime/modules/users/domain/repository"
+	"sync"
 )
 
 // Errors
@@ -21,6 +22,7 @@ var (
 type AuthService struct {
 	userRepo repository.UserRepository
 	jwt      jwt.JWT
+	mu       sync.Mutex
 }
 
 // NewAuthService creates a new AuthService
@@ -44,6 +46,9 @@ func (s *AuthService) IsSetupNeeded(ctx context.Context) (bool, error) {
 
 // CreateUser creates a new user (only permitted during initial setup)
 func (s *AuthService) CreateUser(ctx context.Context, user *entity.User) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if user.Email == "" || user.Password == "" {
 		return errors.New("email and password cannot be empty")
 	}

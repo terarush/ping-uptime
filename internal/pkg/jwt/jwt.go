@@ -35,9 +35,11 @@ func (j *JWTImpl) GenerateToken(data map[string]interface{}) (string, error) {
 	-jwt expires in day-
 	 for example, if j.Expiration is 20, then the token will expire in 20 days
 	**/
-	expirationDuration := time.Duration(j.Expiration) * 24 * time.Hour * 7
-	expirationTime := time.Now().Add(expirationDuration).Unix()
-	claims["exp"] = expirationTime
+	if _, exists := claims["exp"]; !exists {
+		expirationDuration := time.Duration(j.Expiration) * 24 * time.Hour * 7
+		expirationTime := time.Now().Add(expirationDuration).Unix()
+		claims["exp"] = expirationTime
+	}
 
 	tokenString, err := token.SignedString(mySigningKey)
 

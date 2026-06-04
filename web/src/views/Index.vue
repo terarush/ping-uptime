@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, ShieldAlert } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
@@ -9,14 +9,19 @@ import ThemeButton from '@/components/theme-button.vue';
 import ExtendedFetch from '@/lib/fetch';
 import Cookies from 'js-cookie';
 import gsap from 'gsap';
+import { useAuth } from '@/composables/useAuth';
+import { loginSchema, setupSchema } from '@/validations/auth';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { toTypedSchema } from '@vee-validate/zod';
+import { siteConfig } from '@/content/config';
 
 const router = useRouter();
+const { isAuthenticated, setSession } = useAuth();
 
-// Form States
-const name = ref('');
-const email = ref('');
-const password = ref('');
-const showPassword = ref(false);
+// Form Schema
+const formSchema = computed(() => {
+  return toTypedSchema(isSetupMode.value ? setupSchema : loginSchema);
+});
 
 // UI & Logic States
 const isSetupMode = ref(false); // If true, first-time setup is active
@@ -24,6 +29,7 @@ const checkingAuth = ref(true);
 const loading = ref(false);
 const error = ref('');
 const success = ref('');
+const showPassword = ref(false);
 
 // Trigger GSAP entry animations on load
 const runEntryAnimations = () => {
@@ -80,13 +86,14 @@ onMounted(async () => {
     isSetup = true; // assume setup is done so we check login
   }
 
-  // 2. Clear stale cookies if setup is still required; otherwise, redirect if logged in
+  // 2. Clear stale cookies if setup is still required; otherwise, redirect if already logged in
   if (!isSetup) {
     Cookies.remove('accessToken');
+    Cookies.remove('refreshToken');
   } else {
-    const token = Cookies.get('accessToken');
-    if (token) {
-      router.push('/app');
+    // If the router guard already authenticated us, redirect to app directly
+    if (isAuthenticated.value) {
+      router.push(siteConfig.appPath);
       return;
     }
   }
@@ -97,64 +104,53 @@ onMounted(async () => {
 });
 
 // Submit Authentication / Setup Request
-const handleSubmit = async () => {
+const onSubmit = async (values: any) => {
   error.value = '';
   success.value = '';
   loading.value = true;
 
   try {
     if (isSetupMode.value) {
-      // 1. First-time Admin Setup flow
-      if (!name.value.trim()) {
-        error.value = 'Please enter your full name.';
-        loading.value = false;
-        triggerShake();
-        return;
-      }
-      if (password.value.length < 6) {
-        error.value = 'Password must be at least 6 characters.';
-        loading.value = false;
-        triggerShake();
-        return;
-      }
-
-      await ExtendedFetch.post('/auth/register', {
-        name: name.value,
-        email: email.value,
-        password: password.value,
+      await ExtendedFetch.post('/auth/setup', {
+        name: values.name,
+        email: values.email,
+        password: values.password,
       });
 
       success.value = 'Administrator registered successfully! Logging in...';
 
       // Auto Login
       const loginResponse = await ExtendedFetch.post('/auth/login', {
-        email: email.value,
-        password: password.value,
+        email: values.email,
+        password: values.password,
       });
 
-      const token = loginResponse.data?.data?.token;
-      if (token) {
-        Cookies.set('accessToken', token, { expires: 7 });
+      const accessToken = loginResponse.data?.data?.accessToken;
+      const refreshToken = loginResponse.data?.data?.refreshToken;
+      const user = loginResponse.data?.data?.user;
+      if (accessToken && refreshToken && user) {
+        setSession(accessToken, refreshToken, user);
         setTimeout(() => {
-          router.push('/app');
+          router.push(siteConfig.appPath);
         }, 800);
       } else {
         error.value = 'Setup succeeded, but auto-login failed. Please refresh and log in.';
         isSetupMode.value = false;
       }
     } else {
-      // 2. Standard Login flow
       const response = await ExtendedFetch.post('/auth/login', {
-        email: email.value,
-        password: password.value,
+        email: values.email,
+        password: values.password,
       });
 
-      const token = response.data?.data?.token;
-      if (token) {
+      const accessToken = response.data?.data?.accessToken;
+      const refreshToken = response.data?.data?.refreshToken;
+      const user = response.data?.data?.user;
+      if (accessToken && refreshToken && user) {
         success.value = 'Login successful! Entering dashboard...';
-        Cookies.set('accessToken', token, { expires: 7 });
+        setSession(accessToken, refreshToken, user);
         setTimeout(() => {
-          router.push('/app');
+          router.push(siteConfig.appPath);
         }, 800);
       } else {
         error.value = 'Failed to retrieve login session.';
@@ -168,6 +164,10 @@ const handleSubmit = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const onInvalidSubmit = () => {
+  triggerShake();
 };
 
 // Error shake feedback animation
@@ -195,7 +195,7 @@ const triggerShake = () => {
       <span class="text-xs text-muted-foreground font-semibold">Checking system status...</span>
     </div>
 
-    <div v-else class="w-full max-w-[420px] flex flex-col items-center space-y-6 z-10">
+    <div v-else class="w-full max-w-105 flex flex-col items-center space-y-6 z-10">
       <!-- Theme Toggle in top corner -->
       <div class="theme-toggle-container absolute top-6 right-6">
         <ThemeButton variant="rounded" />
@@ -210,7 +210,7 @@ const triggerShake = () => {
           </div>
           <h1 class="text-2xl font-black tracking-tight text-foreground select-none">Ping Uptime</h1>
         </div>
-        <p class="text-xs text-muted-foreground max-w-[280px]">
+        <p class="text-xs text-muted-foreground max-w-70">
           Monitor your services with custom real-time alerts and uptime statistics.
         </p>
       </div>
@@ -249,59 +249,71 @@ const triggerShake = () => {
           </div>
 
           <!-- Auth Form -->
-          <form @submit.prevent="handleSubmit" class="space-y-4">
+          <Form :validation-schema="formSchema" @submit="onSubmit" @invalid-submit="onInvalidSubmit" class="space-y-4">
             <!-- Full Name (Only visible in setup mode) -->
-            <div v-if="isSetupMode" class="space-y-1.5 animate-[fadeIn_0.25s_ease-out]">
-              <label class="text-xs font-bold text-foreground/80">Full Name</label>
-              <div class="relative">
-                <User class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  v-model="name"
-                  type="text"
-                  placeholder="John Doe"
-                  class="pl-9 h-10 rounded-lg"
-                  required
-                />
-              </div>
-            </div>
+            <FormField v-if="isSetupMode" name="name" v-slot="{ componentField }">
+              <FormItem class="space-y-1.5 animate-[fadeIn_0.25s_ease-out]">
+                <FormLabel class="text-xs font-bold text-foreground/80">Full Name</FormLabel>
+                <FormControl>
+                  <div class="relative">
+                    <User class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      v-bind="componentField"
+                      type="text"
+                      placeholder="John Doe"
+                      class="pl-9 h-10 rounded-lg"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage class="text-[10px] text-destructive" />
+              </FormItem>
+            </FormField>
 
             <!-- Email Address -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-foreground/80">Email Address</label>
-              <div class="relative">
-                <Mail class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  v-model="email"
-                  type="email"
-                  placeholder="admin@ping-uptime.com"
-                  class="pl-9 h-10 rounded-lg"
-                  required
-                />
-              </div>
-            </div>
+            <FormField name="email" v-slot="{ componentField }">
+              <FormItem class="space-y-1.5">
+                <FormLabel class="text-xs font-bold text-foreground/80">Email Address</FormLabel>
+                <FormControl>
+                  <div class="relative">
+                    <Mail class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      v-bind="componentField"
+                      type="email"
+                      placeholder="admin@example.com"
+                      class="pl-9 h-10 rounded-lg"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage class="text-[10px] text-destructive" />
+              </FormItem>
+            </FormField>
 
             <!-- Password -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-foreground/80">Password</label>
-              <div class="relative">
-                <Lock class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  v-model="password"
-                  :type="showPassword ? 'text' : 'password'"
-                  placeholder="••••••••"
-                  class="pl-9 pr-10 h-10 rounded-lg"
-                  required
-                />
-                <button
-                  type="button"
-                  @click="showPassword = !showPassword"
-                  class="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                >
-                  <Eye v-if="!showPassword" class="h-4 w-4" />
-                  <EyeOff v-else class="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+            <FormField name="password" v-slot="{ componentField }">
+              <FormItem class="space-y-1.5">
+                <FormLabel class="text-xs font-bold text-foreground/80">Password</FormLabel>
+                <FormControl>
+                  <div class="relative">
+                    <Lock class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      v-bind="componentField"
+                      :type="showPassword ? 'text' : 'password'"
+                      placeholder="••••••••"
+                      class="pl-9 pr-10 h-10 rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      @click="showPassword = !showPassword"
+                      class="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    >
+                      <Eye v-if="!showPassword" class="h-4 w-4" />
+                      <EyeOff v-else class="h-4 w-4" />
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage class="text-[10px] text-destructive" />
+              </FormItem>
+            </FormField>
 
             <!-- Submit Button -->
             <Button
@@ -312,7 +324,7 @@ const triggerShake = () => {
               <Loader2 v-if="loading" class="h-4 w-4 animate-spin" />
               <span v-else>{{ isSetupMode ? 'Create Admin & Get Started' : 'Sign In to Dashboard' }}</span>
             </Button>
-          </form>
+          </Form>
         </CardContent>
 
         <CardFooter class="p-0 pt-6 text-center justify-center">

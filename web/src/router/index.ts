@@ -1,7 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Index from '@/views/Index.vue'
-import AppIndex from '@/views/app/Index.vue'
+import AppIndex from '@/views/App.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
+import { useAuth } from '@/composables/useAuth'
+import { siteConfig } from '@/content/config'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,24 +11,42 @@ const router = createRouter({
     {
       path: '/',
       component: Index,
+      meta: { guestOnly: true },
     },
     {
-      path: '/app',
+      path: siteConfig.appPath,
       component: AppLayout,
+      meta: { requiresAuth: true },
       children: [
         {
           path: '',
           name: 'app',
           component: AppIndex,
         },
+        {
+          path: 'monitors',
+          name: 'Monitors',
+          component: AppIndex,
+        },
       ],
     },
-    // {
-    //   path: '/:pathMatch(.*)*',
-    //   name: 'not-found',
-    //   component: () => import('@/views/NotFound.vue'),
-    // },
   ],
+})
+
+router.beforeEach(async (to, from, next) => {
+  const { isAuthenticated, verifyToken } = useAuth()
+
+  if (!isAuthenticated.value) {
+    await verifyToken()
+  }
+
+  if (to.meta.requiresAuth && !isAuthenticated.value) {
+    next('/')
+  } else if (to.meta.guestOnly && isAuthenticated.value) {
+    next(siteConfig.appPath)
+  } else {
+    next()
+  }
 })
 
 export default router

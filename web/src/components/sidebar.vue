@@ -17,13 +17,14 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import ThemeButton from '@/components/theme-button.vue'
 import { LogOut } from '@lucide/vue'
 import { siteConfig } from '@/content/config'
-import Cookies from 'js-cookie'
+import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
 const router = useRouter()
+const { logout } = useAuth()
 
 const handleLogout = () => {
-  Cookies.remove('accessToken')
+  logout()
   router.push('/')
 }
 </script>
@@ -31,19 +32,16 @@ const handleLogout = () => {
 
 <template>
   <Sidebar collapsible="icon" variant="sidebar">
-    <!-- Header: App Logo -->
-    <SidebarHeader class="border-b border-border/50 py-4 px-4 flex items-center justify-between">
-      <div
-        class="flex items-center gap-2 overflow-hidden transition-[width] group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:p-0"
-      >
+    <SidebarHeader class="h-16 shrink-0 border-b border-border/50 p-0 px-6 flex flex-row items-center justify-between group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+      <div class="flex items-center gap-2 overflow-hidden">
         <!-- Pulse Green Dot Logo -->
-        <div class="relative flex h-3 w-3">
+        <div class="relative flex h-3 w-3 shrink-0">
           <span
             class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
           ></span>
           <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
         </div>
-        <span class="font-bold text-sm tracking-tight text-foreground whitespace-nowrap"
+        <span class="font-bold text-sm tracking-tight text-foreground whitespace-nowrap group-data-[collapsible=icon]:hidden"
           >{{ siteConfig.name }}</span
         >
       </div>

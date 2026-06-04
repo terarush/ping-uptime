@@ -8,26 +8,23 @@ import AvatarImage from '@/components/ui/avatar/AvatarImage.vue';
 import AvatarFallback from '@/components/ui/avatar/AvatarFallback.vue';
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
+import { sidebarContent } from '@/content/sidebar';
+import { siteConfig } from '@/content/config';
 
 const route = useRoute();
 
 const pageTitle = computed(() => {
   const path = route.path;
-  if (!path || path === '/' || path === '/dashboard') {
-    return 'Dashboard';
+
+  // Find a match in the sidebarContent using raw path
+  for (const group of sidebarContent) {
+    const matchedItem = group.items.find(item => item.href === path);
+    if (matchedItem) {
+      return matchedItem.title;
+    }
   }
 
-  const segments = path.split('/').filter(s => s && s !== 'dashboard');
-  if (segments.length === 0) return 'Dashboard';
-
-  const formattedSegments = segments.map(segment => {
-    return segment
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  });
-
-  return formattedSegments.join(' / ');
+  return 'Dashboard';
 });
 </script>
 

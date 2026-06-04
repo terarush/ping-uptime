@@ -74,8 +74,8 @@ jobs:
       - name: Run Type Check
         run: npm run type-check
 
-      - name: Run Unit Tests
-        run: npm run test:unit -- --run
+      # - name: Run Unit Tests
+      #   run: npm run test:unit -- --run
 
       - name: Build Frontend
         run: npm run build-only

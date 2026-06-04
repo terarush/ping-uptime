@@ -3,13 +3,13 @@ import { ref } from 'vue';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { 
-  Activity, 
-  ShieldCheck, 
-  ShieldAlert, 
-  Percent, 
-  Plus, 
-  RefreshCw, 
+import {
+  Activity,
+  ShieldCheck,
+  ShieldAlert,
+  Percent,
+  Plus,
+  RefreshCw,
   ExternalLink,
   CheckCircle2,
   AlertCircle
@@ -39,7 +39,7 @@ const avgUptime = ref('99.67%');
 </script>
 
 <template>
-  <div class="p-8 space-y-8 max-w-[1600px] mx-auto">
+  <div class="p-8 space-y-8 max-w-400 mx-auto">
     <!-- Top Greeting and Actions -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
@@ -129,7 +129,7 @@ const avgUptime = ref('99.67%');
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead class="w-[30px]"></TableHead>
+                <TableHead class="w-7.5"></TableHead>
                 <TableHead class="text-xs font-bold uppercase text-muted-foreground">Monitor</TableHead>
                 <TableHead class="text-xs font-bold uppercase text-muted-foreground">Latency</TableHead>
                 <TableHead class="text-xs font-bold uppercase text-muted-foreground">Uptime</TableHead>
@@ -143,16 +143,16 @@ const avgUptime = ref('99.67%');
                   <div class="flex items-center justify-center">
                     <span :class="[
                       'h-2.5 w-2.5 rounded-full ring-4 shrink-0',
-                      item.status === 'up' 
-                        ? 'bg-emerald-500 ring-emerald-500/20' 
+                      item.status === 'up'
+                        ? 'bg-emerald-500 ring-emerald-500/20'
                         : 'bg-red-500 ring-red-500/20 animate-pulse'
                     ]"></span>
                   </div>
                 </TableCell>
-                
+
                 <!-- Monitor detail -->
                 <TableCell class="font-medium text-foreground py-4">
-                  <div class="flex flex-col gap-0.5 max-w-[280px]">
+                  <div class="flex flex-col gap-0.5 max-w-70">
                     <span class="text-xs font-bold truncate">{{ item.name }}</span>
                     <a :href="item.url" target="_blank" class="text-[10px] text-muted-foreground hover:underline inline-flex items-center gap-1">
                       <span class="truncate">{{ item.url }}</span>
@@ -172,8 +172,8 @@ const avgUptime = ref('99.67%');
                 <TableCell class="py-4">
                   <Badge variant="outline" :class="[
                     'text-[10px] font-bold py-0.5 px-1.5 border/50',
-                    item.status === 'up' 
-                      ? 'bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
+                    item.status === 'up'
+                      ? 'bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                       : 'bg-red-500/5 text-red-600 dark:text-red-400 border-red-500/20'
                   ]">
                     {{ item.uptime }}
@@ -203,7 +203,7 @@ const avgUptime = ref('99.67%');
               <CheckCircle2 v-if="log.type === 'up'" class="w-4 h-4 text-emerald-500" />
               <AlertCircle v-else class="w-4 h-4 text-red-500" />
             </div>
-            
+
             <!-- Log Message detail -->
             <div class="flex-1 flex flex-col gap-0.5">
               <span class="font-semibold text-foreground">{{ log.message }}</span>

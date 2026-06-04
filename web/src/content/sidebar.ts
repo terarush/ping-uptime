@@ -1,12 +1,13 @@
-import { 
-  LayoutDashboard, 
-  Activity, 
-  Settings, 
-  Users, 
-  Bell, 
+import {
+  LayoutDashboard,
+  Activity,
+  Settings,
+  Users,
+  Bell,
   FileText,
   ShieldCheck
 } from '@lucide/vue';
+import { siteConfig } from './config';
 
 export interface SidebarItem {
   title: string;
@@ -26,12 +27,12 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Dashboard",
-        href: "/dashboard",
+        href: `${siteConfig.appPath}`,
         icon: LayoutDashboard,
       },
       {
         title: "Monitors",
-        href: "/dashboard/monitors",
+        href: `${siteConfig.appPath}/monitors`,
         icon: Activity,
         badge: "Live",
       },
@@ -42,12 +43,12 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Incident Logs",
-        href: "/dashboard/incidents",
+        href: `${siteConfig.appPath}/incidents`,
         icon: FileText,
       },
       {
         title: "Status Pages",
-        href: "/dashboard/status-pages",
+        href: `${siteConfig.appPath}/status-pages`,
         icon: ShieldCheck,
       },
     ],
@@ -57,17 +58,17 @@ export const sidebarContent: SidebarGroup[] = [
     items: [
       {
         title: "Users",
-        href: "/dashboard/users",
+        href: `${siteConfig.appPath}/users`,
         icon: Users,
       },
       {
         title: "Notifications",
-        href: "/dashboard/settings/notifications",
+        href: `${siteConfig.appPath}/settings/notifications`,
         icon: Bell,
       },
       {
         title: "Settings",
-        href: "/dashboard/settings",
+        href: `${siteConfig.appPath}/settings`,
         icon: Settings,
       },
     ],
