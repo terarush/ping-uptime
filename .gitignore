@@ -10,3 +10,4 @@ Thumbs.db
 # Frontend build output — ignore content, keep folder via .gitkeep
 static/*
 !static/.gitkeep
+tmp/
