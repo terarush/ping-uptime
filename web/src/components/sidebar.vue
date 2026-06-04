@@ -13,13 +13,21 @@ import {
   SidebarMenuBadge,
 } from '@/components/ui/sidebar'
 import { sidebarContent } from '@/content/sidebar'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import ThemeButton from '@/components/theme-button.vue'
 import { LogOut } from '@lucide/vue'
 import { siteConfig } from '@/content/config'
+import Cookies from 'js-cookie'
 
 const route = useRoute()
+const router = useRouter()
+
+const handleLogout = () => {
+  Cookies.remove('accessToken')
+  router.push('/')
+}
 </script>
+
 
 <template>
   <Sidebar collapsible="icon" variant="sidebar">
@@ -84,7 +92,8 @@ const route = useRoute()
         <SidebarMenuItem>
           <SidebarMenuButton as-child variant="default" tooltip="Logout">
             <button
-              class="flex items-center gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive w-full"
+              @click="handleLogout"
+              class="flex items-center gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive w-full cursor-pointer"
             >
               <LogOut class="w-4 h-4 shrink-0" />
               <span class="group-data-[collapsible=icon]:hidden text-sm">Sign Out</span>
