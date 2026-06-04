@@ -117,7 +117,7 @@ const onSubmit = async (values: any) => {
       });
 
       success.value = 'Administrator registered successfully! Logging in...';
-      
+
       // Auto Login
       const loginResponse = await ExtendedFetch.post('/auth/login', {
         email: values.email,
@@ -278,7 +278,7 @@ const triggerShake = () => {
                     <Input
                       v-bind="componentField"
                       type="email"
-                      placeholder="admin@ping-uptime.com"
+                      placeholder="admin@example.com"
                       class="pl-9 h-10 rounded-lg"
                     />
                   </div>
