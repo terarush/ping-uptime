@@ -1,4 +1,4 @@
-FROM node:20-alpine AS frontend-builder
+FROM node:24-alpine AS frontend-builder
 
 WORKDIR /web
 
@@ -17,6 +17,9 @@ RUN apk add --no-cache git
 COPY go.mod go.sum ./
 
 COPY . .
+
+COPY --from=frontend-builder /static ./static
+
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o main .
 
 FROM alpine:3.20
