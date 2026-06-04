@@ -28,8 +28,8 @@ export const useAuthStore = defineStore('auth', () => {
     isVerifying.value = true;
     try {
       const response = await ExtendedFetch.get('/users/verify');
-      if (response.data) {
-        currentUser.value = response.data;
+      if (response.data?.data) {
+        currentUser.value = response.data.data;
         isAuthenticated.value = true;
         return true;
       }

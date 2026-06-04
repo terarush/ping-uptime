@@ -4,14 +4,15 @@ package handler
 
 import (
 	"fmt"
+	"net/http"
 	"ping-uptime/internal/pkg/bus"
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/internal/pkg/middleware"
+	"ping-uptime/internal/pkg/utils"
 	"ping-uptime/modules/users/domain/entity"
 	"ping-uptime/modules/users/domain/service"
 	"ping-uptime/modules/users/dto/request"
 	"ping-uptime/modules/users/dto/response"
-	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -22,6 +23,7 @@ type UserHandler struct {
 	userService *service.UserService
 	log         *logger.Logger
 	event       *bus.EventBus
+	r           *utils.Response
 }
 
 // NewUserHandler creates a new user handler
@@ -30,6 +32,7 @@ func NewUserHandler(log *logger.Logger, event *bus.EventBus, userService *servic
 		userService: userService,
 		log:         log,
 		event:       event,
+		r: &utils.Response{},
 	}
 }
 
@@ -44,10 +47,10 @@ func (h *UserHandler) GetAllUsers(c echo.Context) error {
 
 	users, err := h.userService.GetAllUsers(ctx)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, response.FromEntities(users))
+	return h.r.SuccessResponse(c, response.FromEntities(users), "Users retrieved successfully")
 }
 
 // GetUser gets a user by ID
@@ -56,18 +59,18 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
+		return h.r.BadRequestResponse(c, "Invalid user ID")
 	}
 
 	user, err := h.userService.GetUserByID(ctx, uint(id))
 	if err != nil {
 		if err == service.ErrUserNotFound {
-			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
+			return h.r.NotFoundResponse(c, "User not found")
 		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, response.FromEntity(user))
+	return h.r.SuccessResponse(c, response.FromEntity(user), "User retrieved successfully")
 }
 
 // CreateUser creates a new user
@@ -76,26 +79,26 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 
 	req := new(request.CreateUserRequest)
 	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return h.r.BadRequestResponse(c, err.Error())
 	}
 
 	if err := c.Validate(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return h.r.BadRequestResponse(c, err.Error())
 	}
 
 	user := entity.NewUser(req.Name, req.Email, req.Password)
 	err := h.userService.CreateUser(ctx, user)
 	if err != nil {
 		if err == service.ErrEmailAlreadyUsed {
-			return c.JSON(http.StatusConflict, map[string]string{"error": "Email already in use"})
+			return h.r.ConflictResponse(c, "Email already in use")
 		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
 
 	// event bus publish
 	h.event.Publish(bus.Event{Type: "user.created", Payload: user})
 
-	return c.JSON(http.StatusCreated, response.FromEntity(user))
+	return h.r.CreatedResponse(c, response.FromEntity(user), "User created successfully")
 }
 
 // UpdateUser updates a user
@@ -104,24 +107,24 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
+		return h.r.BadRequestResponse(c, "Invalid user ID")
 	}
 
 	req := new(request.UpdateUserRequest)
 	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return h.r.BadRequestResponse(c, err.Error())
 	}
 
 	if err := c.Validate(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return h.r.BadRequestResponse(c, err.Error())
 	}
 
 	user, err := h.userService.GetUserByID(ctx, uint(id))
 	if err != nil {
 		if err == service.ErrUserNotFound {
-			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
+			return h.r.NotFoundResponse(c, "User not found")
 		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
 
 	user.Name = req.Name
@@ -132,10 +135,10 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 
 	err = h.userService.UpdateUser(ctx, user)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, response.FromEntity(user))
+	return h.r.SuccessResponse(c, response.FromEntity(user), "User updated successfully")
 }
 
 // DeleteUser deletes a user
@@ -144,18 +147,18 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
+		return h.r.BadRequestResponse(c, "Invalid user ID")
 	}
 
 	err = h.userService.DeleteUser(ctx, uint(id))
 	if err != nil {
 		if err == service.ErrUserNotFound {
-			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
+			return h.r.NotFoundResponse(c, "User not found")
 		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return h.r.NoContentResponse(c)
 }
 
 // Verify verifies the authenticated user's token and returns user details
@@ -163,12 +166,12 @@ func (h *UserHandler) Verify(c echo.Context) error {
 	ctx := c.Request().Context()
 	userClaims, ok := c.Get("user").(map[string]interface{})
 	if !ok {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+		return h.r.UnauthorizedResponse(c, "Unauthorized")
 	}
 
 	userIDVal, ok := userClaims["user_id"]
 	if !ok {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token payload: user_id missing"})
+		return h.r.UnauthorizedResponse(c, "Invalid token payload: user_id missing")
 	}
 
 	var userID uint
@@ -180,18 +183,18 @@ func (h *UserHandler) Verify(c echo.Context) error {
 	case int:
 		userID = uint(v)
 	default:
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token payload: invalid user_id type"})
+		return h.r.UnauthorizedResponse(c, "Invalid token payload: invalid user_id type")
 	}
 
 	user, err := h.userService.GetUserByID(ctx, userID)
 	if err != nil {
 		if err == service.ErrUserNotFound {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "User not found"})
+			return h.r.UnauthorizedResponse(c, "User not found")
 		}
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, response.FromEntity(user))
+	return h.r.SuccessResponse(c, response.FromEntity(user), "Token verified successfully")
 }
 
 // RegisterRoutes registers the user routes
