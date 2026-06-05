@@ -192,7 +192,7 @@ func (a *App) Start() {
 // setup database model
 func (a *App) SetDatabase() *database.DBModel {
 	return &database.DBModel{
-		ServerMode:   config.GetString("SERVER_MODE"),
+		ServerMode:   config.GetString("SERVER_MODE", "info"),
 		Name:         config.GetString("DB_NAME", "ping-uptime"),
 		ConnLifeTime: config.GetInt("POOL_CONN_LIFETIME", 60),
 	}

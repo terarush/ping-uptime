@@ -23,7 +23,7 @@ func (r IncidentRepositoryImpl) Delete(ctx context.Context, id uint) error {
 
 func (r IncidentRepositoryImpl) FindAll(ctx context.Context) ([]*entity.Incident, error) {
 	var incidents []*entity.Incident
-	result := database.DB.WithContext(ctx).Find(&incidents)
+	result := database.DB.WithContext(ctx).Order("created_at DESC").Find(&incidents)
 	if result.Error != nil {
 		return nil, result.Error
 	}

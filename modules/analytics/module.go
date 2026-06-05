@@ -1,13 +1,12 @@
 package analytics
 
 import (
-	"fmt"
 	"ping-uptime/internal/pkg/bus"
 	"ping-uptime/internal/pkg/logger"
-	"ping-uptime/modules/analytics/domain/entity"
 	"ping-uptime/modules/analytics/domain/repository"
 	"ping-uptime/modules/analytics/domain/service"
 	"ping-uptime/modules/analytics/handler"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 

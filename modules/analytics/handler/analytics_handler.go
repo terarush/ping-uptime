@@ -1,12 +1,11 @@
 package handler
 
 import (
-	"context"
 	"ping-uptime/internal/pkg/bus"
+	"ping-uptime/internal/pkg/database"
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/internal/pkg/middleware"
 	"ping-uptime/internal/pkg/utils"
-	"ping-uptime/modules/analytics/domain/entity"
 	"ping-uptime/modules/analytics/domain/service"
 	"strconv"
 
@@ -82,10 +81,9 @@ func (h *AnalyticsHandler) GetMonitorChart(c echo.Context) error {
 		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
 
-	var monitorName, monitorURL string
 	if role != "admin" {
 		var count int64
-		database.DB.WithContext(ctx).Model(nil).Where("id = ? AND user_id = ?", monitorID, userID).Count(&count)
+		database.DB.WithContext(ctx).Table("monitors").Where("id = ? AND user_id = ?", monitorID, userID).Count(&count)
 		if count == 0 {
 			return h.r.ForbiddenResponse(c, "You do not have access to this monitor")
 		}

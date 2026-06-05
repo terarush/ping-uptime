@@ -71,6 +71,9 @@ func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) 
 	// Update monitor
 	mon.UptimeStatus = newStatus
 	mon.LastCheckedAt = &now
+	if latency > 0 {
+		mon.LastLatency = latency
+	}
 
 	err := database.DB.WithContext(ctx).Save(mon).Error
 	if err != nil {

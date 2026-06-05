@@ -13,8 +13,8 @@ import (
 	monitor "ping-uptime/modules/monitors"
 	notification "ping-uptime/modules/notifications"
 	setting "ping-uptime/modules/settings"
-	status_page "ping-uptime/modules/status_pages"
 	user "ping-uptime/modules/users"
+	analytics "ping-uptime/modules/analytics"
 )
 
 //go:embed static
@@ -48,8 +48,8 @@ func main() {
 	application.RegisterModule(monitor.NewModule())
 	application.RegisterModule(incident.NewModule())
 	application.RegisterModule(notification.NewModule())
-	application.RegisterModule(status_page.NewModule())
 	application.RegisterModule(setting.NewModule())
+	application.RegisterModule(analytics.NewModule())
 
 	// initialize the application
 	if err := application.Initialize(); err != nil {

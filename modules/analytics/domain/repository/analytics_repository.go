@@ -1,6 +1,9 @@
 package repository
 
-import "context"
+import (
+	"context"
+	"ping-uptime/modules/analytics/domain/entity"
+)
 
 type AnalyticsRepository interface {
 	GetChartData(ctx context.Context, monitorID uint, window string) ([]entity.ChartDataPoint, error)
