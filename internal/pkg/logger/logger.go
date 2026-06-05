@@ -122,7 +122,12 @@ func NewLogger(config Config, prefix string) (*Logger, error) {
 	}
 
 	// Create the logger
-	zapLogger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	var zapLogger *zap.Logger
+	if level == zapcore.DebugLevel {
+		zapLogger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	} else {
+		zapLogger = zap.New(core)
+	}
 	defer zapLogger.Sync()
 
 	// If prefix is provided, add it to the logger
@@ -142,6 +147,28 @@ func NewLogger(config Config, prefix string) (*Logger, error) {
 	}, nil
 }
 
+// IsDebug returns true if the logger is configured for debug level
+func (l *Logger) IsDebug() bool {
+	return l.level == zapcore.DebugLevel
+}
+
+func shouldSuppress(level zapcore.Level, msg string) bool {
+	if level >= zapcore.InfoLevel {
+		lower := strings.ToLower(msg)
+		return strings.Contains(lower, "registered module") ||
+			strings.Contains(lower, "initializing") ||
+			strings.Contains(lower, "initialized") ||
+			strings.Contains(lower, "registering") ||
+			strings.Contains(lower, "migrations completed") ||
+			strings.Contains(lower, "uses existing") ||
+			strings.Contains(lower, "routes registered") ||
+			strings.Contains(lower, "initialization completed") ||
+			strings.Contains(lower, "scheduler started") ||
+			strings.Contains(lower, "starting server")
+	}
+	return false
+}
+
 // WithPrefix creates a new logger with the given prefix
 func (l *Logger) WithPrefix(prefix string) *Logger {
 	newLogger := l.zap.Named(prefix)
@@ -154,6 +181,9 @@ func (l *Logger) WithPrefix(prefix string) *Logger {
 }
 
 func (l *Logger) logWithLevel(level zapcore.Level, msg string, fields ...interface{}) {
+	if shouldSuppress(l.level, msg) {
+		return
+	}
 	if len(fields) == 0 {
 		switch level {
 		case zapcore.DebugLevel:

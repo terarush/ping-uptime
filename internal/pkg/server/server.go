@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -27,6 +29,7 @@ type ServerContext struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration
+	ServerMode   string
 }
 
 func NewServer(s ServerContext) IServer {
@@ -38,6 +41,7 @@ func NewServer(s ServerContext) IServer {
 		ReadTimeout:  s.ReadTimeout,
 		WriteTimeout: s.WriteTimeout,
 		IdleTimeout:  s.IdleTimeout,
+		ServerMode:   s.ServerMode,
 	}
 }
 
@@ -64,17 +68,24 @@ func (s ServerContext) Run() {
 	}
 
 	fmt.Println(`
-                                    .___    .__                
-   ____   ____     _____   ____   __| _/_ __|  | _____ _______ 
-  / ___\ /  _ \   /     \ /  _ \ / __ |  |  \  | \__  \\_  __ \
- / /_/  >  <_> ) |  Y Y  (  <_> ) /_/ |  |  /  |__/ __ \|  | \/
- \___  / \____/  |__|_|  /\____/\____ |____/|____(____  /__|   
-/_____/                \/            \/               \/       
+  ▘          ▗ ▘
+  ▛▌▌▛▌▛▌▄▖▌▌▛▌▜▘▌▛▛▌█▌
+  ▙▌▌▌▌▙▌  ▙▌▙▌▐▖▌▌▌▌▙▖
+  ▌    ▄▌    ▌         	`)
 
-	`)
+	mode := s.ServerMode
+	if mode == "" {
+		mode = "info"
+	}
+	port := s.Host
+	if len(port) > 0 && port[0] == ':' {
+		port = port[1:]
+	}
 
-	// info
-	log.Printf("Server Running on : %v", s.Host)
+	ips := getIPs()
+	fmt.Printf("  Mode : %s\n", mode)
+	fmt.Printf("  Port : %s\n", port)
+	fmt.Printf("  IPs  : %s\n\n", strings.Join(ips, ", "))
 
 	// Handle ctrl+c/ctrl+x interrupt
 	signal.Notify(runChan, os.Interrupt, syscall.SIGTERM)
@@ -103,4 +114,20 @@ func (s ServerContext) Run() {
 
 func (s ServerContext) RunWithSSL() {
 
+}
+
+func getIPs() []string {
+	ips := []string{"127.0.0.1"}
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ips
+	}
+	for _, address := range addrs {
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				ips = append(ips, ipnet.IP.String())
+			}
+		}
+	}
+	return ips
 }

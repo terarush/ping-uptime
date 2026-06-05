@@ -30,6 +30,7 @@ func main() {
 
 	// initialize logger
 	logCfg := logger.DefaultConfig()
+	logCfg.Level = config.GetString("SERVER_MODE", "info")
 
 	// Start the application
 	application, err := app.NewApp(&logCfg, staticFS)
