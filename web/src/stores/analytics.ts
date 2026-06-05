@@ -8,6 +8,7 @@ export interface ChartDataPoint {
   uptime_pct: number;
   failed: number;
   total: number;
+  latency: number;
 }
 
 export interface MonitorStats {
@@ -20,6 +21,9 @@ export interface MonitorStats {
   failed_checks: number;
   points: ChartDataPoint[];
   status: string;
+  avg_latency: number;
+  min_latency: number;
+  max_latency: number;
 }
 
 export const useAnalyticsStore = defineStore('analytics', () => {
@@ -35,7 +39,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     error.value = '';
     try {
       const response = await ExtendedFetch.get(`/analytics/dashboard?window=${window}`);
-      stats.value = response.data?.data || [];
+      stats.value = response.data?.data?.data || [];
     } catch (err: any) {
       console.error('Failed to fetch dashboard stats:', err);
       error.value = err.response?.data?.error || 'Failed to load analytics.';
@@ -50,7 +54,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     error.value = '';
     try {
       const response = await ExtendedFetch.get(`/analytics/monitors/${monitorID}/chart?window=${window}`);
-      chartPoints.value = response.data?.data?.points || [];
+      chartPoints.value = response.data?.data?.data || response.data?.data?.points || [];
       chartMonitorID.value = monitorID;
       chartWindow.value = window;
     } catch (err: any) {
