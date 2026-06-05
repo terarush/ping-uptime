@@ -42,21 +42,16 @@ const fetchPublicStatus = async () => {
   }
 };
 
-// Real uptime bar generation based on actual monitor creation date and status
 const getMonitorStats = (mon: Monitor) => {
-  const created = mon.created_at ? new Date(mon.created_at) : new Date();
   const now = new Date();
-  const daysSince = Math.max(1, Math.ceil((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)));
-  const barCount = Math.min(90, Math.max(7, daysSince));
+  const created = mon.created_at ? new Date(mon.created_at) : now;
+
+  const totalDays = 30;
+  const bars = new Array(totalDays).fill('up');
 
   const uptimePct = mon.uptime_status === 'up' ? 99.9 : mon.uptime_status === 'down' ? 0 : 100;
 
-  const bars = [];
-  const downBars = Math.round(barCount * (1 - uptimePct / 100));
-  for (let i = 0; i < barCount; i++) {
-    bars.push(i < downBars ? 'down' : 'up');
-  }
-  return { bars, uptimePct, daysSince, barCount };
+  return { bars, uptimePct, totalDays, created };
 };
 
 const formatDaysSince = (mon: Monitor) => {
@@ -66,6 +61,22 @@ const formatDaysSince = (mon: Monitor) => {
   if (days <= 0) return 'Today';
   if (days === 1) return '1 day ago';
   return `${days} days ago`;
+};
+
+const getBarTooltip = (mon: Monitor, index: number, status: string) => {
+  const created = new Date(mon.created_at || Date.now());
+  const barDate = new Date(created);
+  barDate.setDate(barDate.getDate() + (29 - index));
+  const dateStr = barDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  if (status === 'up') return `${dateStr} — Operational`;
+  return `${dateStr} — Service interrupted`;
 };
 
 onMounted(() => {
@@ -179,11 +190,12 @@ onMounted(() => {
                       v-for="(status, index) in getMonitorStats(mon).bars"
                       :key="index"
                       :class="[
-                        'w-2 h-6 rounded-sm transition-all hover:scale-110',
+                        'w-2 h-6 rounded-sm transition-all hover:scale-110 cursor-pointer',
                         status === 'up'
                           ? 'bg-emerald-500 dark:bg-emerald-500/80 hover:bg-emerald-400'
                           : 'bg-red-500 hover:bg-red-400'
                       ]"
+                      :title="getBarTooltip(mon, index, status)"
                     ></div>
                   </div>
 
