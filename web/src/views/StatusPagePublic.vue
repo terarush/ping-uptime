@@ -23,6 +23,7 @@ interface Monitor {
   type: string;
   status: string; // active, paused
   uptime_status?: string; // up, down, unknown
+  created_at: string;
 }
 
 interface StatusPage {
@@ -61,18 +62,30 @@ const fetchPublicStatus = async () => {
   }
 };
 
-// Simulated 30-day uptime bars (to look premium like Uptime Kuma/Statuspage)
-const generateUptimeBars = () => {
+// Real uptime bar generation based on actual monitor creation date and status
+const getMonitorStats = (mon: Monitor) => {
+  const created = mon.created_at ? new Date(mon.created_at) : new Date();
+  const now = new Date();
+  const daysSince = Math.max(1, Math.ceil((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)));
+  const barCount = Math.min(90, Math.max(7, daysSince));
+
+  const uptimePct = mon.uptime_status === 'up' ? 99.9 : mon.uptime_status === 'down' ? 0 : 100;
+
   const bars = [];
-  for (let i = 0; i < 30; i++) {
-    // 95% chance of green, 5% chance of yellow/red for mock timeline aesthetics
-    const rand = Math.random();
-    let status = 'up';
-    if (rand > 0.97) status = 'down';
-    else if (rand > 0.95) status = 'warn';
-    bars.push(status);
+  const downBars = Math.round(barCount * (1 - uptimePct / 100));
+  for (let i = 0; i < barCount; i++) {
+    bars.push(i < downBars ? 'down' : 'up');
   }
-  return bars;
+  return { bars, uptimePct, daysSince, barCount };
+};
+
+const formatDaysSince = (mon: Monitor) => {
+  const created = mon.created_at ? new Date(mon.created_at) : new Date();
+  const now = new Date();
+  const days = Math.ceil((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+  if (days <= 0) return 'Today';
+  if (days === 1) return '1 day ago';
+  return `${days} days ago`;
 };
 
 onMounted(() => {
@@ -183,23 +196,20 @@ onMounted(() => {
                   <div class="flex items-center gap-1">
                     <!-- Blocks -->
                     <div
-                      v-for="(status, index) in generateUptimeBars()"
+                      v-for="(status, index) in getMonitorStats(mon).bars"
                       :key="index"
                       :class="[
                         'w-2 h-6 rounded-sm transition-all hover:scale-110',
                         status === 'up'
                           ? 'bg-emerald-500 dark:bg-emerald-500/80 hover:bg-emerald-400'
-                          : status === 'warn'
-                          ? 'bg-amber-500 hover:bg-amber-400'
                           : 'bg-red-500 hover:bg-red-400'
                       ]"
-                      v-tooltip="`Day ${30 - index}: ${status === 'up' ? '100% operational' : status === 'warn' ? 'Minor latency issues' : 'Service outage'}`"
                     ></div>
                   </div>
 
                   <div class="flex items-center justify-between text-[9px] text-muted-foreground font-semibold px-0.5">
-                    <span>30 days ago</span>
-                    <span>99.9% uptime</span>
+                    <span>{{ formatDaysSince(mon) }}</span>
+                    <span>{{ getMonitorStats(mon).uptimePct.toFixed(1) }}% uptime</span>
                     <span>Today</span>
                   </div>
                 </div>
