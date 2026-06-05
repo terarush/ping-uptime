@@ -176,8 +176,10 @@ func (a *App) Initialize() error {
 
 	a.logger.Info("Application initialization completed")
 
-	for _, v := range a.r.Routes() {
-		fmt.Printf("PATH: %v | METHOD: %v\n", v.Path, v.Method)
+	if a.logger.IsDebug() {
+		for _, v := range a.r.Routes() {
+			fmt.Printf("PATH: %v | METHOD: %v\n", v.Path, v.Method)
+		}
 	}
 
 	return nil
@@ -204,5 +206,6 @@ func (a *App) SetServer() *server.ServerContext {
 		Host:         ":" + config.GetString("PORT", "8080"),
 		ReadTimeout:  time.Duration(config.GetInt("HTTP_TIMEOUT", 60)),
 		WriteTimeout: time.Duration(config.GetInt("HTTP_TIMEOUT", 60)),
+		ServerMode:   config.GetString("SERVER_MODE", "info"),
 	}
 }
