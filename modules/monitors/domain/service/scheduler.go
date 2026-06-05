@@ -95,16 +95,10 @@ func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) 
 			}
 		}
 	} else if newStatus == "up" && oldStatus == "down" {
-		var activeIncidents []*incidentEntity.Incident
-		err := database.DB.WithContext(ctx).Where("monitor_id = ? AND status = ?", mon.ID, "active").Find(&activeIncidents).Error
-		if err == nil {
-			for _, inc := range activeIncidents {
-				inc.Status = "resolved"
-				inc.ResolvedAt = &now
-				database.DB.WithContext(ctx).Save(inc)
-				s.event.Publish(bus.Event{Type: "incident.resolved", Payload: inc})
-			}
-		}
+		resolved := incidentEntity.NewIncident(mon.ID, mon.UserID, "resolved", "", latency)
+		resolved.ResolvedAt = &now
+		database.DB.WithContext(ctx).Create(resolved)
+		s.event.Publish(bus.Event{Type: "incident.resolved", Payload: resolved})
 	}
 
 	s.event.Publish(bus.Event{Type: "monitor.checked", Payload: mon})
