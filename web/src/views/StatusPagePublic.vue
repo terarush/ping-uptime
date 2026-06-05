@@ -12,7 +12,10 @@ import {
 } from '@lucide/vue';
 import gsap from 'gsap';
 import ThemeButton from '@/components/theme-button.vue';
+import { useRouter } from 'vue-router';
 import type { StatusPage, Monitor } from '@/stores/statusPages';
+
+const router = useRouter();
 
 // Refs & States
 const route = useRoute();
@@ -174,7 +177,7 @@ onMounted(() => {
                         ? 'bg-red-500 ring-red-500/20 animate-pulse'
                         : 'bg-slate-400 ring-slate-400/20'
                     ]"></span>
-                    <span class="text-sm font-bold text-foreground truncate block">{{ mon.name }}</span>
+                  <span class="text-sm font-bold text-foreground truncate block cursor-pointer underline-offset-2 hover:underline" @click="router.push(`/status/${slug}/monitor/${mon.id}`)">{{ mon.name }}</span>
                   </div>
                   <a :href="mon.url" target="_blank" class="text-[10px] text-muted-foreground hover:underline inline-flex items-center gap-1">
                     <span class="truncate max-w-[200px] sm:max-w-xs">{{ mon.url }}</span>

@@ -1,8 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Index from '@/views/Index.vue'
-import AppIndex from '@/views/App.vue'
-import AppUsers from '@/views/App.Users.vue'
-import AppLayout from '@/layouts/AppLayout.vue'
 import { useAuth } from '@/composables/useAuth'
 import { siteConfig } from '@/content/config'
 
@@ -11,7 +7,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      component: Index,
+      component: () => import('@/views/Index.vue'),
       meta: { guestOnly: true },
     },
     {
@@ -20,14 +16,19 @@ const router = createRouter({
       component: () => import('@/views/StatusPagePublic.vue'),
     },
     {
+      path: '/status/:slug/monitor/:monitorId',
+      name: 'StatusPageMonitorDetail',
+      component: () => import('@/views/StatusPageMonitorDetail.vue'),
+    },
+    {
       path: siteConfig.appPath,
-      component: AppLayout,
+      component: () => import('@/layouts/AppLayout.vue'),
       meta: { requiresAuth: true },
       children: [
         {
           path: '',
           name: 'app',
-          component: AppIndex,
+          component: () => import('@/views/App.Index.vue'),
         },
         {
           path: 'monitors',
@@ -47,7 +48,7 @@ const router = createRouter({
         {
           path: 'users',
           name: 'Users',
-          component: AppUsers,
+          component: () => import('@/views/App.Users.vue'),
           meta: { requiresAdmin: true },
         },
         {
