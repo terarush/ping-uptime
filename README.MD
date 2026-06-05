@@ -16,8 +16,6 @@ A self-hosted **uptime monitoring** service built with Go (Echo v4) and Vue 3. M
 
 ---
 
----
-
 ## 🚀 Getting Started (Docker Installation)
 
 The easiest way to run `ping-uptime` is using Docker.
