@@ -8,12 +8,10 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import {
   ArrowLeft,
-  ShieldCheck,
   ShieldAlert,
   Loader2,
   ExternalLink,
   Activity,
-  Zap,
   Clock,
   Globe
 } from '@lucide/vue';
@@ -30,6 +28,7 @@ const pageData = ref<StatusPage | null>(null);
 const mon = ref<Monitor | null>(null);
 const loading = ref(true);
 const error = ref('');
+const activeTab = ref<'1h' | '1d' | '1m' | '1y'>('1d');
 
 const fetchData = async () => {
   loading.value = true;
@@ -47,6 +46,8 @@ const fetchData = async () => {
       status: 'active',
       uptime_status: 'unknown',
       created_at: new Date().toISOString(),
+      interval: 60,
+      timeout: 10,
     };
   } catch (err: any) {
     console.error('Failed to load monitor detail:', err);
@@ -85,13 +86,49 @@ const daysSince = computed(() => {
   return Math.ceil((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
 });
 
+const statusColor = computed(() => {
+  if (!mon.value) return 'bg-slate-400';
+  const s = mon.value.uptime_status;
+  if (s === 'up') return 'bg-emerald-500';
+  if (s === 'down') return 'bg-red-500';
+  return 'bg-slate-400';
+});
+
+const chartData = computed(() => {
+  if (!mon.value) return [];
+  const totalBars = 30;
+  const bars = [];
+  const created = new Date(mon.value.created_at || Date.now());
+  const now = new Date();
+
+  for (let i = 0; i < totalBars; i++) {
+    const barDate = new Date(created);
+    barDate.setDate(barDate.getDate() + (totalBars - 1 - i));
+    if (barDate > now) continue;
+
+    const isUp = mon.value!.uptime_status === 'up';
+    bars.push({
+      date: barDate,
+      status: isUp ? 'up' : 'down',
+      label: barDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    });
+  }
+  return bars;
+});
+
 const periods = computed(() => {
   const d = daysSince.value;
+  const map: Record<string, string> = {
+    '1h': d < 1 ? 'Less than 1 hour' : `${d * 24} hours`,
+    '1d': d === 0 ? 'Today' : d === 1 ? '1 day' : `${d} days`,
+    '1m': d === 0 ? 'Less than a month' : d < 30 ? `${d} days` : `${Math.floor(d / 30)} months`,
+    '1y': d < 365 ? `${d} days` : `${Math.floor(d / 365)} years`,
+  };
   return [
-    { label: '1 HOUR', uptime: uptimePct.value },
-    { label: '1 DAY', uptime: uptimePct.value },
-    { label: '1 MONTH', uptime: uptimePct.value },
-    { label: '1 YEAR', uptime: uptimePct.value },
+    { key: '1h' as const, label: '1 HOUR', uptime: uptimePct.value, caption: map['1h'] },
+    { key: '1d' as const, label: '1 DAY', uptime: uptimePct.value, caption: map['1d'] },
+    { key: '1m' as const, label: '1 MONTH', uptime: uptimePct.value, caption: map['1m'] },
+    { key: '1y' as const, label: '1 YEAR', uptime: uptimePct.value, caption: map['1y'] },
   ];
 });
 
@@ -103,7 +140,7 @@ onMounted(() => {
 <template>
   <div class="relative min-h-screen bg-background text-foreground flex flex-col transition-colors duration-300">
     <header class="border-b border-border/50 bg-background/50 backdrop-blur-md sticky top-0 z-50">
-      <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <Button variant="ghost" size="icon" class="h-8 w-8" @click="router.push(`/status/${slug}`)">
             <ArrowLeft class="w-4 h-4" />
@@ -114,7 +151,7 @@ onMounted(() => {
       </div>
     </header>
 
-    <main class="flex-1 max-w-4xl w-full mx-auto px-6 py-10 space-y-6">
+    <main class="flex-1 max-w-5xl w-full mx-auto px-6 py-10 space-y-6">
       <div v-if="loading" class="flex flex-col items-center justify-center py-40 gap-4">
         <Loader2 class="w-10 h-10 text-primary animate-spin" />
         <p class="text-sm text-muted-foreground font-semibold">Loading monitor detail...</p>
@@ -143,7 +180,7 @@ onMounted(() => {
                 ]"></span>
                 <span class="text-base font-black text-foreground truncate block">{{ mon.name }}</span>
               </div>
-              <div class="flex items-center gap-3 text-[10px] text-muted-foreground font-semibold">
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground font-semibold">
                 <span class="inline-flex items-center gap-1">
                   <Globe class="w-3 h-3" />
                   <a :href="mon.url" target="_blank" class="hover:underline truncate max-w-[220px] sm:max-w-xs">{{ mon.url }}</a>
@@ -151,6 +188,10 @@ onMounted(() => {
                 <span class="inline-flex items-center gap-1">
                   <Clock class="w-3 h-3" />
                   {{ daysSince === 0 ? 'Today' : daysSince === 1 ? '1 day ago' : `${daysSince} days ago` }}
+                </span>
+                <span class="inline-flex items-center gap-1">
+                  <Activity class="w-3 h-3" />
+                  {{ mon.type.toUpperCase() }} • {{ mon.interval ?? 60 }}s interval
                 </span>
               </div>
             </div>
@@ -171,33 +212,54 @@ onMounted(() => {
         </Card>
 
         <Card class="detail-card border-border/50 bg-card/60 backdrop-blur-md">
-          <CardHeader class="pb-3">
+          <CardHeader class="pb-4">
             <CardTitle class="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Uptime Overview</CardTitle>
-            <CardDescription class="text-[10px]">Relative performance across common windows</CardDescription>
+            <CardDescription class="text-[10px]">Performance across common windows</CardDescription>
           </CardHeader>
           <CardContent class="px-6 pb-6">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div v-for="p in periods" :key="p.label" class="rounded-lg border border-border/50 bg-background/40 p-3 space-y-1">
+              <div v-for="p in periods" :key="p.key" class="rounded-lg border border-border/50 bg-background/40 p-3 space-y-1">
                 <span class="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{{ p.label }}</span>
                 <span class="text-xl font-black text-foreground">{{ p.uptime }}</span>
-                <span class="text-[9px] text-muted-foreground font-semibold inline-flex items-center gap-0.5">
-                  <Zap class="w-3 h-3" />
-                  uptime
-                </span>
+                <span class="text-[9px] text-muted-foreground font-semibold">{{ p.caption }}</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card class="detail-card border-border/50 bg-card/60 backdrop-blur-md">
-          <CardContent class="p-6">
+          <CardHeader class="pb-4">
+            <CardTitle class="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">30-Day History</CardTitle>
+            <CardDescription class="text-[10px]">Daily uptime status for the last 30 days</CardDescription>
+          </CardHeader>
+          <CardContent class="px-6 pb-6">
+            <div class="space-y-3">
+              <div class="flex items-end gap-1 h-16">
+                <div
+                  v-for="(bar, idx) in chartData"
+                  :key="idx"
+                  :class="[
+                    'flex-1 rounded-sm transition-all hover:scale-105 cursor-pointer relative group',
+                    bar.status === 'up' ? 'bg-emerald-500 dark:bg-emerald-500/80 hover:bg-emerald-400' : 'bg-red-500 hover:bg-red-400'
+                  ]"
+                  :title="`${bar.label}: ${bar.status === 'up' ? 'Operational' : 'Service interrupted'}`"
+                ></div>
+              </div>
+              <div class="flex items-center justify-between text-[9px] text-muted-foreground font-semibold px-0.5">
+                <span>{{ chartData.length > 0 ? chartData[0]?.label ?? '—' : '—' }}</span>
+                <span>Today</span>
+              </div>
+            </div>
+
+            <Separator class="my-5" />
+
             <div class="flex items-start gap-3">
               <Activity class="w-4 h-4 text-muted-foreground mt-0.5" />
               <div class="space-y-1">
-                <p class="text-[11px] font-bold text-foreground uppercase tracking-wider">Real-time history</p>
+                <p class="text-[11px] font-bold text-foreground uppercase tracking-wider">Recent activity</p>
                 <p class="text-[10px] text-muted-foreground leading-relaxed">
-                  Live incident history is calculated from active checks performed by the monitoring scheduler.
-                  Detailed charts are available on the full status dashboard.
+                  Status updates are pushed in real time as the scheduler performs checks every {{ mon.interval }} seconds.
+                  Green indicates the endpoint responded successfully; red means the check failed or timed out.
                 </p>
               </div>
             </div>
@@ -207,7 +269,7 @@ onMounted(() => {
     </main>
 
     <footer class="border-t border-border/40 py-6 bg-background/50 backdrop-blur-md">
-      <div class="max-w-4xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between text-[10px] text-muted-foreground gap-2">
+      <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between text-[10px] text-muted-foreground gap-2">
         <span>Powered by <strong class="text-foreground">ping-uptime</strong> Uptime Monitoring Service.</span>
         <span>&copy; 2026. All rights reserved.</span>
       </div>

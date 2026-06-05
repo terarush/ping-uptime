@@ -10,6 +10,8 @@ export interface Monitor {
   status: string;
   uptime_status: string;
   created_at: string;
+  interval: number;
+  timeout: number;
 }
 
 export interface StatusPage {
