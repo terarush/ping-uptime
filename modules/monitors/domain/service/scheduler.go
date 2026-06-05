@@ -79,22 +79,28 @@ func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) 
 
 	// Trigger Incidents transition
 	if newStatus == "down" {
-		// Create a new incident entry on every failed check to build a continuous log
-		if errMsg == "" {
-			errMsg = "Connection failed"
+		if oldStatus == "up" {
+			if errMsg == "" {
+				errMsg = "Connection failed"
+			}
+			inc := incidentEntity.NewIncident(mon.ID, mon.UserID, "active", errMsg, latency)
+			database.DB.WithContext(ctx).Create(inc)
+			s.event.Publish(bus.Event{Type: "incident.created", Payload: inc})
+		} else {
+			var activeIncidents []*incidentEntity.Incident
+			err := database.DB.WithContext(ctx).Where("monitor_id = ? AND status = ?", mon.ID, "active").Find(&activeIncidents).Error
+			if err == nil && len(activeIncidents) > 0 {
+				activeIncidents[0].Latency = latency
+				database.DB.WithContext(ctx).Save(activeIncidents[0])
+			}
 		}
-		inc := incidentEntity.NewIncident(mon.ID, mon.UserID, "active", errMsg, latency)
-		database.DB.WithContext(ctx).Create(inc)
-		s.event.Publish(bus.Event{Type: "incident.created", Payload: inc})
 	} else if newStatus == "up" && oldStatus == "down" {
-		// Resolve any active incidents
 		var activeIncidents []*incidentEntity.Incident
 		err := database.DB.WithContext(ctx).Where("monitor_id = ? AND status = ?", mon.ID, "active").Find(&activeIncidents).Error
 		if err == nil {
 			for _, inc := range activeIncidents {
 				inc.Status = "resolved"
 				inc.ResolvedAt = &now
-				inc.Latency = latency
 				database.DB.WithContext(ctx).Save(inc)
 				s.event.Publish(bus.Event{Type: "incident.resolved", Payload: inc})
 			}
