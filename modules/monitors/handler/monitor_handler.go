@@ -293,6 +293,35 @@ func (h *MonitorHandler) DeleteMonitor(c echo.Context) error {
 	return h.r.NoContentResponse(c)
 }
 
+func (h *MonitorHandler) GetPublicDailyChart(c echo.Context) error {
+	ctx := c.Request().Context()
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return h.r.BadRequestResponse(c, "Invalid monitor ID")
+	}
+
+	days := 30
+	if d := c.QueryParam("days"); d != "" {
+		if parsed, err := strconv.Atoi(d); err == nil && parsed > 0 && parsed <= 90 {
+			days = parsed
+		}
+	}
+
+	points, err := h.monitorService.GetDailyChart(ctx, uint(id), days)
+	if err != nil {
+		return h.r.InternalServerErrorResponse(c, err.Error())
+	}
+	if points == nil {
+		points = []entity.DailyChartPoint{}
+	}
+
+	return h.r.SuccessResponse(c, map[string]interface{}{
+		"monitor_id": id,
+		"days":       days,
+		"data":       points,
+	}, "Daily chart retrieved successfully")
+}
+
 func (h *MonitorHandler) broadcastEvent(event bus.Event) {
 	payload, err := json.Marshal(map[string]interface{}{
 		"type":    event.Type,
@@ -345,4 +374,6 @@ func (h *MonitorHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group.POST("", h.CreateMonitor)
 	group.PUT("/:id", h.UpdateMonitor)
 	group.DELETE("/:id", h.DeleteMonitor)
+
+	e.GET(basePath+"/monitors/public/:id/daily", h.GetPublicDailyChart)
 }

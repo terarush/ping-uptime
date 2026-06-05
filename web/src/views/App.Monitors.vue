@@ -24,13 +24,28 @@ import {
   Trash2,
   Search,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  TrendingUp,
+  BarChart3
 } from '@lucide/vue';
 import gsap from 'gsap';
+import { useAnalytics } from '@/composables/useAnalytics';
+import Chart from '@/components/chart.vue';
 
 // Auth checks
 const { currentUser } = useAuth();
 const isAdmin = computed(() => currentUser.value?.role === 'admin');
+
+const {
+  stats,
+  chartPoints,
+  chartMonitorID,
+  chartWindow,
+  loading: analyticsLoading,
+  error: analyticsError,
+  fetchDashboardStats,
+  fetchChart,
+} = useAnalytics();
 
 // Composable monitor states
 const {
@@ -45,6 +60,9 @@ const {
 
 const searchQuery = ref('');
 const success = ref('');
+
+const selectedMonitorId = ref<number | null>(null);
+const selectedWindow = ref<'1h' | '1d' | '1w' | '1m' | '1y' | 'all'>('1m');
 
 // Dialog states
 const isFormDialogOpen = ref(false);
@@ -271,6 +289,69 @@ onMounted(() => {
           @edit="openEditDialog"
           @delete="openDeleteDialog"
         />
+      </CardContent>
+    </Card>
+
+    <!-- Analytics Detail Section -->
+    <Card v-if="selectedMonitorId" class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
+      <CardHeader class="pb-3 border-b border-border/40">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle class="text-sm font-bold text-foreground flex items-center gap-2">
+              <TrendingUp class="w-4 h-4 text-primary" />
+              <span>Analytics</span>
+            </CardTitle>
+            <CardDescription class="text-xs">Uptime history and response timeline for the selected monitor.</CardDescription>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <Select v-model="selectedWindow">
+              <SelectTrigger class="h-9 w-[140px]">
+                <SelectValue placeholder="Window" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1h">Last 1 hour</SelectItem>
+                <SelectItem value="1d">Last 24 hours</SelectItem>
+                <SelectItem value="1w">Last 7 days</SelectItem>
+                <SelectItem value="1m">Last 30 days</SelectItem>
+                <SelectItem value="1y">Last year</SelectItem>
+                <SelectItem value="all">All time</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent class="p-6 space-y-6">
+        <div v-if="analyticsLoading && chartPoints.length === 0" class="flex flex-col items-center justify-center py-16 gap-3">
+          <Loader2 class="w-8 h-8 text-primary animate-spin" />
+          <p class="text-sm text-muted-foreground">Loading analytics...</p>
+        </div>
+
+        <template v-else>
+          <Chart :points="chartPoints" :height="220" />
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="rounded-lg border border-border/60 bg-background p-3">
+              <p class="text-[10px] font-bold text-muted-foreground uppercase">Uptime</p>
+              <p class="text-sm font-black text-foreground mt-1">{{ (stats[0]?.uptime_pct ?? 0).toFixed(2) }}%</p>
+            </div>
+            <div class="rounded-lg border border-border/60 bg-background p-3">
+              <p class="text-[10px] font-bold text-muted-foreground uppercase">Total checks</p>
+              <p class="text-sm font-black text-foreground mt-1">{{ stats[0]?.total_checks ?? 0 }}</p>
+            </div>
+            <div class="rounded-lg border border-border/60 bg-background p-3">
+              <p class="text-[10px] font-bold text-muted-foreground uppercase">Failed</p>
+              <p class="text-sm font-black text-foreground mt-1">{{ stats[0]?.failed_checks ?? 0 }}</p>
+            </div>
+            <div class="rounded-lg border border-border/60 bg-background p-3">
+              <p class="text-[10px] font-bold text-muted-foreground uppercase">Status</p>
+              <p class="text-sm font-black text-foreground mt-1">{{ stats[0]?.status ?? '—' }}</p>
+            </div>
+          </div>
+
+          <div v-if="analyticsError" class="text-xs text-destructive">{{ analyticsError }}</div>
+        </template>
       </CardContent>
     </Card>
 

@@ -77,6 +77,8 @@ func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) 
 		return
 	}
 
+	_ = s.monitorRepo.CreateCheckRecord(ctx, entity.NewCheckRecord(mon.ID, success, latency, 0))
+
 	// Trigger Incidents transition
 	if newStatus == "down" {
 		if oldStatus == "up" {

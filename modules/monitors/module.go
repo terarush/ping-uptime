@@ -60,7 +60,7 @@ func (m *Module) RegisterRoutes(e *echo.Echo, basePath string) {
 
 func (m *Module) Migrations() error {
 	m.logger.Info("Registering monitor module migrations")
-	return m.db.AutoMigrate(&entity.Monitor{})
+	return m.db.AutoMigrate(&entity.Monitor{}, &entity.CheckRecord{})
 }
 
 func (m *Module) Logger() *logger.Logger {
