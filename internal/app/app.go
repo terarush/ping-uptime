@@ -50,7 +50,7 @@ func (a *App) SetRouter() *echo.Echo {
 // RegisterModule registers a module with the application
 func (a *App) RegisterModule(module Module) {
 	a.modules = append(a.modules, module)
-	a.logger.Info("Registered module: %s", module.Name())
+	a.logger.Info("Registered module", "module", module.Name())
 }
 
 // Initialize initializes the application
