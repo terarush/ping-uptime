@@ -30,6 +30,5 @@ Run the container using the following command, passing your `.env` file:
 docker run -d \
   --name ping-uptime \
   -p 8080:8080 \
-  --env-file .env \
   rafia9005/ping-uptime:latest
 ```
