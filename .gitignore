@@ -7,7 +7,7 @@ Thumbs.db
 .idea/
 *.iml
 static/*
-!static/.gitkeep
+!static/placeholder.txt
 tmp/
 .agent
 bin/*
