@@ -22,6 +22,11 @@ type MonitorResponse struct {
 }
 
 func FromEntity(m *entity.Monitor) *MonitorResponse {
+	var lastChecked *time.Time
+	if m.LastCheckedAt != nil {
+		localTime := m.LastCheckedAt.Local()
+		lastChecked = &localTime
+	}
 	return &MonitorResponse{
 		ID:            m.ID,
 		Name:          m.Name,
@@ -31,11 +36,11 @@ func FromEntity(m *entity.Monitor) *MonitorResponse {
 		Timeout:       m.Timeout,
 		Status:        m.Status,
 		UptimeStatus:  m.UptimeStatus,
-		LastCheckedAt: m.LastCheckedAt,
+		LastCheckedAt: lastChecked,
 		LastLatency:   m.LastLatency,
 		UserID:        m.UserID,
-		CreatedAt:     m.CreatedAt,
-		UpdatedAt:     m.UpdatedAt,
+		CreatedAt:     m.CreatedAt.Local(),
+		UpdatedAt:     m.UpdatedAt.Local(),
 	}
 }
 
