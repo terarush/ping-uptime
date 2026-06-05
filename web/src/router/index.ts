@@ -11,16 +11,6 @@ const router = createRouter({
       meta: { guestOnly: true },
     },
     {
-      path: '/status/:slug',
-      name: 'StatusPagePublic',
-      component: () => import('@/views/StatusPagePublic.vue'),
-    },
-    {
-      path: '/status/:slug/monitor/:monitorId',
-      name: 'StatusPageMonitorDetail',
-      component: () => import('@/views/StatusPageMonitorDetail.vue'),
-    },
-    {
       path: siteConfig.appPath,
       component: () => import('@/layouts/AppLayout.vue'),
       meta: { requiresAuth: true },
@@ -36,14 +26,14 @@ const router = createRouter({
           component: () => import('@/views/App.Monitors.vue'),
         },
         {
+          path: 'analytics',
+          name: 'Analytics',
+          component: () => import('@/views/App.Analytics.vue'),
+        },
+        {
           path: 'incidents',
           name: 'Incidents',
           component: () => import('@/views/App.Incidents.vue'),
-        },
-        {
-          path: 'status-pages',
-          name: 'StatusPages',
-          component: () => import('@/views/App.StatusPages.vue'),
         },
         {
           path: 'users',

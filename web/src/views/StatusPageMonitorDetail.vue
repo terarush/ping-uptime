@@ -183,7 +183,7 @@ onMounted(() => {
               <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground font-semibold">
                 <span class="inline-flex items-center gap-1">
                   <Globe class="w-3 h-3" />
-                  <a :href="mon.url" target="_blank" class="hover:underline truncate max-w-[220px] sm:max-w-xs">{{ mon.url }}</a>
+                  <a :href="mon.url" target="_blank" class="hover:underline truncate max-w-55 sm:max-w-xs">{{ mon.url }}</a>
                 </span>
                 <span class="inline-flex items-center gap-1">
                   <Clock class="w-3 h-3" />

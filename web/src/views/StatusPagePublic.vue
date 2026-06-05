@@ -224,7 +224,7 @@ onMounted(() => {
                     <span class="text-sm font-bold text-foreground truncate block cursor-pointer underline-offset-2 hover:underline" @click="router.push(`/status/${slug}/monitor/${mon.id}`)">{{ mon.name }}</span>
                   </div>
                   <a :href="mon.url" target="_blank" class="text-[10px] text-muted-foreground hover:underline inline-flex items-center gap-1">
-                    <span class="truncate max-w-[200px] sm:max-w-xs">{{ mon.url }}</span>
+                    <span class="truncate max-w-55 sm:max-w-xs">{{ mon.url }}</span>
                     <ExternalLink class="w-2.5 h-2.5" />
                   </a>
                 </div>

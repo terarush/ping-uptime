@@ -6,6 +6,7 @@ import {
   Bell,
   FileText,
   ShieldCheck,
+  BarChart3,
 } from '@lucide/vue'
 import { siteConfig } from './config'
 
@@ -37,6 +38,11 @@ export const sidebarContent: SidebarGroup[] = [
         icon: Activity,
         badge: 'Live',
       },
+      {
+        title: 'Analytics',
+        href: `${siteConfig.appPath}/analytics`,
+        icon: BarChart3,
+      },
     ],
   },
   {
@@ -46,11 +52,6 @@ export const sidebarContent: SidebarGroup[] = [
         title: 'Incident Logs',
         href: `${siteConfig.appPath}/incidents`,
         icon: FileText,
-      },
-      {
-        title: 'Status Pages',
-        href: `${siteConfig.appPath}/status-pages`,
-        icon: ShieldCheck,
       },
     ],
   },

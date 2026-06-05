@@ -13,6 +13,7 @@ export interface Monitor {
   status: string; // active, paused
   uptime_status: string; // up, down, unknown
   last_checked_at?: string;
+  last_latency?: number;
   user_id: number;
   created_at: string;
 }
