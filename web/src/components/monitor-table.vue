@@ -1,36 +1,65 @@
 <script setup lang="ts">
+import { ref, computed, watch } from 'vue';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Activity, Edit, Trash2, ExternalLink } from '@lucide/vue';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Clock, Activity, Edit, Trash2, ExternalLink, ChevronLeft, ChevronRight } from '@lucide/vue';
 import type { Monitor } from '@/stores/monitors';
 
-defineProps<{
+const props = defineProps<{
   monitors: Monitor[];
+  selectedId?: number | null;
 }>();
 
 defineEmits<{
+  (e: 'select', id: number): void;
   (e: 'edit', monitor: Monitor): void;
   (e: 'delete', monitor: Monitor): void;
 }>();
+
+const currentPage = ref(1);
+const pageSize = ref(10);
+
+const paginatedMonitors = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return props.monitors.slice(start, end);
+});
+
+const totalPages = computed(() => {
+  return Math.ceil(props.monitors.length / pageSize.value) || 1;
+});
+
+watch(() => totalPages.value, () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = totalPages.value;
+  }
+});
 </script>
 
 <template>
-  <div class="overflow-x-auto">
+  <div class="flex flex-col">
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead class="w-[80px] text-center text-xs font-bold uppercase text-muted-foreground">Status</TableHead>
-          <TableHead class="text-xs font-bold uppercase text-muted-foreground">Name / URL</TableHead>
-          <TableHead class="text-xs font-bold uppercase text-muted-foreground">Type</TableHead>
-          <TableHead class="text-xs font-bold uppercase text-muted-foreground">Interval / Timeout</TableHead>
-          <TableHead class="w-[120px] text-right text-xs font-bold uppercase text-muted-foreground">Actions</TableHead>
+          <TableHead class="w-[80px] text-center">Status</TableHead>
+          <TableHead>Name / URL</TableHead>
+          <TableHead>Type</TableHead>
+          <TableHead>Interval / Timeout</TableHead>
+          <TableHead class="w-[120px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-for="item in monitors" :key="item.id" class="monitor-row hover:bg-muted/40 transition-colors">
+        <TableRow
+          v-for="item in paginatedMonitors"
+          :key="item.id"
+          @click="$emit('select', item.id)"
+          class="cursor-pointer"
+          :data-state="item.id === selectedId ? 'selected' : undefined"
+        >
           <!-- Status -->
-          <TableCell class="py-4">
+          <TableCell>
             <div class="flex items-center justify-center">
               <span :class="[
                 'h-2.5 w-2.5 rounded-full ring-4 shrink-0',
@@ -46,10 +75,10 @@ defineEmits<{
           </TableCell>
 
           <!-- Name & URL -->
-          <TableCell class="font-medium text-foreground py-4">
+          <TableCell class="font-medium">
             <div class="flex flex-col gap-0.5 max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl">
               <span class="text-xs font-bold truncate">{{ item.name }}</span>
-              <a :href="item.url" target="_blank" class="text-[10px] text-muted-foreground hover:underline inline-flex items-center gap-1">
+              <a :href="item.url" target="_blank" @click.stop class="text-[10px] text-muted-foreground hover:underline inline-flex items-center gap-1">
                 <span class="truncate">{{ item.url }}</span>
                 <ExternalLink class="w-2.5 h-2.5 shrink-0" />
               </a>
@@ -57,14 +86,14 @@ defineEmits<{
           </TableCell>
 
           <!-- Type -->
-          <TableCell class="py-4">
+          <TableCell>
             <Badge variant="outline" class="uppercase text-[10px] font-bold py-0.5 px-2 bg-slate-50 dark:bg-slate-900 border-border/50">
               {{ item.type }}
             </Badge>
           </TableCell>
 
           <!-- Interval/Timeout -->
-          <TableCell class="py-4 text-xs">
+          <TableCell>
             <div class="flex items-center gap-3 text-muted-foreground">
               <span class="inline-flex items-center gap-1">
                 <Clock class="w-3.5 h-3.5" />
@@ -78,12 +107,12 @@ defineEmits<{
           </TableCell>
 
           <!-- Actions -->
-          <TableCell class="py-4 text-right">
+          <TableCell class="text-right">
             <div class="flex items-center justify-end gap-1">
-              <Button variant="ghost" size="icon" class="h-8 w-8 text-foreground hover:bg-muted" @click="$emit('edit', item)">
+              <Button variant="ghost" size="icon" class="h-8 w-8 text-foreground hover:bg-muted" @click.stop="$emit('edit', item)">
                 <Edit class="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon" class="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive" @click="$emit('delete', item)">
+              <Button variant="ghost" size="icon" class="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive" @click.stop="$emit('delete', item)">
                 <Trash2 class="w-4 h-4" />
               </Button>
             </div>
@@ -91,5 +120,55 @@ defineEmits<{
         </TableRow>
       </TableBody>
     </Table>
+
+    <!-- Pagination Footer -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-border/40 text-xs text-muted-foreground bg-muted/5">
+      <!-- Page Size Selector -->
+      <div class="flex items-center gap-2">
+        <span>Show</span>
+        <Select :model-value="String(pageSize)" @update:model-value="pageSize = Number($event); currentPage = 1">
+          <SelectTrigger class="h-8 w-16 text-xs bg-background">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="10">10</SelectItem>
+            <SelectItem value="20">20</SelectItem>
+            <SelectItem value="50">50</SelectItem>
+            <SelectItem value="100">100</SelectItem>
+          </SelectContent>
+        </Select>
+        <span>entries</span>
+      </div>
+
+      <!-- Info Text -->
+      <div class="font-medium">
+        Showing {{ Math.min(props.monitors.length, (currentPage - 1) * pageSize + 1) }} to {{ Math.min(props.monitors.length, currentPage * pageSize) }} of {{ props.monitors.length }} entries
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex items-center gap-1.5">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          class="h-8 w-8" 
+          :disabled="currentPage === 1" 
+          @click="currentPage--"
+        >
+          <ChevronLeft class="w-4 h-4" />
+        </Button>
+        <span class="px-3 py-1 font-bold text-foreground">
+          Page {{ currentPage }} of {{ totalPages }}
+        </span>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          class="h-8 w-8" 
+          :disabled="currentPage === totalPages" 
+          @click="currentPage++"
+        >
+          <ChevronRight class="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
   </div>
 </template>

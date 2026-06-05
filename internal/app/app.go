@@ -50,7 +50,7 @@ func (a *App) SetRouter() *echo.Echo {
 // RegisterModule registers a module with the application
 func (a *App) RegisterModule(module Module) {
 	a.modules = append(a.modules, module)
-	a.logger.Info("Registered module: %s", module.Name())
+	a.logger.Info("Registered module", "module", module.Name())
 }
 
 // Initialize initializes the application
@@ -192,7 +192,7 @@ func (a *App) Start() {
 // setup database model
 func (a *App) SetDatabase() *database.DBModel {
 	return &database.DBModel{
-		ServerMode:   config.GetString("SERVER_MODE"),
+		ServerMode:   config.GetString("SERVER_MODE", "info"),
 		Name:         config.GetString("DB_NAME", "ping-uptime"),
 		ConnLifeTime: config.GetInt("POOL_CONN_LIFETIME", 60),
 	}

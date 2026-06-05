@@ -1,8 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Index from '@/views/Index.vue'
-import AppIndex from '@/views/App.vue'
-import AppUsers from '@/views/App.Users.vue'
-import AppLayout from '@/layouts/AppLayout.vue'
 import { useAuth } from '@/composables/useAuth'
 import { siteConfig } from '@/content/config'
 
@@ -11,23 +7,18 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      component: Index,
+      component: () => import('@/views/Index.vue'),
       meta: { guestOnly: true },
     },
     {
-      path: '/status/:slug',
-      name: 'StatusPagePublic',
-      component: () => import('@/views/StatusPagePublic.vue'),
-    },
-    {
       path: siteConfig.appPath,
-      component: AppLayout,
+      component: () => import('@/layouts/AppLayout.vue'),
       meta: { requiresAuth: true },
       children: [
         {
           path: '',
           name: 'app',
-          component: AppIndex,
+          component: () => import('@/views/App.Index.vue'),
         },
         {
           path: 'monitors',
@@ -35,19 +26,19 @@ const router = createRouter({
           component: () => import('@/views/App.Monitors.vue'),
         },
         {
+          path: 'analytics',
+          name: 'Analytics',
+          component: () => import('@/views/App.Analytics.vue'),
+        },
+        {
           path: 'incidents',
           name: 'Incidents',
           component: () => import('@/views/App.Incidents.vue'),
         },
         {
-          path: 'status-pages',
-          name: 'StatusPages',
-          component: () => import('@/views/App.StatusPages.vue'),
-        },
-        {
           path: 'users',
           name: 'Users',
-          component: AppUsers,
+          component: () => import('@/views/App.Users.vue'),
           meta: { requiresAdmin: true },
         },
         {

@@ -50,3 +50,7 @@ func (s *MonitorService) GetMonitorByID(ctx context.Context, id uint) (*entity.M
 func (s *MonitorService) UpdateMonitor(ctx context.Context, monitor *entity.Monitor) error {
 	return s.monitorRepo.Update(ctx, monitor)
 }
+
+func (s *MonitorService) GetDailyChart(ctx context.Context, monitorID uint, days int) ([]entity.DailyChartPoint, error) {
+	return s.monitorRepo.GetDailyChart(ctx, monitorID, days)
+}

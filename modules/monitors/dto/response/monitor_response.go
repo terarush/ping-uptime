@@ -15,6 +15,7 @@ type MonitorResponse struct {
 	Status        string     `json:"status"`
 	UptimeStatus  string     `json:"uptime_status"`
 	LastCheckedAt *time.Time `json:"last_checked_at,omitempty"`
+	LastLatency   int        `json:"last_latency"`
 	UserID        uint       `json:"user_id"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
@@ -31,6 +32,7 @@ func FromEntity(m *entity.Monitor) *MonitorResponse {
 		Status:        m.Status,
 		UptimeStatus:  m.UptimeStatus,
 		LastCheckedAt: m.LastCheckedAt,
+		LastLatency:   m.LastLatency,
 		UserID:        m.UserID,
 		CreatedAt:     m.CreatedAt,
 		UpdatedAt:     m.UpdatedAt,

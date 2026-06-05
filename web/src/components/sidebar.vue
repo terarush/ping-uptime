@@ -4,6 +4,7 @@
  * Connects with Vue Router to highight active items,
  * and calls the Auth composable logout actions on logout trigger.
  */
+import { computed } from 'vue'
 import {
   Sidebar,
   SidebarHeader,
@@ -27,7 +28,19 @@ import { useAuth } from '@/composables/useAuth'
 // Initialize router and auth dependencies
 const route = useRoute()
 const router = useRouter()
-const { logout } = useAuth()
+const { currentUser, logout } = useAuth()
+
+const isAdmin = computed(() => currentUser.value?.role === 'admin')
+
+// Filter sidebar content based on permissions
+const filteredSidebarContent = computed(() => {
+  return sidebarContent.filter(group => {
+    if (group.admin && !isAdmin.value) {
+      return false
+    }
+    return true
+  })
+})
 
 /**
  * Handles clearing sessions and redirecting standard users to the login index
@@ -58,7 +71,7 @@ const handleLogout = () => {
 
     <!-- Content: Nav Groups & Items -->
     <SidebarContent class="py-2">
-      <SidebarGroup v-for="group in sidebarContent" :key="group.groupName">
+      <SidebarGroup v-for="group in filteredSidebarContent" :key="group.groupName">
         <SidebarGroupLabel v-if="group.groupName">{{ group.groupName }}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>

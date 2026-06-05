@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 import { useMonitors, type Monitor } from '@/composables/useMonitors';
 import { monitorSchema } from '@/validations/monitor';
@@ -24,13 +25,32 @@ import {
   Trash2,
   Search,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  TrendingUp,
+  BarChart3,
+  CheckCircle2,
+  Clock,
+  X
 } from '@lucide/vue';
 import gsap from 'gsap';
+import { useAnalytics } from '@/composables/useAnalytics';
+import MultiChart from '@/components/multi-chart.vue';
 
 // Auth checks
 const { currentUser } = useAuth();
 const isAdmin = computed(() => currentUser.value?.role === 'admin');
+const route = useRoute();
+
+const {
+  stats,
+  chartPoints,
+  chartMonitorID,
+  chartWindow,
+  loading: analyticsLoading,
+  error: analyticsError,
+  fetchDashboardStats,
+  fetchChart,
+} = useAnalytics();
 
 // Composable monitor states
 const {
@@ -45,6 +65,9 @@ const {
 
 const searchQuery = ref('');
 const success = ref('');
+
+const selectedMonitorId = ref<number | null>(null);
+const selectedWindow = ref<'1h' | '1d' | '1w' | '1m' | '1y' | 'all'>('1d');
 
 // Dialog states
 const isFormDialogOpen = ref(false);
@@ -65,7 +88,16 @@ const isEditMode = computed(() => !!actionMonitor.value);
 // Fetch wrapper with animation callback
 const fetchAll = async () => {
   try {
-    await fetchMonitors();
+    await Promise.all([
+      fetchMonitors(),
+      fetchDashboardStats(selectedWindow.value)
+    ]);
+
+    // Auto-select first monitor if none is selected and monitors exist
+    const firstMonitor = monitors.value?.[0];
+    if (!selectedMonitorId.value && firstMonitor) {
+      selectedMonitorId.value = firstMonitor.id;
+    }
   } catch (err) {
     console.error('Failed to load monitors list:', err);
   } finally {
@@ -84,6 +116,49 @@ const filteredMonitors = computed(() => {
     m.type.toLowerCase().includes(query) ||
     m.status.toLowerCase().includes(query)
   );
+});
+
+const selectedMonitorStats = computed(() => {
+  if (!selectedMonitorId.value) return null;
+  return stats.value.find(s => s.monitor_id === selectedMonitorId.value) || null;
+});
+
+// Aggregate overview stats
+const totalEndpoints = computed(() => stats.value.length || monitors.value.length);
+
+const avgUptime = computed(() => {
+  if (stats.value.length === 0) return '0.00%';
+  const sum = stats.value.reduce((acc, s) => acc + s.uptime_pct, 0);
+  return `${(sum / stats.value.length).toFixed(2)}%`;
+});
+
+const avgLatency = computed(() => {
+  if (stats.value.length === 0) return '0 ms';
+  const sum = stats.value.reduce((acc, s) => acc + s.avg_latency, 0);
+  return `${Math.round(sum / stats.value.length)} ms`;
+});
+
+const statusDistribution = computed(() => {
+  const dist = { operational: 0, degraded: 0, outage: 0 };
+  stats.value.forEach(s => {
+    if (s.status === 'operational') dist.operational++;
+    else if (s.status === 'degraded') dist.degraded++;
+    else if (s.status === 'outage') dist.outage++;
+  });
+  return dist;
+});
+
+const chartSeries = computed(() => {
+  if (!selectedMonitorId.value || !chartPoints.value.length) return [];
+  const monitorName = monitors.value.find(m => m.id === selectedMonitorId.value)?.name || 'Monitor';
+  return [
+    {
+      monitorId: selectedMonitorId.value,
+      name: monitorName,
+      color: '#6366f1',
+      points: chartPoints.value,
+    }
+  ];
 });
 
 // Reset form fields
@@ -173,6 +248,9 @@ const handleDeleteConfirm = async () => {
   formLoading.value = true;
 
   try {
+    if (selectedMonitorId.value === actionMonitor.value.id) {
+      selectedMonitorId.value = null;
+    }
     await deleteMonitor(actionMonitor.value.id);
     toast.success(`Monitor "${actionMonitor.value.name}" deleted successfully!`);
     isDeleteDialogOpen.value = false;
@@ -195,8 +273,30 @@ const animateTableRows = () => {
   );
 };
 
-onMounted(() => {
-  fetchAll();
+// Watcher for window and monitor selection changes
+watch([selectedMonitorId, selectedWindow], async ([newId, newWindow]) => {
+  try {
+    const tasks: Promise<any>[] = [fetchDashboardStats(newWindow)];
+    if (newId) {
+      tasks.push(fetchChart(newId, newWindow));
+    }
+    await Promise.all(tasks);
+  } catch (err) {
+    console.error('Failed to load analytics data:', err);
+  }
+});
+
+onMounted(async () => {
+  // Check if a monitor ID is passed in the query params to select it automatically
+  if (route.query.select) {
+    const id = Number(route.query.select);
+    if (!isNaN(id)) {
+      selectedMonitorId.value = id;
+    }
+  }
+
+  await fetchAll();
+
   gsap.fromTo('.ambient-orb',
     { opacity: 0, scale: 0.8 },
     { opacity: 0.6, scale: 1, duration: 2.5, ease: 'power3.out' }
@@ -230,6 +330,74 @@ onMounted(() => {
           <span>Add Monitor</span>
         </Button>
       </div>
+    </div>
+
+    <!-- Aggregate Overview Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 z-10 relative">
+      <!-- Total Endpoints -->
+      <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md">
+        <CardContent class="p-5 flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-xs font-medium text-muted-foreground">Total Endpoints</p>
+            <p class="text-2xl font-bold tracking-tight">{{ totalEndpoints }}</p>
+          </div>
+          <div class="p-3 bg-muted rounded-xl">
+            <Activity class="w-5 h-5 text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Avg Uptime -->
+      <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md">
+        <CardContent class="p-5 flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-xs font-medium text-muted-foreground">Average Uptime</p>
+            <p class="text-2xl font-bold tracking-tight text-emerald-500">{{ avgUptime }}</p>
+          </div>
+          <div class="p-3 bg-emerald-500/10 rounded-xl">
+            <CheckCircle2 class="w-5 h-5 text-emerald-500" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Avg Latency -->
+      <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md">
+        <CardContent class="p-5 flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-xs font-medium text-muted-foreground">Average Latency</p>
+            <p class="text-2xl font-bold tracking-tight text-blue-500">{{ avgLatency }}</p>
+          </div>
+          <div class="p-3 bg-blue-500/10 rounded-xl">
+            <Clock class="w-5 h-5 text-blue-500" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Status Breakdown -->
+      <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md">
+        <CardContent class="p-5 flex items-center justify-between">
+          <div class="space-y-1.5">
+            <p class="text-xs font-medium text-muted-foreground">Status Distribution</p>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                {{ statusDistribution.operational }}
+                <span class="text-[9px] font-medium text-emerald-500/70 uppercase tracking-wider">Up</span>
+              </span>
+              <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                {{ statusDistribution.degraded }}
+                <span class="text-[9px] font-medium text-amber-500/70 uppercase tracking-wider">Degraded</span>
+              </span>
+              <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20" :class="{ 'animate-pulse': statusDistribution.outage > 0 }">
+                {{ statusDistribution.outage }}
+                <span class="text-[9px] font-medium text-rose-500/70 uppercase tracking-wider">Down</span>
+              </span>
+            </div>
+          </div>
+          <div class="p-3 bg-muted rounded-xl shrink-0">
+            <BarChart3 class="w-5 h-5 text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
     </div>
 
     <!-- Main Card -->
@@ -268,15 +436,122 @@ onMounted(() => {
         <MonitorTable
           v-else
           :monitors="filteredMonitors"
+          :selected-id="selectedMonitorId"
+          @select="selectedMonitorId = $event"
           @edit="openEditDialog"
           @delete="openDeleteDialog"
         />
       </CardContent>
     </Card>
 
+    <!-- Analytics Detail Section -->
+    <Card v-if="selectedMonitorId" class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
+      <CardHeader class="pb-3 border-b border-border/40">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle class="text-sm font-bold text-foreground flex items-center gap-2">
+              <TrendingUp class="w-4 h-4 text-primary" />
+              <span>Analytics</span>
+            </CardTitle>
+            <CardDescription class="text-xs">Uptime history and response timeline for the selected monitor.</CardDescription>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <Select v-model="selectedWindow">
+              <SelectTrigger class="h-9 w-35">
+                <SelectValue placeholder="Window" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1h">Last 1 hour</SelectItem>
+                <SelectItem value="1d">Last 24 hours</SelectItem>
+                <SelectItem value="1w">Last 7 days</SelectItem>
+                <SelectItem value="1m">Last 30 days</SelectItem>
+                <SelectItem value="1y">Last year</SelectItem>
+                <SelectItem value="all">All time</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent class="p-6 space-y-6">
+        <div v-if="analyticsLoading && chartPoints.length === 0" class="flex flex-col items-center justify-center py-16 gap-3">
+          <Loader2 class="w-8 h-8 text-primary animate-spin" />
+          <p class="text-sm text-muted-foreground">Loading analytics...</p>
+        </div>
+
+        <template v-else>
+          <div class="relative bg-muted/20 border border-border/30 rounded-xl p-4 min-h-55 flex items-center justify-center">
+            <div v-if="analyticsLoading && chartPoints.length === 0" class="flex flex-col items-center justify-center gap-2">
+              <Loader2 class="w-6 h-6 text-primary animate-spin" />
+              <span class="text-xs text-muted-foreground">Loading chart data...</span>
+            </div>
+            <div v-else-if="chartSeries.length === 0" class="flex flex-col items-center justify-center text-center text-muted-foreground p-8">
+              <X class="w-8 h-8 mb-2 text-muted-foreground/40" />
+              <p class="text-sm font-bold">No data available</p>
+            </div>
+            <MultiChart v-else :seriesList="chartSeries" :height="220" />
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <!-- Uptime Card -->
+            <div class="rounded-lg border border-border/60 bg-background p-3 hover:border-primary/40 transition-colors">
+              <p class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Uptime</p>
+              <p class="text-lg font-black text-foreground mt-1">{{ (selectedMonitorStats?.uptime_pct ?? 0).toFixed(2) }}%</p>
+              <p class="text-[9px] text-muted-foreground mt-0.5">{{ selectedMonitorStats?.failed_checks ?? 0 }} down events</p>
+            </div>
+
+            <!-- Avg Latency Card -->
+            <div class="rounded-lg border border-border/60 bg-background p-3 hover:border-primary/40 transition-colors">
+              <p class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Avg Latency</p>
+              <p class="text-lg font-black text-foreground mt-1">{{ (selectedMonitorStats?.avg_latency ?? 0).toFixed(1) }}ms</p>
+              <p class="text-[9px] text-muted-foreground mt-0.5">Average response speed</p>
+            </div>
+
+            <!-- Min / Max Latency Card -->
+            <div class="rounded-lg border border-border/60 bg-background p-3 hover:border-primary/40 transition-colors">
+              <p class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Min / Max Speed</p>
+              <p class="text-lg font-black text-foreground mt-1">
+                {{ Math.round(selectedMonitorStats?.min_latency ?? 0) }} / {{ Math.round(selectedMonitorStats?.max_latency ?? 0) }}<span class="text-xs font-normal text-muted-foreground ml-0.5">ms</span>
+              </p>
+              <p class="text-[9px] text-muted-foreground mt-0.5">Fastest & slowest pings</p>
+            </div>
+
+            <!-- Total Checks Card -->
+            <div class="rounded-lg border border-border/60 bg-background p-3 hover:border-primary/40 transition-colors">
+              <p class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Checks</p>
+              <p class="text-lg font-black text-foreground mt-1">{{ selectedMonitorStats?.total_checks ?? 0 }}</p>
+              <p class="text-[9px] text-muted-foreground mt-0.5">Pings executed in window</p>
+            </div>
+
+            <!-- Status Card -->
+            <div class="rounded-lg border border-border/60 bg-background p-3 hover:border-primary/40 transition-colors">
+              <p class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Status</p>
+              <div class="flex items-center gap-2 mt-1.5">
+                <span :class="[
+                  'h-2.5 w-2.5 rounded-full ring-4 shrink-0',
+                  selectedMonitorStats?.status === 'operational'
+                    ? 'bg-emerald-500 ring-emerald-500/20'
+                    : selectedMonitorStats?.status === 'degraded'
+                    ? 'bg-amber-500 ring-amber-500/20'
+                    : selectedMonitorStats?.status === 'outage'
+                    ? 'bg-red-500 ring-red-500/20 animate-pulse'
+                    : 'bg-slate-400 ring-slate-400/20'
+                ]"></span>
+                <span class="text-xs font-black capitalize text-foreground">{{ selectedMonitorStats?.status ?? '—' }}</span>
+              </div>
+              <p class="text-[9px] text-muted-foreground mt-1">Current system state</p>
+            </div>
+          </div>
+
+          <div v-if="analyticsError" class="text-xs text-destructive">{{ analyticsError }}</div>
+        </template>
+      </CardContent>
+    </Card>
+
     <!-- Create / Edit Dialog -->
     <Dialog v-model:open="isFormDialogOpen">
-      <DialogContent class="sm:max-w-[425px]">
+      <DialogContent class="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>{{ isEditMode ? 'Edit Uptime Monitor' : 'Create Uptime Monitor' }}</DialogTitle>
           <DialogDescription>
@@ -350,7 +625,7 @@ onMounted(() => {
 
     <!-- Delete Confirmation Dialog -->
     <Dialog v-model:open="isDeleteDialogOpen">
-      <DialogContent class="sm:max-w-[400px]">
+      <DialogContent class="sm:max-w-100">
         <DialogHeader>
           <DialogTitle class="text-destructive flex items-center gap-2">
             <Trash2 class="w-5 h-5" />

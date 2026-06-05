@@ -266,7 +266,7 @@ func (h *IncidentHandler) DeleteIncident(c echo.Context) error {
 }
 
 func (h *IncidentHandler) RegisterRoutes(e *echo.Echo, basePath string) {
-	group := e.Group(basePath+"/incidents", middleware.Auth)
+  group := e.Group(basePath+"/incidents", middleware.Auth)
 	group.GET("", h.GetAllIncidents)
 	group.GET("/:id", h.GetIncident)
 	group.GET("/monitor/:monitorId", h.GetIncidentsByMonitor)

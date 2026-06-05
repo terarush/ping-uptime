@@ -5,72 +5,75 @@ import {
   Users,
   Bell,
   FileText,
-  ShieldCheck
-} from '@lucide/vue';
-import { siteConfig } from './config';
+  ShieldCheck,
+  BarChart3,
+} from '@lucide/vue'
+import { siteConfig } from './config'
 
 export interface SidebarItem {
-  title: string;
-  href: string;
-  icon: any;
-  badge?: string;
+  title: string
+  href: string
+  icon: any
+  badge?: string
 }
 
 export interface SidebarGroup {
-  groupName?: string;
-  items: SidebarItem[];
+  groupName?: string
+  admin?: boolean
+  items: SidebarItem[]
 }
 
 export const sidebarContent: SidebarGroup[] = [
   {
-    groupName: "Overview",
+    groupName: 'Overview',
     items: [
       {
-        title: "Dashboard",
+        title: 'Dashboard',
         href: `${siteConfig.appPath}`,
         icon: LayoutDashboard,
       },
       {
-        title: "Monitors",
+        title: 'Monitors',
         href: `${siteConfig.appPath}/monitors`,
         icon: Activity,
-        badge: "Live",
+        badge: 'Live',
+      },
+      {
+        title: 'Analytics',
+        href: `${siteConfig.appPath}/analytics`,
+        icon: BarChart3,
       },
     ],
   },
   {
-    groupName: "Alerts & Incidents",
+    groupName: 'Alerts & Incidents',
     items: [
       {
-        title: "Incident Logs",
+        title: 'Incident Logs',
         href: `${siteConfig.appPath}/incidents`,
         icon: FileText,
       },
-      {
-        title: "Status Pages",
-        href: `${siteConfig.appPath}/status-pages`,
-        icon: ShieldCheck,
-      },
     ],
   },
   {
-    groupName: "Administration",
+    groupName: 'Administration',
+    admin: true,
     items: [
       {
-        title: "Users",
+        title: 'Users',
         href: `${siteConfig.appPath}/users`,
         icon: Users,
       },
       {
-        title: "Notifications",
+        title: 'Notifications',
         href: `${siteConfig.appPath}/settings/notifications`,
         icon: Bell,
       },
       {
-        title: "Settings",
+        title: 'Settings',
         href: `${siteConfig.appPath}/settings`,
         icon: Settings,
       },
     ],
   },
-];
+]

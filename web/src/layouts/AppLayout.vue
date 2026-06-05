@@ -10,8 +10,10 @@ import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { sidebarContent } from '@/content/sidebar';
 import { siteConfig } from '@/content/config';
+import { useAuth } from '@/composables/useAuth';
 
 const route = useRoute();
+const { currentUser } = useAuth();
 
 const pageTitle = computed(() => {
   const path = route.path;
@@ -35,7 +37,7 @@ const pageTitle = computed(() => {
       <SidebarComponent />
 
       <!-- Content Area -->
-      <SidebarInset class="flex flex-col flex-1">
+      <SidebarInset class="flex flex-col flex-1 min-w-0 overflow-hidden">
         <!-- Top Navbar -->
         <header class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border/50 px-6 bg-card/50 backdrop-blur-md sticky top-0 z-50">
           <div class="flex items-center gap-4">
@@ -47,18 +49,18 @@ const pageTitle = computed(() => {
           <!-- User Profile & Quick Actions -->
           <div class="flex items-center gap-4">
             <div class="flex flex-col text-right sm:flex">
-              <span class="text-xs font-bold text-foreground">Administrator</span>
-              <span class="text-[10px] text-muted-foreground">admin@ping-uptime.com</span>
+              <span class="text-xs font-bold text-foreground">{{ currentUser?.name || 'Loading...' }}</span>
+              <span class="text-[10px] text-muted-foreground">{{ currentUser?.email || 'Loading...' }}</span>
             </div>
             <Avatar class="h-8 w-8 ring-2 ring-primary/10">
-              <AvatarImage src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop" alt="Admin" />
-              <AvatarFallback>AD</AvatarFallback>
+              <AvatarImage :src="currentUser?.avatar || (currentUser?.name ? `https://api.dicebear.com/7.x/initials/svg?seed=${currentUser.name}` : '')" alt="User Avatar" />
+              <AvatarFallback class="font-bold text-xs uppercase">{{ currentUser?.name?.slice(0, 2) || 'US' }}</AvatarFallback>
             </Avatar>
           </div>
         </header>
 
         <!-- Page Main Content -->
-        <main class="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-slate-950/30">
+        <main class="flex-1 overflow-y-auto overflow-x-hidden bg-slate-50/50 dark:bg-slate-950/30 min-w-0">
           <RouterView />
         </main>
       </SidebarInset>

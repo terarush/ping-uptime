@@ -66,15 +66,10 @@ func (bus *EventBus) processEvents() {
 
 		if exists {
 			for _, handler := range handlers {
-				// Create a closure to ensure we use the correct handler and event
-				func(handler EventHandler, event Event) {
-					defer bus.wg.Done()
-					handler.Handle(event)
-				}(handler, event)
+				handler.Handle(event)
 			}
-		} else {
-			bus.wg.Done()
 		}
+		bus.wg.Done()
 	}
 }
 

@@ -58,8 +58,18 @@ func (s *IncidentService) ResolveIncident(ctx context.Context, id uint) error {
 	if err != nil {
 		return err
 	}
+	if incident.Status != "active" {
+		return errors.New("incident is not active")
+	}
 	now := time.Now()
-	incident.Status = "resolved"
-	incident.ResolvedAt = &now
-	return s.incidentRepo.Update(ctx, incident)
+	resolved := &entity.Incident{
+		MonitorID:    incident.MonitorID,
+		UserID:       incident.UserID,
+		Status:       "resolved",
+		ErrorMessage: incident.ErrorMessage,
+		Latency:      incident.Latency,
+		CreatedAt:    now,
+		ResolvedAt:   &now,
+	}
+	return s.incidentRepo.Create(ctx, resolved)
 }

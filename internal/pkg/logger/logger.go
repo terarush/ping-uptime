@@ -3,6 +3,7 @@ package logger
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
@@ -152,29 +153,97 @@ func (l *Logger) WithPrefix(prefix string) *Logger {
 	}
 }
 
+func (l *Logger) logWithLevel(level zapcore.Level, msg string, fields ...interface{}) {
+	if len(fields) == 0 {
+		switch level {
+		case zapcore.DebugLevel:
+			l.sugar.Debug(msg)
+		case zapcore.InfoLevel:
+			l.sugar.Info(msg)
+		case zapcore.WarnLevel:
+			l.sugar.Warn(msg)
+		case zapcore.ErrorLevel:
+			l.sugar.Error(msg)
+		case zapcore.FatalLevel:
+			l.sugar.Fatal(msg)
+		}
+		return
+	}
+
+	if strings.Contains(msg, "%") {
+		switch level {
+		case zapcore.DebugLevel:
+			l.sugar.Debugf(msg, fields...)
+		case zapcore.InfoLevel:
+			l.sugar.Infof(msg, fields...)
+		case zapcore.WarnLevel:
+			l.sugar.Warnf(msg, fields...)
+		case zapcore.ErrorLevel:
+			l.sugar.Errorf(msg, fields...)
+		case zapcore.FatalLevel:
+			l.sugar.Fatalf(msg, fields...)
+		}
+		return
+	}
+
+	if len(fields)%2 == 0 {
+		if _, ok := fields[0].(string); ok {
+			switch level {
+			case zapcore.DebugLevel:
+				l.sugar.Debugw(msg, fields...)
+			case zapcore.InfoLevel:
+				l.sugar.Infow(msg, fields...)
+			case zapcore.WarnLevel:
+				l.sugar.Warnw(msg, fields...)
+			case zapcore.ErrorLevel:
+				l.sugar.Errorw(msg, fields...)
+			case zapcore.FatalLevel:
+				l.sugar.Fatalw(msg, fields...)
+			}
+			return
+		}
+	}
+
+	args := make([]interface{}, 0, len(fields)+1)
+	args = append(args, msg)
+	args = append(args, fields...)
+	switch level {
+	case zapcore.DebugLevel:
+		l.sugar.Debug(args...)
+	case zapcore.InfoLevel:
+		l.sugar.Info(args...)
+	case zapcore.WarnLevel:
+		l.sugar.Warn(args...)
+	case zapcore.ErrorLevel:
+		l.sugar.Error(args...)
+	case zapcore.FatalLevel:
+		l.sugar.Fatal(args...)
+	}
+}
+
 // Debug logs a debug message
 func (l *Logger) Debug(msg string, fields ...interface{}) {
-	l.sugar.Debugw(msg, fields...)
+	l.logWithLevel(zapcore.DebugLevel, msg, fields...)
 }
 
 // Info logs an info message
 func (l *Logger) Info(msg string, fields ...interface{}) {
-	l.sugar.Infow(msg, fields...)
+	l.logWithLevel(zapcore.InfoLevel, msg, fields...)
 }
 
 // Warn logs a warning message
 func (l *Logger) Warn(msg string, fields ...interface{}) {
-	l.sugar.Warnw(msg, fields...)
+	l.logWithLevel(zapcore.WarnLevel, msg, fields...)
 }
 
 // Error logs an error message
 func (l *Logger) Error(msg string, fields ...interface{}) {
-	l.sugar.Errorw(msg, fields...)
+	l.logWithLevel(zapcore.ErrorLevel, msg, fields...)
 }
 
 // Fatal logs a fatal message
 func (l *Logger) Fatal(msg string, fields ...interface{}) {
-	l.sugar.Fatalw(msg, fields...)
+	l.logWithLevel(zapcore.FatalLevel, msg, fields...)
 }
 
 // Sync flushes the logger buffers

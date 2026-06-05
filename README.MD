@@ -16,8 +16,6 @@ A self-hosted **uptime monitoring** service built with Go (Echo v4) and Vue 3. M
 
 ---
 
----
-
 ## 🚀 Getting Started (Docker Installation)
 
 The easiest way to run `ping-uptime` is using Docker.
@@ -30,6 +28,5 @@ Run the container using the following command, passing your `.env` file:
 docker run -d \
   --name ping-uptime \
   -p 8080:8080 \
-  --env-file .env \
   rafia9005/ping-uptime:latest
 ```

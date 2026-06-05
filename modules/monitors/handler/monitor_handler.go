@@ -317,7 +317,7 @@ func (h *MonitorHandler) StreamEvents(c echo.Context) error {
 	}()
 
 	ctx := c.Request().Context()
-	
+
 	// Send initial ping to establish connection
 	fmt.Fprint(c.Response().Writer, "event: connected\ndata: {}\n\n")
 	c.Response().Flush()

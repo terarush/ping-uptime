@@ -71,34 +71,39 @@ func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) 
 	// Update monitor
 	mon.UptimeStatus = newStatus
 	mon.LastCheckedAt = &now
+	if latency > 0 {
+		mon.LastLatency = latency
+	}
 
 	err := database.DB.WithContext(ctx).Save(mon).Error
 	if err != nil {
 		return
 	}
 
+	_ = s.monitorRepo.CreateCheckRecord(ctx, entity.NewCheckRecord(mon.ID, success, latency, 0))
+
 	// Trigger Incidents transition
 	if newStatus == "down" {
-		// Create a new incident entry on every failed check to build a continuous log
-		if errMsg == "" {
-			errMsg = "Connection failed"
-		}
-		inc := incidentEntity.NewIncident(mon.ID, mon.UserID, "active", errMsg, latency)
-		database.DB.WithContext(ctx).Create(inc)
-		s.event.Publish(bus.Event{Type: "incident.created", Payload: inc})
-	} else if newStatus == "up" && oldStatus == "down" {
-		// Resolve any active incidents
-		var activeIncidents []*incidentEntity.Incident
-		err := database.DB.WithContext(ctx).Where("monitor_id = ? AND status = ?", mon.ID, "active").Find(&activeIncidents).Error
-		if err == nil {
-			for _, inc := range activeIncidents {
-				inc.Status = "resolved"
-				inc.ResolvedAt = &now
-				inc.Latency = latency
-				database.DB.WithContext(ctx).Save(inc)
-				s.event.Publish(bus.Event{Type: "incident.resolved", Payload: inc})
+		if oldStatus == "up" {
+			if errMsg == "" {
+				errMsg = "Connection failed"
+			}
+			inc := incidentEntity.NewIncident(mon.ID, mon.UserID, "active", errMsg, latency)
+			database.DB.WithContext(ctx).Create(inc)
+			s.event.Publish(bus.Event{Type: "incident.created", Payload: inc})
+		} else {
+			var activeIncidents []*incidentEntity.Incident
+			err := database.DB.WithContext(ctx).Where("monitor_id = ? AND status = ?", mon.ID, "active").Find(&activeIncidents).Error
+			if err == nil && len(activeIncidents) > 0 {
+				activeIncidents[0].Latency = latency
+				database.DB.WithContext(ctx).Save(activeIncidents[0])
 			}
 		}
+	} else if newStatus == "up" && oldStatus == "down" {
+		resolved := incidentEntity.NewIncident(mon.ID, mon.UserID, "resolved", "", latency)
+		resolved.ResolvedAt = &now
+		database.DB.WithContext(ctx).Create(resolved)
+		s.event.Publish(bus.Event{Type: "incident.resolved", Payload: resolved})
 	}
 
 	s.event.Publish(bus.Event{Type: "monitor.checked", Payload: mon})

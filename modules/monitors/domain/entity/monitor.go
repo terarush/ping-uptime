@@ -14,6 +14,7 @@ type Monitor struct {
 	Status        string     `json:"status" gorm:"type:varchar(50);default:'active'"`        // active, paused
 	UptimeStatus  string     `json:"uptime_status" gorm:"type:varchar(50);default:'unknown'"` // up, down, unknown
 	LastCheckedAt *time.Time `json:"last_checked_at,omitempty"`
+	LastLatency   int        `json:"last_latency" gorm:"default:0"`
 	UserID        uint       `json:"user_id" gorm:"index"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
