@@ -2,37 +2,17 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   ShieldCheck,
   ShieldAlert,
   Loader2,
   ExternalLink,
-  Activity,
   Globe
 } from '@lucide/vue';
 import gsap from 'gsap';
 import ThemeButton from '@/components/theme-button.vue';
-
-// Types
-interface Monitor {
-  id: number;
-  name: string;
-  url: string;
-  type: string;
-  status: string; // active, paused
-  uptime_status?: string; // up, down, unknown
-  created_at: string;
-}
-
-interface StatusPage {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-  monitors: Monitor[];
-}
+import type { StatusPage, Monitor } from '@/stores/statusPages';
 
 // Refs & States
 const route = useRoute();
