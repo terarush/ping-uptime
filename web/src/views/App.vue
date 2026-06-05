@@ -69,13 +69,14 @@ const pausedCount = computed(() => {
 });
 
 const avgUptime = computed(() => {
-  if (monitors.value.length === 0) return '100.00%';
-  // Simulated overall calculation based on failures count
-  const totalIncidents = incidents.value.length;
-  if (totalIncidents === 0) return '100.00%';
-  
-  const uptimeFactor = Math.max(90, 100 - (totalIncidents * 0.15));
-  return `${uptimeFactor.toFixed(2)}%`;
+  const activeMonitors = monitors.value.filter(m => m.status === 'active');
+  if (activeMonitors.length === 0) return '—';
+  const allUnknown = activeMonitors.every(m => m.uptime_status === 'unknown');
+  if (allUnknown) return '—';
+
+  const up = activeMonitors.filter(m => m.uptime_status === 'up').length;
+  const pct = (up / activeMonitors.length) * 100;
+  return `${pct.toFixed(2)}%`;
 });
 
 // Resolve latency response for a monitor
