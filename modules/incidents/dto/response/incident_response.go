@@ -17,6 +17,11 @@ type IncidentResponse struct {
 }
 
 func FromEntity(i *entity.Incident) *IncidentResponse {
+	var resolved *time.Time
+	if i.ResolvedAt != nil {
+		localTime := i.ResolvedAt.Local()
+		resolved = &localTime
+	}
 	return &IncidentResponse{
 		ID:           i.ID,
 		MonitorID:    i.MonitorID,
@@ -24,8 +29,8 @@ func FromEntity(i *entity.Incident) *IncidentResponse {
 		Status:       i.Status,
 		ErrorMessage: i.ErrorMessage,
 		Latency:      i.Latency,
-		CreatedAt:    i.CreatedAt,
-		ResolvedAt:   i.ResolvedAt,
+		CreatedAt:    i.CreatedAt.Local(),
+		ResolvedAt:   resolved,
 	}
 }
 

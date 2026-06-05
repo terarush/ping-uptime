@@ -20,20 +20,20 @@ func (r AnalyticsRepositoryImpl) GetChartData(ctx context.Context, monitorID uin
 	var selectExpr, groupExpr string
 	switch window {
 	case "1h":
-		selectExpr = "strftime('%Y-%m-%d %H:%M:00', checked_at) as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
-		groupExpr = "strftime('%Y-%m-%d %H:%M:00', checked_at)"
+		selectExpr = "strftime('%Y-%m-%d %H:%M:00', checked_at, 'localtime') as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
+		groupExpr = "strftime('%Y-%m-%d %H:%M:00', checked_at, 'localtime')"
 	case "1d":
-		selectExpr = "strftime('%Y-%m-%d %H:00:00', checked_at) as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
-		groupExpr = "strftime('%Y-%m-%d %H:00:00', checked_at)"
+		selectExpr = "strftime('%Y-%m-%d %H:00:00', checked_at, 'localtime') as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
+		groupExpr = "strftime('%Y-%m-%d %H:00:00', checked_at, 'localtime')"
 	case "1w", "1m":
-		selectExpr = "DATE(checked_at) as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
-		groupExpr = "DATE(checked_at)"
+		selectExpr = "strftime('%Y-%m-%d', checked_at, 'localtime') as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
+		groupExpr = "strftime('%Y-%m-%d', checked_at, 'localtime')"
 	case "1y", "all":
-		selectExpr = "strftime('%Y-W%W', checked_at) as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
-		groupExpr = "strftime('%Y-W%W', checked_at)"
+		selectExpr = "strftime('%Y-W%W', checked_at, 'localtime') as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
+		groupExpr = "strftime('%Y-W%W', checked_at, 'localtime')"
 	default:
-		selectExpr = "DATE(checked_at) as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
-		groupExpr = "DATE(checked_at)"
+		selectExpr = "strftime('%Y-%m-%d', checked_at, 'localtime') as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
+		groupExpr = "strftime('%Y-%m-%d', checked_at, 'localtime')"
 	}
 
 	err := database.DB.WithContext(ctx).

@@ -51,13 +51,15 @@ func (s *MonitorService) runPendingChecks(ctx context.Context) {
 
 func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) {
 	var success bool
+	var statusCode int
 	var latency int
 	var errMsg string
 
 	if strings.ToLower(mon.Type) == "ping" {
 		success, latency, errMsg = performPingCheck(mon.URL, mon.Timeout)
+		statusCode = 0
 	} else {
-		success, latency, errMsg = performHTTPCheck(mon.URL, mon.Timeout)
+		success, statusCode, latency, errMsg = performHTTPCheck(mon.URL, mon.Timeout)
 	}
 
 	newStatus := "up"
@@ -80,11 +82,11 @@ func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) 
 		return
 	}
 
-	_ = s.monitorRepo.CreateCheckRecord(ctx, entity.NewCheckRecord(mon.ID, success, latency, 0))
+	_ = s.monitorRepo.CreateCheckRecord(ctx, entity.NewCheckRecord(mon.ID, success, latency, statusCode))
 
 	// Trigger Incidents transition
 	if newStatus == "down" {
-		if oldStatus == "up" {
+		if oldStatus == "up" || oldStatus == "unknown" {
 			if errMsg == "" {
 				errMsg = "Connection failed"
 			}
@@ -109,7 +111,7 @@ func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) 
 	s.event.Publish(bus.Event{Type: "monitor.checked", Payload: mon})
 }
 
-func performHTTPCheck(urlStr string, timeoutSec int) (bool, int, string) {
+func performHTTPCheck(urlStr string, timeoutSec int) (bool, int, int, string) {
 	// Ensure protocol is present
 	if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
 		urlStr = "http://" + urlStr
@@ -124,15 +126,15 @@ func performHTTPCheck(urlStr string, timeoutSec int) (bool, int, string) {
 	latency := int(time.Since(start).Milliseconds())
 
 	if err != nil {
-		return false, latency, err.Error()
+		return false, 0, latency, err.Error()
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode >= 400 {
-		return false, latency, fmt.Sprintf("HTTP Status Code: %d", resp.StatusCode)
+	if resp.StatusCode >= 500 {
+		return false, resp.StatusCode, latency, fmt.Sprintf("HTTP Status Code: %d", resp.StatusCode)
 	}
 
-	return true, latency, ""
+	return true, resp.StatusCode, latency, ""
 }
 
 func performPingCheck(urlStr string, timeoutSec int) (bool, int, string) {
