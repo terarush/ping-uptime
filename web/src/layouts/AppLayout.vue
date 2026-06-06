@@ -39,7 +39,7 @@ const pageTitle = computed(() => {
       <!-- Content Area -->
       <SidebarInset class="flex flex-col flex-1 min-w-0 overflow-hidden">
         <!-- Top Navbar -->
-        <header class="fixed top-0 right-0 left-0 md:left-(--sidebar-width) peer-data-[state=collapsed]:md:left-(--sidebar-width-icon) z-50 flex h-16 items-center justify-between gap-2 border-b border-border/50 px-6 bg-card/50 backdrop-blur-md transition-[left] duration-200 ease-linear">
+        <header class="fixed top-0 right-0 z-50 flex h-16 items-center justify-between gap-2 border-b border-border/50 px-6 bg-card/50 backdrop-blur-md transition-[left] duration-200 ease-linear app-fixed-header">
           <div class="flex items-center gap-4">
             <SidebarTrigger />
             <div class="h-4 w-px bg-border/60"></div>
@@ -70,3 +70,17 @@ const pageTitle = computed(() => {
     </div>
   </SidebarProvider>
 </template>
+
+<style>
+.app-fixed-header {
+  left: 0;
+}
+@media (min-width: 768px) {
+  .app-fixed-header {
+    left: var(--sidebar-width);
+  }
+  [data-state="collapsed"] ~ [data-slot="sidebar-inset"] .app-fixed-header {
+    left: var(--sidebar-width-icon);
+  }
+}
+</style>
