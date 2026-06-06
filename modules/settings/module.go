@@ -108,6 +108,16 @@ func (m *Module) Migrations() error {
 			Value:       "TLS",
 			Description: "SMTP Encryption: SSL, TLS, or None.",
 		},
+		{
+			Key:         "discord_bot_token",
+			Value:       "",
+			Description: "Discord Bot Token for sending notifications.",
+		},
+		{
+			Key:         "telegram_bot_token",
+			Value:       "",
+			Description: "Telegram Bot Token for sending notifications.",
+		},
 	}
 
 	// Push default settings if they do not exist
