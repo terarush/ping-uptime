@@ -39,7 +39,7 @@ const pageTitle = computed(() => {
       <!-- Content Area -->
       <SidebarInset class="flex flex-col flex-1 min-w-0 overflow-hidden">
         <!-- Top Navbar -->
-        <header class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border/50 px-6 bg-card/50 backdrop-blur-md sticky top-0 z-50">
+        <header class="fixed top-0 right-0 left-0 md:left-(--sidebar-width) peer-data-[state=collapsed]:md:left-(--sidebar-width-icon) z-50 flex h-16 items-center justify-between gap-2 border-b border-border/50 px-6 bg-card/50 backdrop-blur-md transition-[left] duration-200 ease-linear">
           <div class="flex items-center gap-4">
             <SidebarTrigger />
             <div class="h-4 w-px bg-border/60"></div>
@@ -58,6 +58,9 @@ const pageTitle = computed(() => {
             </Avatar>
           </div>
         </header>
+
+        <!-- Spacer for fixed header -->
+        <div class="h-16 shrink-0"></div>
 
         <!-- Page Main Content -->
         <main class="flex-1 overflow-y-auto overflow-x-hidden bg-slate-50/50 dark:bg-slate-950/30 min-w-0">
