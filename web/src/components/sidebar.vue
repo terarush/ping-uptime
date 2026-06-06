@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarMenuBadge,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { sidebarContent } from '@/content/sidebar'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
@@ -29,8 +30,15 @@ import { useAuth } from '@/composables/useAuth'
 const route = useRoute()
 const router = useRouter()
 const { currentUser, logout } = useAuth()
+const { isMobile, setOpenMobile } = useSidebar()
 
 const isAdmin = computed(() => currentUser.value?.role === 'admin')
+
+const handleItemClick = () => {
+  if (isMobile.value) {
+    setOpenMobile(false)
+  }
+}
 
 // Filter sidebar content based on permissions
 const filteredSidebarContent = computed(() => {
@@ -81,7 +89,7 @@ const handleLogout = () => {
                 :is-active="route.path === item.href"
                 :tooltip="item.title"
               >
-                <RouterLink :to="item.href" class="flex items-center gap-3">
+                <RouterLink :to="item.href" @click="handleItemClick" class="flex items-center gap-3">
                   <component :is="item.icon" class="w-4 h-4 shrink-0" />
                   <span class="group-data-[collapsible=icon]:hidden text-sm">{{ item.title }}</span>
                 </RouterLink>
