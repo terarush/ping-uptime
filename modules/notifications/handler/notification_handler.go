@@ -69,6 +69,22 @@ func (h *NotificationHandler) GetAllChannels(c echo.Context) error {
 		return h.r.UnauthorizedResponse(c, err.Error())
 	}
 
+	// Ensure the user has a default Email channel
+	userChannels, err := h.notificationService.GetChannelsByUserID(ctx, userID)
+	if err == nil {
+		hasEmail := false
+		for _, ch := range userChannels {
+			if ch.Type == "email" {
+				hasEmail = true
+				break
+			}
+		}
+		if !hasEmail {
+			defaultEmailChannel := entity.NewNotificationChannel("Email Alerts", "email", "{}", true, userID)
+			_ = h.notificationService.CreateChannel(ctx, defaultEmailChannel)
+		}
+	}
+
 	var channels []*entity.NotificationChannel
 	if role == "admin" {
 		channels, err = h.notificationService.GetAllChannels(ctx)

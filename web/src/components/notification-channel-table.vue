@@ -52,6 +52,7 @@ const getTypeIcon = (type: string) => {
     case 'email': return Mail;
     case 'slack': return MessageSquare;
     case 'discord': return MessageCircle;
+    case 'discord_bot': return MessageCircle;
     case 'telegram': return Send;
     default: return Webhook;
   }
@@ -61,8 +62,9 @@ const getTypeIcon = (type: string) => {
 const getConfigSummary = (item: NotificationChannel) => {
   try {
     const parsed = JSON.parse(item.config);
-    if (item.type === 'email') return parsed.email || '—';
+    if (item.type === 'email') return 'Account Email';
     if (item.type === 'telegram') return `Chat ID: ${parsed.chat_id || '—'}`;
+    if (item.type === 'discord_bot') return `Channel ID: ${parsed.channel_id || '—'}`;
     return parsed.webhook_url || parsed.url || '—';
   } catch (e) {
     return 'Invalid configuration';
