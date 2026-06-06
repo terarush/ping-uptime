@@ -17,7 +17,8 @@ import {
   ShieldAlert,
   Sliders,
   Mail,
-  Lock
+  Lock,
+  MessageSquare
 } from '@lucide/vue';
 import gsap from 'gsap';
 
@@ -47,6 +48,10 @@ const smtpUsername = ref('');
 const smtpPassword = ref('');
 const smtpSender = ref('');
 const smtpEncryption = ref('TLS');
+
+// Bot Setting fields
+const discordBotToken = ref('');
+const telegramBotToken = ref('');
 
 // Fetch settings wrapper
 const fetchAll = async () => {
@@ -81,6 +86,12 @@ const fetchAll = async () => {
     const encSetting = settings.value.find(s => s.key === 'smtp_encryption');
     if (encSetting) smtpEncryption.value = encSetting.value;
 
+    const discordSetting = settings.value.find(s => s.key === 'discord_bot_token');
+    if (discordSetting) discordBotToken.value = discordSetting.value;
+
+    const telegramSetting = settings.value.find(s => s.key === 'telegram_bot_token');
+    if (telegramSetting) telegramBotToken.value = telegramSetting.value;
+
   } catch (err) {
     console.error('Failed to load settings:', err);
   }
@@ -101,6 +112,8 @@ const handleSaveSettings = async () => {
     smtp_password: smtpPassword.value,
     smtp_sender: smtpSender.value,
     smtp_encryption: smtpEncryption.value,
+    discord_bot_token: discordBotToken.value,
+    telegram_bot_token: telegramBotToken.value,
   };
 
   // Perform client side Zod validation
@@ -123,6 +136,8 @@ const handleSaveSettings = async () => {
       { key: 'smtp_password', value: smtpPassword.value, description: 'SMTP Password/App Password.' },
       { key: 'smtp_sender', value: smtpSender.value, description: 'SMTP Sender Address.' },
       { key: 'smtp_encryption', value: smtpEncryption.value, description: 'SMTP Encryption: SSL, TLS, or None.' },
+      { key: 'discord_bot_token', value: discordBotToken.value, description: 'Discord Bot Token for sending notifications.' },
+      { key: 'telegram_bot_token', value: telegramBotToken.value, description: 'Telegram Bot Token for sending notifications.' },
     ];
 
     await saveSettingsData(payloads);
@@ -342,6 +357,62 @@ onMounted(() => {
                 </SelectContent>
               </Select>
               <span class="text-[10px] text-muted-foreground">Matches host port security guidelines.</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Notification Bot Settings Card -->
+      <Card class="settings-card border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md">
+        <CardHeader class="pb-3 border-b border-border/40">
+          <div class="flex items-center gap-2.5">
+            <MessageSquare class="w-5 h-5 text-primary" />
+            <div>
+              <CardTitle class="text-sm font-bold text-foreground">Notification Bot Settings</CardTitle>
+              <CardDescription class="text-xs">Configure Discord and Telegram bot tokens to send notifications when status changes.</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent class="space-y-4 pt-6">
+          <div v-if="loading" class="flex flex-col items-center justify-center py-10 gap-3">
+            <Loader2 class="w-6 h-6 text-primary animate-spin" />
+            <p class="text-xs text-muted-foreground">Loading configurations...</p>
+          </div>
+
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Discord Bot Token -->
+            <div class="space-y-2">
+              <Label for="discord_bot_token">Discord Bot Token</Label>
+              <div class="relative">
+                <Lock class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="discord_bot_token"
+                  v-model="discordBotToken"
+                  type="password"
+                  placeholder="••••••••"
+                  class="pl-9"
+                  :disabled="!isAdmin || saveLoading"
+                />
+              </div>
+              <span class="text-[10px] text-muted-foreground">The bot token used to authenticate with Discord API.</span>
+            </div>
+
+            <!-- Telegram Bot Token -->
+            <div class="space-y-2">
+              <Label for="telegram_bot_token">Telegram Bot Token</Label>
+              <div class="relative">
+                <Lock class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="telegram_bot_token"
+                  v-model="telegramBotToken"
+                  type="password"
+                  placeholder="••••••••"
+                  class="pl-9"
+                  :disabled="!isAdmin || saveLoading"
+                />
+              </div>
+              <span class="text-[10px] text-muted-foreground">The bot token from Telegram's @BotFather.</span>
             </div>
           </div>
         </CardContent>
