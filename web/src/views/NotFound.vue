@@ -55,7 +55,7 @@ onMounted(() => {
     </div>
 
     <!-- Main Content Container -->
-    <div class="notfound-content w-full max-w-md flex flex-col items-center text-center space-y-8 z-10 p-8 rounded-2xl border border-border/50 bg-card/40 backdrop-blur-xl shadow-2xl">
+    <div class="notfound-content w-full max-w-md flex flex-col items-center text-center space-y-8 z-10">
       <!-- 404 Icon & Numbers -->
       <div class="relative flex items-center justify-center">
         <div class="absolute w-24 h-24 rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-md animate-pulse"></div>
