@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Sparkles } from '@lucide/vue'
+import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from '@lucide/vue'
 import dashboardImg from '@/assets/preview/dashboard.png'
 import monitorsImg from '@/assets/preview/monitors.png'
 import incidentImg from '@/assets/preview/incident_logs.png'
 
 const images = [dashboardImg, monitorsImg, incidentImg]
-const labels = ['Dashboard', 'Monitors', 'Incident Logs']
 const currentIndex = ref(0)
 let intervalId: ReturnType<typeof setInterval> | null = null
 
@@ -23,6 +22,16 @@ function stopInterval() {
     clearInterval(intervalId)
     intervalId = null
   }
+}
+
+function prev() {
+  currentIndex.value = (currentIndex.value - 1 + images.length) % images.length
+  startInterval()
+}
+
+function next() {
+  currentIndex.value = (currentIndex.value + 1) % images.length
+  startInterval()
 }
 
 function goTo(i: number) {
@@ -95,7 +104,7 @@ onUnmounted(stopInterval)
 
       <div class="mt-16 mx-auto max-w-5xl">
         <div
-          class="relative rounded-xl border border-border/50 bg-linear-to-b from-background to-muted/50 shadow-2xl overflow-hidden"
+          class="group relative rounded-xl border border-border/50 bg-linear-to-b from-background to-muted/50 shadow-2xl overflow-hidden"
           @mouseenter="onMouseEnter"
           @mouseleave="onMouseLeave"
         >
@@ -107,26 +116,36 @@ onUnmounted(stopInterval)
               <div v-for="(img, i) in images" :key="i" class="min-w-full h-full">
                 <img
                   :src="img"
-                  :alt="labels[i]"
                   class="w-full h-full object-cover"
                 />
               </div>
             </div>
-          </div>
-        </div>
 
-        <div class="mt-4 flex items-center justify-center gap-2">
-          <button
-            v-for="(label, i) in labels"
-            :key="i"
-            @click="goTo(i)"
-            class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-            :class="i === currentIndex
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'"
-          >
-            {{ label }}
-          </button>
+            <button
+              @click="prev()"
+              class="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-9 w-9 rounded-full bg-background/80 backdrop-blur-sm text-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+            >
+              <ChevronLeft class="h-5 w-5" />
+            </button>
+            <button
+              @click="next()"
+              class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center h-9 w-9 rounded-full bg-background/80 backdrop-blur-sm text-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+            >
+              <ChevronRight class="h-5 w-5" />
+            </button>
+
+            <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2">
+              <button
+                v-for="(_, i) in images"
+                :key="i"
+                @click="goTo(i)"
+                class="h-2 w-2 rounded-full transition-all"
+                :class="i === currentIndex
+                  ? 'bg-primary w-4'
+                  : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
