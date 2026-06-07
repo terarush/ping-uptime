@@ -1,6 +1,45 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Sparkles } from '@lucide/vue'
+import dashboardImg from '@/assets/preview/dashboard.png'
+import monitorsImg from '@/assets/preview/monitors.png'
+import incidentImg from '@/assets/preview/incident_logs.png'
+
+const images = [dashboardImg, monitorsImg, incidentImg]
+const labels = ['Dashboard', 'Monitors', 'Incident Logs']
+const currentIndex = ref(0)
+let intervalId: ReturnType<typeof setInterval> | null = null
+
+function startInterval() {
+  stopInterval()
+  intervalId = setInterval(() => {
+    currentIndex.value = (currentIndex.value + 1) % images.length
+  }, 4000)
+}
+
+function stopInterval() {
+  if (intervalId !== null) {
+    clearInterval(intervalId)
+    intervalId = null
+  }
+}
+
+function goTo(i: number) {
+  currentIndex.value = i
+  startInterval()
+}
+
+function onMouseEnter() {
+  stopInterval()
+}
+
+function onMouseLeave() {
+  startInterval()
+}
+
+onMounted(startInterval)
+onUnmounted(stopInterval)
 </script>
 
 <template>
@@ -28,7 +67,6 @@ import { ArrowRight, Sparkles } from '@lucide/vue'
         <h1 class="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-6xl">
           <span class="text-foreground">Uptime Monitoring Service</span>
           <br />
-          <!-- <span class="text-primary">ping-uptime</span> -->
         </h1>
 
         <p
@@ -58,24 +96,37 @@ import { ArrowRight, Sparkles } from '@lucide/vue'
       <div class="mt-16 mx-auto max-w-5xl">
         <div
           class="relative rounded-xl border border-border/50 bg-linear-to-b from-background to-muted/50 shadow-2xl overflow-hidden"
+          @mouseenter="onMouseEnter"
+          @mouseleave="onMouseLeave"
         >
-          <div
-            class="aspect-video bg-linear-to-br from-primary/5 via-background to-primary/5 flex items-center justify-center"
-          >
-            <div class="text-center p-8">
-              <div
-                class="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-2 text-sm text-primary font-medium"
-              >
-                <div class="relative flex h-2 w-2">
-                  <span
-                    class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary"
-                  ></span>
-                  <span class="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
-                </div>
-                Dashboard Preview
+          <div class="aspect-video relative overflow-hidden">
+            <div
+              class="flex h-full transition-transform duration-500 ease-in-out"
+              :style="{ transform: `translateX(-${currentIndex * 100}%)` }"
+            >
+              <div v-for="(img, i) in images" :key="i" class="min-w-full h-full">
+                <img
+                  :src="img"
+                  :alt="labels[i]"
+                  class="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-center gap-2">
+          <button
+            v-for="(label, i) in labels"
+            :key="i"
+            @click="goTo(i)"
+            class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            :class="i === currentIndex
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'"
+          >
+            {{ label }}
+          </button>
         </div>
       </div>
     </div>
