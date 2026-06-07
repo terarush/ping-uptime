@@ -26,10 +26,10 @@ const team = [
   },
   {
     name: 'Hasan',
-    role: 'Junior',
+    role: 'Junior Femboy',
     img: 'https://github.com/szmaou.png',
     linkedin: '#',
-    github: '#',
+    github: 'https://github.com/szmaou',
   },
 ]
 </script>
