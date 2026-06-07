@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
 import { useNotificationChannels, type NotificationChannel } from '@/composables/useNotificationChannels';
+import { useSettings } from '@/composables/useSettings';
 import { notificationChannelSchema } from '@/validations/notification-channel';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,7 +40,19 @@ const {
   deleteChannel
 } = useNotificationChannels();
 
+const { settings: globalSettings, fetchSettingsData } = useSettings();
+
 const searchQuery = ref('');
+
+const hasDiscordBot = computed(() => {
+  const s = globalSettings.value.find(x => x.key === 'discord_bot_token');
+  return !!s?.value;
+});
+
+const hasTelegramBot = computed(() => {
+  const s = globalSettings.value.find(x => x.key === 'telegram_bot_token');
+  return !!s?.value;
+});
 
 // Dialog states
 const isFormDialogOpen = ref(false);
@@ -57,6 +70,7 @@ const configWebhookUrl = ref('');
 const configTelegramToken = ref('');
 const configTelegramChatId = ref('');
 const configEmailAddress = ref('');
+const configDiscordChannelId = ref('');
 
 const isEditMode = computed(() => !!actionChannel.value);
 
@@ -88,6 +102,7 @@ watch(formType, () => {
   configTelegramToken.value = '';
   configTelegramChatId.value = '';
   configEmailAddress.value = '';
+  configDiscordChannelId.value = '';
 });
 
 // Reset form
@@ -99,6 +114,7 @@ const resetForm = () => {
   configTelegramToken.value = '';
   configTelegramChatId.value = '';
   configEmailAddress.value = '';
+  configDiscordChannelId.value = '';
   actionChannel.value = null;
 };
 
@@ -122,6 +138,8 @@ const openEditDialog = (channel: NotificationChannel) => {
     } else if (channel.type === 'telegram') {
       configTelegramToken.value = parsed.bot_token || '';
       configTelegramChatId.value = parsed.chat_id || '';
+    } else if (channel.type === 'discord_bot') {
+      configDiscordChannelId.value = parsed.channel_id || '';
     } else {
       configWebhookUrl.value = parsed.webhook_url || parsed.url || '';
     }
@@ -148,6 +166,8 @@ const handleFormSubmit = async () => {
       configObj = { email: configEmailAddress.value };
     } else if (formType.value === 'telegram') {
       configObj = { bot_token: configTelegramToken.value, chat_id: configTelegramChatId.value };
+    } else if (formType.value === 'discord_bot') {
+      configObj = { channel_id: configDiscordChannelId.value };
     } else {
       configObj = { webhook_url: configWebhookUrl.value };
     }
@@ -234,6 +254,7 @@ const animateTableRows = () => {
 
 onMounted(() => {
   fetchAll();
+  fetchSettingsData();
   gsap.fromTo('.ambient-orb',
     { opacity: 0, scale: 0.8 },
     { opacity: 0.6, scale: 1, duration: 2.5, ease: 'power3.out' }
@@ -339,8 +360,8 @@ onMounted(() => {
                 <SelectContent>
                   <SelectItem value="webhook">Custom Webhook</SelectItem>
                   <SelectItem value="slack">Slack Webhook</SelectItem>
-                  <SelectItem value="discord">Discord Webhook</SelectItem>
-                  <SelectItem value="telegram">Telegram Bot</SelectItem>
+                  <SelectItem v-if="hasDiscordBot" value="discord_bot">Discord Bot</SelectItem>
+                  <SelectItem v-if="hasTelegramBot" value="telegram">Telegram Bot</SelectItem>
                   <SelectItem value="email">Email</SelectItem>
                 </SelectContent>
               </Select>
@@ -356,19 +377,21 @@ onMounted(() => {
 
           <!-- Dynamic input configurations -->
           <div v-if="formType === 'email'" class="space-y-2">
-            <Label for="email">Destination Email</Label>
-            <Input id="email" v-model="configEmailAddress" type="email" placeholder="e.g. sysadmin@company.com" required />
+            <p class="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border/40">
+              Email alerts will be sent directly to your registered account email address. No additional configuration is required.
+            </p>
           </div>
 
-          <div v-else-if="formType === 'telegram'" class="space-y-3">
-            <div class="space-y-2">
-              <Label for="tg_token">Bot Token</Label>
-              <Input id="tg_token" v-model="configTelegramToken" placeholder="e.g. 123456:ABC-DEF1234..." required />
-            </div>
-            <div class="space-y-2">
-              <Label for="tg_chat">Chat ID</Label>
-              <Input id="tg_chat" v-model="configTelegramChatId" placeholder="e.g. -100123456789" required />
-            </div>
+          <div v-else-if="formType === 'telegram'" class="space-y-2">
+            <Label for="tg_chat">Telegram Chat/User ID</Label>
+            <Input id="tg_chat" v-model="configTelegramChatId" placeholder="e.g. -100123456789 or 987654321" required />
+            <span class="text-[10px] text-muted-foreground">The chat or user ID to receive telegram alert messages (uses global bot token).</span>
+          </div>
+
+          <div v-else-if="formType === 'discord_bot'" class="space-y-2">
+            <Label for="discord_channel">Discord Channel ID</Label>
+            <Input id="discord_channel" v-model="configDiscordChannelId" placeholder="e.g. 112233445566778899" required />
+            <span class="text-[10px] text-muted-foreground">The Discord channel ID where the bot will post alerts (uses global bot token).</span>
           </div>
 
           <div v-else class="space-y-2">

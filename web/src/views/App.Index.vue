@@ -68,7 +68,7 @@ const activeIncidents = computed(() => {
     return true;
   });
 });
-const recentLogs = computed(() => incidents.value.slice(0, 8));
+const recentLogs = computed(() => incidents.value.slice(0, 5));
 const recentMonitors = computed(() => [...monitors.value].slice(0, 10));
 
 const avgLatency = computed(() => {
@@ -409,7 +409,7 @@ onMounted(() => {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent class="p-0">
+            <CardContent class="p-0 max-h-[260px] overflow-y-auto">
               <!-- Empty -->
               <div v-if="incidents.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
                 <CheckCircle2 class="w-8 h-8 text-emerald-500/25 mb-2" />
@@ -421,34 +421,37 @@ onMounted(() => {
                 <div
                   v-for="log in recentLogs"
                   :key="log.id"
-                  class="event-row flex items-start gap-2.5 px-4 py-3 hover:bg-muted/30 transition-colors"
+                  class="event-row flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-muted/30 transition-colors"
                 >
-                  <!-- Icon -->
-                  <div class="mt-0.5 shrink-0">
-                    <div v-if="log.status === 'resolved'" class="w-5 h-5 rounded-full bg-emerald-500/15 flex items-center justify-center">
-                      <CheckCircle2 class="w-3 h-3 text-emerald-500" />
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <!-- Icon -->
+                    <div class="shrink-0">
+                      <div v-if="log.status === 'resolved'" class="w-4.5 h-4.5 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                        <CheckCircle2 class="w-2.5 h-2.5 text-emerald-500" />
+                      </div>
+                      <div v-else class="w-4.5 h-4.5 rounded-full bg-rose-500/15 flex items-center justify-center">
+                        <AlertCircle class="w-2.5 h-2.5 text-rose-500" />
+                      </div>
                     </div>
-                    <div v-else class="w-5 h-5 rounded-full bg-rose-500/15 flex items-center justify-center">
-                      <AlertCircle class="w-3 h-3 text-rose-500" />
+
+                    <!-- Name + Status -->
+                    <div class="min-w-0">
+                      <p class="text-xs font-bold text-foreground truncate max-w-[130px] sm:max-w-[160px]">
+                        {{ getMonitorName(log.monitor_id) }}
+                      </p>
+                      <p class="text-[9px] font-semibold text-muted-foreground">
+                        <span :class="log.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'">
+                          {{ log.status === 'resolved' ? 'Recovered' : 'Down' }}
+                        </span>
+                        <span class="mx-1">·</span>
+                        <span>{{ formatRelativeTime(log.created_at) }}</span>
+                      </p>
                     </div>
                   </div>
 
-                  <!-- Body -->
-                  <div class="flex-1 min-w-0">
-                    <p class="text-xs font-bold text-foreground leading-tight">
-                      <span class="truncate block">{{ getMonitorName(log.monitor_id) }}</span>
-                    </p>
-                    <p class="text-[10px] font-semibold" :class="log.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'">
-                      {{ log.status === 'resolved' ? '↑ Recovered' : '↓ Down' }}
-                      <span v-if="log.latency > 0" class="text-muted-foreground font-normal"> · {{ log.latency }}ms</span>
-                    </p>
-                    <p v-if="log.error_message && log.status !== 'resolved'" class="text-[9px] text-muted-foreground truncate mt-0.5">
-                      {{ log.error_message }}
-                    </p>
-                    <div class="flex items-center gap-1 mt-0.5 text-[9px] text-muted-foreground/60">
-                      <Clock class="w-2.5 h-2.5" />
-                      <span>{{ formatRelativeTime(log.created_at) }}</span>
-                    </div>
+                  <!-- Latency -->
+                  <div class="shrink-0 text-right flex flex-col items-end gap-0.5">
+                    <span v-if="log.latency > 0" class="text-[10px] font-mono text-muted-foreground font-bold">{{ log.latency }}ms</span>
                   </div>
                 </div>
               </div>

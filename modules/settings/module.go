@@ -1,6 +1,8 @@
 package setting
 
 import (
+	"time"
+
 	"ping-uptime/internal/pkg/bus"
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/modules/settings/domain/entity"
@@ -55,7 +57,89 @@ func (m *Module) RegisterRoutes(e *echo.Echo, basePath string) {
 
 func (m *Module) Migrations() error {
 	m.logger.Info("Registering setting module migrations")
-	return m.db.AutoMigrate(&entity.Setting{})
+	if err := m.db.AutoMigrate(&entity.Setting{}); err != nil {
+		return err
+	}
+
+	// Define default settings
+	defaultSettings := []entity.Setting{
+		{
+			Key:         "system_name",
+			Value:       "ping-uptime",
+			Description: "Friendly name of the status monitoring application.",
+		},
+		{
+			Key:         "admin_email",
+			Value:       "",
+			Description: "Global administrator email address to send alert backups.",
+		},
+		{
+			Key:         "allow_registration",
+			Value:       "false",
+			Description: "Allow new guest account registrations.",
+		},
+		{
+			Key:         "smtp_host",
+			Value:       "",
+			Description: "SMTP Host for sending email notifications.",
+		},
+		{
+			Key:         "smtp_port",
+			Value:       "587",
+			Description: "SMTP Port (e.g. 587 or 465).",
+		},
+		{
+			Key:         "smtp_username",
+			Value:       "",
+			Description: "SMTP Username/Authentication Email.",
+		},
+		{
+			Key:         "smtp_password",
+			Value:       "",
+			Description: "SMTP Password/App Password.",
+		},
+		{
+			Key:         "smtp_sender",
+			Value:       "",
+			Description: "SMTP Sender Address.",
+		},
+		{
+			Key:         "smtp_encryption",
+			Value:       "TLS",
+			Description: "SMTP Encryption: SSL, TLS, or None.",
+		},
+		{
+			Key:         "discord_bot_token",
+			Value:       "",
+			Description: "Discord Bot Token for sending notifications.",
+		},
+		{
+			Key:         "telegram_bot_token",
+			Value:       "",
+			Description: "Telegram Bot Token for sending notifications.",
+		},
+	}
+
+	// Push default settings if they do not exist
+	for _, s := range defaultSettings {
+		var count int64
+		if err := m.db.Model(&entity.Setting{}).Where("key = ?", s.Key).Count(&count).Error; err != nil {
+			m.logger.Error("Failed to check setting existence for key %s: %v", s.Key, err)
+			continue
+		}
+		if count == 0 {
+			now := time.Now()
+			s.CreatedAt = now
+			s.UpdatedAt = now
+			if err := m.db.Create(&s).Error; err != nil {
+				m.logger.Error("Failed to create default setting for key %s: %v", s.Key, err)
+			} else {
+				m.logger.Info("Default setting created: %s = %s", s.Key, s.Value)
+			}
+		}
+	}
+
+	return nil
 }
 
 func (m *Module) Logger() *logger.Logger {

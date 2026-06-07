@@ -56,6 +56,16 @@ export const sidebarContent: SidebarGroup[] = [
     ],
   },
   {
+    groupName: 'Preferences',
+    items: [
+      {
+        title: 'Notifications',
+        href: `${siteConfig.appPath}/settings/notifications`,
+        icon: Bell,
+      },
+    ],
+  },
+  {
     groupName: 'Administration',
     admin: true,
     items: [
@@ -63,11 +73,6 @@ export const sidebarContent: SidebarGroup[] = [
         title: 'Users',
         href: `${siteConfig.appPath}/users`,
         icon: Users,
-      },
-      {
-        title: 'Notifications',
-        href: `${siteConfig.appPath}/settings/notifications`,
-        icon: Bell,
       },
       {
         title: 'Settings',
