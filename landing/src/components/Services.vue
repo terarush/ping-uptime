@@ -27,7 +27,7 @@ const services = [
         <Card
           v-for="service in services"
           :key="service.title"
-          class="relative border-border/50 bg-background/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300 group"
+          class="relative border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md hover:shadow-md transition-shadow group"
         >
           <CardHeader>
             <Badge variant="secondary" class="absolute top-4 right-4 text-[10px] px-2 py-0.5">

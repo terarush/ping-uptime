@@ -37,7 +37,7 @@ function prev() {
           <Card
             v-for="(item, index) in testimonials.slice(current * 2, current * 2 + 2)"
             :key="index"
-            class="border-border/50 bg-background"
+            class="border-border/50 bg-card/60 dark:bg-card/40"
           >
             <CardContent class="p-6">
               <div class="flex gap-1 mb-4">

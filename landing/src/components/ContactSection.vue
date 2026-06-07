@@ -6,10 +6,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { MapPin, Phone, Mail, Clock } from '@lucide/vue'
 
 const contactInfo = [
-  { icon: MapPin, label: 'Find us', value: '742 Evergreen Terrace, Springfield, IL 62704' },
-  { icon: Phone, label: 'Call us', value: '+1 (619) 123-4567' },
-  { icon: Mail, label: 'Mail US', value: 'leomirandadev@gmail.com' },
-  { icon: Clock, label: 'Visit us', value: 'Monday - Friday\n8AM - 4PM' },
+  { icon: MapPin, label: 'Visit Us', value: 'Indonesian\nEast Java, Malang' },
+  { icon: Phone, label: 'Call Us', value: '+62 821 4333 8737\nMon-Fri, 9AM-10PM PST' },
+  { icon: Mail, label: 'Mail Us', value: 'hello@terarush.dev' },
+  { icon: Clock, label: 'Bussines Hours', value: 'Monday - Friday\n8AM - 4PM' },
 ]
 </script>
 
@@ -18,15 +18,15 @@ const contactInfo = [
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-2xl text-center mb-16">
         <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Contact</h2>
-        <p class="mt-3 text-lg text-muted-foreground">Connect With Us</p>
+        <p class="mt-3 text-lg text-muted-foreground">Let's talk</p>
         <p class="mt-2 text-sm text-muted-foreground/80">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum ipsam sint enim exercitationem ex autem corrupti quas tenetur
+          Multiple ways to reach us. Pick what works best for you.
         </p>
       </div>
 
       <div class="grid gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
         <div class="lg:col-span-2">
-          <Card class="border-border/50 bg-background">
+          <Card class="border-border/50 bg-card/60 dark:bg-card/40">
             <CardContent class="p-6 space-y-4">
               <div class="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -48,11 +48,9 @@ const contactInfo = [
               </div>
               <div>
                 <label class="text-xs font-medium text-foreground mb-1.5 block">Message</label>
-                <Textarea placeholder="Tell us more..." class="min-h-[120px] rounded-lg" />
+                <Textarea placeholder="Tell us more..." class="min-h-30 rounded-lg" />
               </div>
-              <Button class="w-full rounded-full font-semibold">
-                Send message
-              </Button>
+              <Button class="w-full rounded-lg font-semibold"> Send message </Button>
             </CardContent>
           </Card>
         </div>
@@ -61,9 +59,11 @@ const contactInfo = [
           <div
             v-for="item in contactInfo"
             :key="item.label"
-            class="flex gap-3 p-4 rounded-lg border border-border/50 bg-background"
+            class="flex gap-3 p-4 rounded-lg border border-border/50 bg-card/60 dark:bg-card/40"
           >
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
+            >
               <component :is="item.icon" class="h-5 w-5" />
             </div>
             <div>

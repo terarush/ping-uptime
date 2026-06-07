@@ -26,11 +26,11 @@ onUnmounted(() => {
 })
 
 const navLinks = [
+  { label: 'Home', href: '#hero' },
   { label: 'Features', href: '#features' },
-  { label: 'Testimonials', href: '#testimonials' },
   { label: 'Team', href: '#team' },
   { label: 'Contact', href: '#contact' },
-  { label: 'FAQ', href: '#faq' },
+  // { label: 'FAQ', href: '#faq' },
 ]
 </script>
 
@@ -44,16 +44,18 @@ const navLinks = [
     ]"
   >
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="flex h-16 items-center justify-between">
-        <div class="flex items-center gap-2">
+      <div class="grid grid-cols-3 items-center h-16">
+        <div class="flex justify-start items-center gap-2">
           <div class="relative flex h-3 w-3">
-            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"
+            ></span>
             <span class="relative inline-flex h-3 w-3 rounded-full bg-primary"></span>
           </div>
-          <span class="text-lg font-bold tracking-tight">Shadcn</span>
+          <span class="text-lg font-bold tracking-tight">ping-uptime</span>
         </div>
 
-        <div class="hidden md:flex items-center gap-6">
+        <div class="hidden md:flex justify-center items-center gap-6">
           <a
             v-for="link in navLinks"
             :key="link.label"
@@ -64,7 +66,7 @@ const navLinks = [
           </a>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex justify-end items-center gap-2">
           <Button variant="ghost" size="icon" @click="toggleDark" class="rounded-full">
             <Sun v-if="!isDark" class="h-4 w-4" />
             <Moon v-else class="h-4 w-4" />

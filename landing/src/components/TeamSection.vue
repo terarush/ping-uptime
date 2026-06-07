@@ -1,17 +1,36 @@
 <script setup lang="ts">
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Globe, GitFork } from '@lucide/vue'
 
 const team = [
-  { name: 'LeoMiranda', role: 'Vue Frontend Developer, Creator Of This Website', img: 'https://i.pravatar.cc/250?img=58', social: ['linkedin', 'github', 'twitter'] },
-  { name: 'Elizabeth Moore', role: 'UI/UX Designer', img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1528', social: ['linkedin', 'twitter'] },
-  { name: 'David Diaz', role: 'Machine Learning Engineer, TensorFlow Tinkerer', img: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=1760', social: ['linkedin', 'github'] },
-  { name: 'Sarah Robinson', role: 'Cloud Native Developer, Kubernetes Orchestrator', img: 'https://images.unsplash.com/photo-1573497161161-c3e73707e25c?w=1587', social: ['linkedin', 'github', 'twitter'] },
-  { name: 'Michael Holland', role: 'DevOps Engineer, CI/CD Pipeline Mastermind', img: 'https://images.unsplash.com/photo-1616805765352-beedbad46b2a?w=1887', social: ['linkedin'] },
-  { name: 'Zoe Garcia', role: 'JavaScript Evangelist, Deno Champion', img: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1587', social: ['linkedin', 'github'] },
-  { name: 'Evan James', role: 'Backend Developer', img: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=1480', social: ['linkedin', 'github', 'twitter'] },
-  { name: 'Pam Taylor', role: 'Fullstack Developer, UX Researcher', img: 'https://images.unsplash.com/photo-1573497019236-17f8177b81e8?w=1740', social: ['twitter'] },
+  {
+    name: "Ahmad Rafi'i",
+    role: 'CEO & Founder',
+    img: 'https://github.com/rafia9005.png',
+    linkedin: 'https://linkedin.com/in/rafia9005',
+    github: 'https://github.com/rafia9005',
+  },
+  {
+    name: 'Rakha Adi',
+    role: 'Co-Founder',
+    img: 'https://github.com/Rakhasptro.png',
+    linkedin: 'https://linkedin.com/in/rakhaadi',
+    github: 'https://github.com/Rakhasptro',
+  },
+  {
+    name: 'Bintang Adi Alvaro',
+    role: 'Graphics Designer',
+    img: 'https://github.com/kentangaja.png',
+    linkedin: '#',
+    github: 'https://github.com/kentangaja',
+  },
+  {
+    name: 'Hasan',
+    role: 'Junior',
+    img: 'https://github.com/szmaou.png',
+    linkedin: '#',
+    github: '#',
+  },
 ]
 </script>
 
@@ -27,24 +46,64 @@ const team = [
         <Card
           v-for="member in team"
           :key="member.name"
-          class="border-border/50 bg-background/50 backdrop-blur-sm text-center hover:shadow-lg transition-all duration-300"
+          class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md text-center hover:shadow-md transition-shadow"
         >
           <CardContent class="p-6">
             <Avatar class="mx-auto h-20 w-20 mb-4">
               <AvatarImage :src="member.img" :alt="member.name" />
-              <AvatarFallback>{{ member.name.split(' ').map(n => n[0]).join('') }}</AvatarFallback>
+              <AvatarFallback>{{
+                member.name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')
+              }}</AvatarFallback>
             </Avatar>
             <h3 class="font-semibold text-sm">{{ member.name }}</h3>
             <p class="text-xs text-muted-foreground mt-1 leading-relaxed">{{ member.role }}</p>
             <div class="flex items-center justify-center gap-2 mt-4">
               <a
-                v-for="social in member.social"
-                :key="social"
-                href="#"
+                :href="member.linkedin"
+                target="_blank"
+                rel="noopener noreferrer"
                 class="flex h-8 w-8 items-center justify-center rounded-full border border-border hover:bg-accent hover:text-primary transition-colors"
               >
-                <GitFork v-if="social === 'github'" class="h-3.5 w-3.5" />
-                <Globe v-else class="h-3.5 w-3.5" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  class="h-3.5 w-3.5"
+                >
+                  <path
+                    d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
+                  />
+                  <rect x="2" y="9" width="4" height="12" />
+                  <circle cx="4" cy="4" r="2" />
+                </svg>
+              </a>
+              <a
+                :href="member.github"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex h-8 w-8 items-center justify-center rounded-full border border-border hover:bg-accent hover:text-primary transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  class="h-3.5 w-3.5"
+                >
+                  <path
+                    d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                  />
+                </svg>
               </a>
             </div>
           </CardContent>

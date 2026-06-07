@@ -28,7 +28,7 @@ const features = [
         <Card
           v-for="feature in features"
           :key="feature.title"
-          class="border-border/50 bg-background hover:shadow-lg hover:border-primary/20 transition-all duration-300 group"
+          class="border-border/50 bg-card/60 dark:bg-card/40 hover:shadow-md transition-shadow group"
         >
           <CardHeader>
             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2 group-hover:bg-primary/20 transition-colors">

@@ -25,7 +25,7 @@ const benefits = [
         <Card
           v-for="benefit in benefits"
           :key="benefit.num"
-          class="relative overflow-hidden border-border/50 bg-background/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300 group"
+          class="relative overflow-hidden border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md hover:shadow-md transition-shadow group"
         >
           <CardHeader>
             <span class="text-4xl font-black text-primary/20 group-hover:text-primary/40 transition-colors">{{ benefit.num }}</span>
