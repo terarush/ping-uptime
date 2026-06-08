@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from '@lucide/vue'
-import dashboardImg from '@/assets/preview/dashboard.png'
-import monitorsImg from '@/assets/preview/monitors.png'
-import incidentImg from '@/assets/preview/incident_logs.png'
 
-const images = [dashboardImg, monitorsImg, incidentImg]
+const isDark = ref(false)
+let observer: MutationObserver | null = null
+
+const lightImages = ['/dashboard_preview_light.png', '/analycis_preview_light.png']
+const darkImages = ['/dashboard_preview_dark.png', '/analycis_preview_dark.png']
+
+const images = computed(() => (isDark.value ? darkImages : lightImages))
 const currentIndex = ref(0)
 let intervalId: ReturnType<typeof setInterval> | null = null
 
 function startInterval() {
   stopInterval()
   intervalId = setInterval(() => {
-    currentIndex.value = (currentIndex.value + 1) % images.length
+    currentIndex.value = (currentIndex.value + 1) % images.value.length
   }, 4000)
 }
 
@@ -25,12 +28,12 @@ function stopInterval() {
 }
 
 function prev() {
-  currentIndex.value = (currentIndex.value - 1 + images.length) % images.length
+  currentIndex.value = (currentIndex.value - 1 + images.value.length) % images.value.length
   startInterval()
 }
 
 function next() {
-  currentIndex.value = (currentIndex.value + 1) % images.length
+  currentIndex.value = (currentIndex.value + 1) % images.value.length
   startInterval()
 }
 
@@ -47,8 +50,22 @@ function onMouseLeave() {
   startInterval()
 }
 
-onMounted(startInterval)
-onUnmounted(stopInterval)
+onMounted(() => {
+  isDark.value = document.documentElement.classList.contains('dark')
+  observer = new MutationObserver(() => {
+    isDark.value = document.documentElement.classList.contains('dark')
+  })
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  })
+  startInterval()
+})
+
+onUnmounted(() => {
+  stopInterval()
+  observer?.disconnect()
+})
 </script>
 
 <template>
