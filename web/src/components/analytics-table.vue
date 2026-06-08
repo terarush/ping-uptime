@@ -38,7 +38,7 @@ watch(() => totalPages.value, () => {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead class="w-[80px] text-center">Status</TableHead>
+          <TableHead class="w-20 text-center">Status</TableHead>
           <TableHead>Monitor</TableHead>
           <TableHead>Uptime %</TableHead>
           <TableHead>Checks (Failed/Total)</TableHead>
@@ -144,11 +144,11 @@ watch(() => totalPages.value, () => {
 
       <!-- Navigation Buttons -->
       <div class="flex items-center gap-1.5">
-        <Button 
-          variant="outline" 
-          size="icon" 
-          class="h-8 w-8" 
-          :disabled="currentPage === 1" 
+        <Button
+          variant="outline"
+          size="icon"
+          class="h-8 w-8"
+          :disabled="currentPage === 1"
           @click="currentPage--"
         >
           <ChevronLeft class="w-4 h-4" />
@@ -156,11 +156,11 @@ watch(() => totalPages.value, () => {
         <span class="px-3 py-1 font-bold text-foreground">
           Page {{ currentPage }} of {{ totalPages }}
         </span>
-        <Button 
-          variant="outline" 
-          size="icon" 
-          class="h-8 w-8" 
-          :disabled="currentPage === totalPages" 
+        <Button
+          variant="outline"
+          size="icon"
+          class="h-8 w-8"
+          :disabled="currentPage === totalPages"
           @click="currentPage++"
         >
           <ChevronRight class="w-4 h-4" />

@@ -118,6 +118,11 @@ func (m *Module) Migrations() error {
 			Value:       "",
 			Description: "Telegram Bot Token for sending notifications.",
 		},
+		{
+			Key: "whatsapp_webhooks",
+			Value: "",
+			Description: "WhatsApp webhooks fro sending notifications",
+		},
 	}
 
 	// Push default settings if they do not exist
