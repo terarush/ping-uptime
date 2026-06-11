@@ -14,8 +14,8 @@ const props = defineProps<Props>()
 
 <template>
   <RekaImage
-    :src="props.src"
-    :alt="props.alt"
+    :src="props.src ?? ''"
+    :alt="props.alt ?? ''"
     :class="cn('aspect-square h-full w-full', props.class)"
   />
 </template>

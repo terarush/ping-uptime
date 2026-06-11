@@ -15,7 +15,7 @@ const emits = defineEmits<AccordionRootEmits>()
   <AccordionRoot
     v-bind="props"
     :class="cn('w-full', props.class)"
-    @update:model-value="(val: string[] | string) => emits('update:modelValue', val)"
+    @update:model-value="(val: string | string[] | undefined) => emits('update:modelValue', val)"
   >
     <slot />
   </AccordionRoot>
