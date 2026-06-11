@@ -17,10 +17,14 @@ const services = [
 </script>
 
 <template>
-  <section class="py-20 md:py-28 bg-muted/30">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <section id="services" class="section-grid py-20 md:py-28">
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <!-- Section header -->
-      <div class="mx-auto max-w-2xl text-center mb-16 reveal" ref="reveal">
+      <div class="mx-auto max-w-2xl text-center mb-16 reveal" :ref="(el: any) => observe(el)">
+        <span class="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3.5 py-1 text-xs font-mono font-medium text-muted-foreground backdrop-blur-sm mb-5 tracking-wider">
+          <span class="h-1.5 w-1.5 rounded-full bg-primary/60" />
+          03 / Services
+        </span>
         <h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">What you can monitor</h2>
         <p class="mt-3 text-lg text-muted-foreground">Every protocol, every service, one dashboard</p>
         <p class="mt-2 text-sm text-muted-foreground/80 max-w-md mx-auto">
@@ -34,11 +38,11 @@ const services = [
           v-for="(service, i) in services"
           :key="service.title"
           :ref="(el: any) => observe(el?.$el ?? el)"
-          class="reveal group"
+          class="reveal group hover:-translate-y-0.5 transition-all duration-300"
           :class="`reveal-delay-${(i % 3) + 1}`"
         >
           <template #default>
-            <CardHeader>
+            <CardHeader class="relative">
               <Badge variant="secondary" class="absolute top-4 right-4 text-[10px] px-2 py-0.5 font-mono">
                 {{ service.badge }}
               </Badge>

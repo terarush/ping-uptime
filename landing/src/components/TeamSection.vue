@@ -1,93 +1,79 @@
 <script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useScrollReveal } from '@/lib/useScrollReveal'
 
 const { observe } = useScrollReveal()
 
-const team = [
-  {
-    name: "Ahmad Rafi'i",
-    role: 'Founder & CEO',
-    img: 'https://github.com/rafia9005.png',
-    linkedin: 'https://linkedin.com/in/rafia9005',
-    github: 'https://github.com/rafia9005',
-  },
-  {
-    name: 'Rakha Adi',
-    role: 'Co-Founder',
-    img: 'https://github.com/Rakhasptro.png',
-    linkedin: 'https://linkedin.com/in/rakhaadi',
-    github: 'https://github.com/Rakhasptro',
-  },
-  {
-    name: 'Bintang Adi Alvaro',
-    role: 'Graphics Designer',
-    img: 'https://github.com/kentangaja.png',
-    linkedin: '#',
-    github: 'https://github.com/kentangaja',
-  },
-  {
-    name: 'Hasan',
-    role: 'Junior Backend',
-    img: 'https://github.com/szmaou.png',
-    linkedin: '#',
-    github: 'https://github.com/szmaou',
-  },
-]
+interface Contributor {
+  login: string
+  avatar_url: string
+  html_url: string
+  contributions: number
+  type: string
+}
+
+const apiContributors = ref<Contributor[]>([])
+const error = ref('')
+
+const contributors = computed(() => [...apiContributors.value])
+
+onMounted(async () => {
+  try {
+    const res = await fetch('https://api.github.com/repos/terarush/ping-uptime/contributors?per_page=30')
+    if (!res.ok) throw new Error(`GitHub API: ${res.status}`)
+    apiContributors.value = await res.json()
+  } catch (e) {
+    error.value = 'Failed to load contributors'
+  }
+})
 </script>
 
 <template>
-  <section id="team" class="py-20 md:py-28 bg-muted/30">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <section id="contributors" class="section-grid py-20 md:py-28 bg-muted/30">
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <!-- Section header -->
-      <div class="mx-auto max-w-2xl text-center mb-16 reveal" ref="reveal">
-        <h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Team</h2>
-        <p class="mt-3 text-lg text-muted-foreground">The people behind ping-uptime</p>
+      <div class="mx-auto max-w-2xl text-center mb-16 reveal" :ref="(el: any) => observe(el)">
+        <span class="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3.5 py-1 text-xs font-mono font-medium text-muted-foreground backdrop-blur-sm mb-5 tracking-wider">
+          <span class="h-1.5 w-1.5 rounded-full bg-primary/60" />
+          05 / Contributors
+        </span>
+        <h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Contributors</h2>
+        <p class="mt-3 text-lg text-muted-foreground">People who helped build ping-uptime</p>
       </div>
 
+      <!-- Error state -->
+      <p v-if="error" class="text-center text-sm text-muted-foreground">{{ error }}</p>
+
+      <!-- Empty / loading state -->
+      <p v-else-if="!contributors.length" class="text-center text-sm text-muted-foreground">Loading contributors...</p>
+
       <!-- Grid -->
-      <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div v-else class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         <Card
-          v-for="(member, i) in team"
-          :key="member.name"
+          v-for="(c, i) in contributors"
+          :key="c.login"
           :ref="(el: any) => observe(el?.$el ?? el)"
           class="reveal group border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md text-center hover:shadow-md transition-shadow"
           :class="`reveal-delay-${i + 1}`"
         >
           <template #default>
-            <CardContent class="p-6">
+            <a :href="c.html_url" target="_blank" rel="noopener noreferrer" class="block p-6">
               <Avatar class="mx-auto h-20 w-20 mb-4 ring-2 ring-border/50 group-hover:ring-primary/30 transition-all">
-                <AvatarImage :src="member.img" :alt="member.name" />
-                <AvatarFallback>{{
-                  member.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                }}</AvatarFallback>
+                <AvatarImage :src="c.avatar_url" :alt="c.login" />
+                <AvatarFallback>{{ c.login.slice(0, 2).toUpperCase() }}</AvatarFallback>
               </Avatar>
-              <h3 class="font-semibold text-sm">{{ member.name }}</h3>
-              <p class="text-xs text-muted-foreground mt-1 leading-relaxed">{{ member.role }}</p>
-              <div class="flex items-center justify-center gap-2 mt-4">
-                <a
-                  v-if="member.linkedin !== '#'"
-                  :href="member.linkedin"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="flex h-8 w-8 items-center justify-center rounded-full border border-border hover:bg-accent hover:text-primary transition-colors"
-                >
-                  <img src="/linkedin.svg" class="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
-                </a>
-                <a
-                  :href="member.github"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="flex h-8 w-8 items-center justify-center rounded-full border border-border hover:bg-accent hover:text-primary transition-colors"
-                >
-                  <img src="/github.svg" class="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
-                </a>
-              </div>
-            </CardContent>
+              <h3 class="font-semibold text-sm">{{ c.login }}</h3>
+              <p class="text-xs text-muted-foreground mt-1 leading-relaxed">
+                {{ c.contributions }} commit{{ c.contributions !== 1 ? 's' : '' }}
+              </p>
+              <span
+                class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary/80 hover:text-primary transition-colors"
+              >
+                View profile &rarr;
+              </span>
+            </a>
           </template>
         </Card>
       </div>

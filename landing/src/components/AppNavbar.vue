@@ -12,7 +12,7 @@ const isInHero = ref(true)
 function handleScroll() {
   isScrolled.value = window.scrollY > 50
 
-  const sections = ['hero', 'features', 'team', 'contact']
+  const sections = ['hero', 'benefits', 'features', 'services', 'contributors', 'contact']
   for (const id of sections) {
     const el = document.getElementById(id)
     if (el) {
@@ -53,8 +53,10 @@ onUnmounted(() => {
 
 const navLinks = [
   { label: 'Home', href: '#hero' },
+  { label: 'Benefits', href: '#benefits' },
   { label: 'Features', href: '#features' },
-  { label: 'Team', href: '#team' },
+  { label: 'Services', href: '#services' },
+  { label: 'Contributors', href: '#contributors' },
   { label: 'Contact', href: '#contact' },
 ]
 </script>

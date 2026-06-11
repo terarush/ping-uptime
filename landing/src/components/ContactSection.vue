@@ -17,10 +17,14 @@ const contactInfo = [
 </script>
 
 <template>
-  <section id="contact" class="py-20 md:py-28 bg-muted/30">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <section id="contact" class="section-grid py-20 md:py-28 bg-muted/30">
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <!-- Section header -->
-      <div class="mx-auto max-w-2xl text-center mb-16 reveal" ref="reveal">
+      <div class="mx-auto max-w-2xl text-center mb-16 reveal" :ref="(el: any) => observe(el)">
+        <span class="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3.5 py-1 text-xs font-mono font-medium text-muted-foreground backdrop-blur-sm mb-5 tracking-wider">
+          <span class="h-1.5 w-1.5 rounded-full bg-primary/60" />
+          04 / Contact
+        </span>
         <h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Get in touch</h2>
         <p class="mt-3 text-lg text-muted-foreground">Questions? Ideas? We're listening</p>
         <p class="mt-2 text-sm text-muted-foreground/80 max-w-md mx-auto">
@@ -30,7 +34,7 @@ const contactInfo = [
 
       <div class="grid gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
         <!-- Form -->
-        <div class="lg:col-span-2 reveal" ref="reveal">
+        <div class="lg:col-span-2 reveal" :ref="(el: any) => observe(el)">
           <Card class="border-border/50 bg-card/60 dark:bg-card/40">
             <CardContent class="p-6 space-y-4">
               <div class="grid gap-4 sm:grid-cols-2">
@@ -61,7 +65,7 @@ const contactInfo = [
         </div>
 
         <!-- Contact info -->
-        <div class="space-y-4 reveal reveal-delay-2" ref="reveal">
+        <div class="space-y-4 reveal reveal-delay-2" :ref="(el: any) => observe(el)">
           <div
             v-for="item in contactInfo"
             :key="item.label"
