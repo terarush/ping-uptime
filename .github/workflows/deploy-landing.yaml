@@ -11,12 +11,14 @@ on:
       - main
     paths:
       - 'landing/**'
+      - '.github/workflows/deploy-landing.yaml'
   pull_request:
     types: [closed]
     branches:
       - main
     paths:
       - 'landing/**'
+      - '.github/workflows/deploy-landing.yaml'
 
 jobs:
   Deploy-Production:
