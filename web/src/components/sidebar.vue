@@ -4,7 +4,7 @@
  * Connects with Vue Router to highight active items,
  * and calls the Auth composable logout actions on logout trigger.
  */
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import {
   Sidebar,
   SidebarHeader,
@@ -23,14 +23,17 @@ import { sidebarContent } from '@/content/sidebar'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import ThemeButton from '@/components/theme-button.vue'
 import { LogOut } from '@lucide/vue'
-import { siteConfig } from '@/content/config'
 import { useAuth } from '@/composables/useAuth'
+import { useAppTitle } from '@/composables/useAppTitle'
 
 // Initialize router and auth dependencies
+const { appTitle, fetchAppTitle } = useAppTitle()
 const route = useRoute()
 const router = useRouter()
 const { currentUser, logout } = useAuth()
 const { isMobile, setOpenMobile } = useSidebar()
+
+onMounted(fetchAppTitle)
 
 const isAdmin = computed(() => currentUser.value?.role === 'admin')
 
@@ -72,7 +75,7 @@ const handleLogout = () => {
           <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
         </div>
         <span class="font-bold text-sm tracking-tight text-foreground whitespace-nowrap group-data-[collapsible=icon]:hidden"
-          >{{ siteConfig.name }}</span
+          >{{ appTitle }}</span
         >
       </div>
     </SidebarHeader>

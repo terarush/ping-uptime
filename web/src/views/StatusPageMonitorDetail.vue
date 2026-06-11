@@ -17,7 +17,10 @@ import {
 } from '@lucide/vue';
 import gsap from 'gsap';
 import ThemeButton from '@/components/theme-button.vue';
+import { useAppTitle } from '@/composables/useAppTitle';
 import type { StatusPage, Monitor } from '@/stores/statusPages';
+
+const { appTitle, fetchAppTitle } = useAppTitle();
 
 const route = useRoute();
 const router = useRouter();
@@ -134,6 +137,7 @@ const periods = computed(() => {
 
 onMounted(() => {
   fetchData();
+  fetchAppTitle();
 });
 </script>
 
@@ -270,7 +274,7 @@ onMounted(() => {
 
     <footer class="border-t border-border/40 py-6 bg-background/50 backdrop-blur-md">
       <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between text-[10px] text-muted-foreground gap-2">
-        <span>Powered by <strong class="text-foreground">ping-uptime</strong> Uptime Monitoring Service.</span>
+        <span>Powered by <strong class="text-foreground">{{ appTitle }}</strong> Uptime Monitoring Service.</span>
         <span>&copy; 2026. All rights reserved.</span>
       </div>
     </footer>
