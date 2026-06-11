@@ -18,8 +18,11 @@ require (
 
 require (
 	github.com/bwmarrin/discordgo v0.29.0 // indirect
+	github.com/getsentry/sentry-go v0.46.2 // indirect
+	github.com/getsentry/sentry-go/echo v0.46.2 // indirect
 	github.com/go-telegram/bot v1.21.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/labstack/echo/v5 v5.0.3 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	gorm.io/driver/sqlite v1.5.7 // indirect

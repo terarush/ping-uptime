@@ -61,6 +61,15 @@ func (h *SettingHandler) getAuthUser(c echo.Context) (uint, string, error) {
 	return userID, roleVal, nil
 }
 
+func (h *SettingHandler) GetPublicSystemName(c echo.Context) error {
+	ctx := c.Request().Context()
+	setting, err := h.settingService.GetSettingByKey(ctx, "system_name")
+	if err != nil {
+		return h.r.SuccessResponse(c, map[string]string{"value": "ping-uptime"}, "System name retrieved")
+	}
+	return h.r.SuccessResponse(c, map[string]string{"value": setting.Value}, "System name retrieved")
+}
+
 func (h *SettingHandler) GetAllSettings(c echo.Context) error {
 	ctx := c.Request().Context()
 	_, _, err := h.getAuthUser(c)
@@ -159,6 +168,9 @@ func (h *SettingHandler) DeleteSetting(c echo.Context) error {
 }
 
 func (h *SettingHandler) RegisterRoutes(e *echo.Echo, basePath string) {
+	// Public route — no auth required
+	e.GET(basePath+"/settings/public/system-name", h.GetPublicSystemName)
+
 	group := e.Group(basePath+"/settings", middleware.Auth)
 	group.GET("", h.GetAllSettings)
 	group.GET("/:key", h.GetSetting)

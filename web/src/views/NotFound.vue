@@ -2,12 +2,14 @@
 import { useRouter } from 'vue-router';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Home, FileQuestion } from '@lucide/vue';
-import { siteConfig } from '@/content/config';
 import { useAuth } from '@/composables/useAuth';
+import { useAppTitle } from '@/composables/useAppTitle';
+import { siteConfig } from '@/content/config';
 import ThemeButton from '@/components/theme-button.vue';
 import { onMounted } from 'vue';
 import gsap from 'gsap';
 
+const { appTitle, fetchAppTitle } = useAppTitle();
 const router = useRouter();
 const { isAuthenticated } = useAuth();
 
@@ -24,6 +26,7 @@ const goHome = () => {
 };
 
 onMounted(() => {
+  fetchAppTitle();
   // Orb entry animations
   gsap.fromTo('.ambient-orb-1',
     { opacity: 0, scale: 0.6 },
@@ -89,7 +92,7 @@ onMounted(() => {
     <!-- Brand Footer -->
     <div class="absolute bottom-6 text-center">
       <p class="text-[10px] text-muted-foreground select-none">
-        Powered by {{ siteConfig.name }}. All rights reserved.
+        Powered by {{ appTitle }}. All rights reserved.
       </p>
     </div>
   </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useAuth } from '@/composables/useAuth';
+import { useAppTitle } from '@/composables/useAppTitle';
 import { useSettings } from '@/composables/useSettings';
 import { settingSchema } from '@/validations/setting';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -35,6 +36,8 @@ const {
   fetchSettingsData,
   saveSettingsData
 } = useSettings();
+
+const { fetchAppTitle } = useAppTitle();
 
 // Standard Setting fields
 const systemName = ref('ping-uptime');
@@ -142,6 +145,7 @@ const handleSaveSettings = async () => {
 
     await saveSettingsData(payloads);
     toast.success('System settings updated successfully!');
+    fetchAppTitle();
     await fetchAll();
   } catch (err: any) {
     console.error('Failed to save settings:', err);
