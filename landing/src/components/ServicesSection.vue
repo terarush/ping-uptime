@@ -1,46 +1,56 @@
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Globe, Share2, Mail, Search } from '@lucide/vue'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { useScrollReveal } from '@/lib/useScrollReveal'
+import { Monitor, Activity, Webhook, GlobeLock, BarChart, BellRing } from '@lucide/vue'
+
+const { observe } = useScrollReveal()
 
 const services = [
-  { icon: Globe, title: 'Custom Domain Integration', desc: 'Lorem ipsum dolor sit, amet consectetur adipisicing elit adipisicing.', badge: 'PRO' },
-  { icon: Share2, title: 'Social Media Integrations', desc: 'Lorem ipsum dolor sit, amet consectetur adipisicing elit. Molestiae, dicta.', badge: 'PRO' },
-  { icon: Mail, title: 'Email Marketing Integrations', desc: 'Lorem dolor sit amet adipisicing.', badge: 'PRO' },
-  { icon: Search, title: 'SEO Optimization', desc: 'Lorem ipsum dolor sit amet consectetur.', badge: 'PRO' },
+  { icon: Monitor, title: 'HTTP/HTTPS Monitoring', desc: 'Monitor any web endpoint. Follow redirects, check status codes, validate SSL certificates and expiry dates.', badge: 'Core' },
+  { icon: Activity, title: 'Ping & TCP Checks', desc: 'ICMP ping and TCP port checks for services behind firewalls or non-HTTP infrastructure.', badge: 'Core' },
+  { icon: Webhook, title: 'Webhook Integrations', desc: 'Send alerts to Slack, Discord, Telegram, PagerDuty, or any custom webhook endpoint.', badge: 'Integrations' },
+  { icon: GlobeLock, title: 'SSL Certificate Monitoring', desc: 'Get notified before certificates expire. Avoid the "this site is not secure" nightmare.', badge: 'Security' },
+  { icon: BarChart, title: 'Response Time Analytics', desc: 'Track latency trends over time. Spot degradation before it becomes downtime.', badge: 'Analytics' },
+  { icon: BellRing, title: 'Status Pages', desc: 'Publish a public status page with live uptime data, incident history, and subscriber notifications.', badge: 'Pages' },
 ]
 </script>
 
 <template>
-  <section class="py-20 md:py-28">
+  <section class="py-20 md:py-28 bg-muted/30">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl text-center mb-16">
-        <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Services</h2>
-        <p class="mt-3 text-lg text-muted-foreground">Grow Your Business</p>
-        <p class="mt-2 text-sm text-muted-foreground/80">
-          From marketing and sales to operations and strategy, we have the expertise to help you achieve your goals.
+      <!-- Section header -->
+      <div class="mx-auto max-w-2xl text-center mb-16 reveal" ref="reveal">
+        <h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">What you can monitor</h2>
+        <p class="mt-3 text-lg text-muted-foreground">Every protocol, every service, one dashboard</p>
+        <p class="mt-2 text-sm text-muted-foreground/80 max-w-md mx-auto">
+          From simple HTTP checks to complex multi-region monitoring — Ping-Uptime handles it all.
         </p>
       </div>
 
-      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <!-- Grid -->
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card
-          v-for="service in services"
+          v-for="(service, i) in services"
           :key="service.title"
-          class="relative border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md hover:shadow-md transition-shadow group"
+          :ref="(el: any) => observe(el?.$el ?? el)"
+          class="reveal group"
+          :class="`reveal-delay-${(i % 3) + 1}`"
         >
-          <CardHeader>
-            <Badge variant="secondary" class="absolute top-4 right-4 text-[10px] px-2 py-0.5">
-              {{ service.badge }}
-            </Badge>
-            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2">
-              <component :is="service.icon" class="h-5 w-5" />
-            </div>
-            <CardTitle class="text-base">{{ service.title }}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription class="text-sm">{{ service.desc }}</CardDescription>
-          </CardContent>
+          <template #default>
+            <CardHeader>
+              <Badge variant="secondary" class="absolute top-4 right-4 text-[10px] px-2 py-0.5 font-mono">
+                {{ service.badge }}
+              </Badge>
+              <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2 group-hover:bg-primary/20 transition-colors">
+                <component :is="service.icon" class="h-5 w-5" />
+              </div>
+              <CardTitle class="text-base font-semibold">{{ service.title }}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription class="text-sm leading-relaxed">{{ service.desc }}</CardDescription>
+            </CardContent>
+          </template>
         </Card>
       </div>
     </div>
