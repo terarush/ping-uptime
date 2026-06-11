@@ -11,6 +11,12 @@ on:
       - main
     paths:
       - 'landing/**'
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+    paths:
+      - 'landing/**'
 
 jobs:
   Deploy-Production:
@@ -43,5 +49,5 @@ jobs:
       - name: Deploy Prebuilt Artifacts to Vercel
         run: vercel deploy --prebuilt --prod --token=${{ env.VERCEL_TOKEN }}
         env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
