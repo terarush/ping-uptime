@@ -3,29 +3,38 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
+import { useScrollReveal } from '@/lib/useScrollReveal'
 import { MapPin, Phone, Mail, Clock } from '@lucide/vue'
 
+const { observe } = useScrollReveal()
+
 const contactInfo = [
-  { icon: MapPin, label: 'Visit Us', value: 'Indonesian\nEast Java, Malang' },
-  { icon: Phone, label: 'Call Us', value: '+62 821 4333 8737\nMon-Fri, 9AM-10PM PST' },
-  { icon: Mail, label: 'Mail Us', value: 'hello@terarush.dev' },
-  { icon: Clock, label: 'Bussines Hours', value: 'Monday - Friday\n8AM - 4PM' },
+  { icon: MapPin, label: 'Location', value: 'Malang, East Java\nIndonesia' },
+  { icon: Phone, label: 'Phone', value: '+62 821 4333 8737\nMon-Fri, 9AM-10PM' },
+  { icon: Mail, label: 'Email', value: 'hello@terarush.dev\nWe reply within 24h' },
+  { icon: Clock, label: 'Hours', value: 'Monday - Friday\n8AM - 4PM (WIB)' },
 ]
 </script>
 
 <template>
-  <section id="contact" class="py-20 md:py-28 bg-muted/30">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl text-center mb-16">
-        <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Contact</h2>
-        <p class="mt-3 text-lg text-muted-foreground">Let's talk</p>
-        <p class="mt-2 text-sm text-muted-foreground/80">
-          Multiple ways to reach us. Pick what works best for you.
+  <section id="contact" class="section-grid py-20 md:py-28 bg-muted/30">
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <!-- Section header -->
+      <div class="mx-auto max-w-2xl text-center mb-16 reveal" :ref="(el: any) => observe(el)">
+        <span class="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3.5 py-1 text-xs font-mono font-medium text-muted-foreground backdrop-blur-sm mb-5 tracking-wider">
+          <span class="h-1.5 w-1.5 rounded-full bg-primary/60" />
+          04 / Contact
+        </span>
+        <h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Get in touch</h2>
+        <p class="mt-3 text-lg text-muted-foreground">Questions? Ideas? We're listening</p>
+        <p class="mt-2 text-sm text-muted-foreground/80 max-w-md mx-auto">
+          Whether you need help with setup, want to contribute, or just want to say hi — drop us a message.
         </p>
       </div>
 
       <div class="grid gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
-        <div class="lg:col-span-2">
+        <!-- Form -->
+        <div class="lg:col-span-2 reveal" :ref="(el: any) => observe(el)">
           <Card class="border-border/50 bg-card/60 dark:bg-card/40">
             <CardContent class="p-6 space-y-4">
               <div class="grid gap-4 sm:grid-cols-2">
@@ -50,20 +59,19 @@ const contactInfo = [
                 <label class="text-xs font-medium text-foreground mb-1.5 block">Message</label>
                 <Textarea placeholder="Tell us more..." class="min-h-30 rounded-lg" />
               </div>
-              <Button class="w-full rounded-lg font-semibold"> Send message </Button>
+              <Button class="w-full rounded-lg font-semibold">Send message</Button>
             </CardContent>
           </Card>
         </div>
 
-        <div class="space-y-4">
+        <!-- Contact info -->
+        <div class="space-y-4 reveal reveal-delay-2" :ref="(el: any) => observe(el)">
           <div
             v-for="item in contactInfo"
             :key="item.label"
             class="flex gap-3 p-4 rounded-lg border border-border/50 bg-card/60 dark:bg-card/40"
           >
-            <div
-              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
-            >
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <component :is="item.icon" class="h-5 w-5" />
             </div>
             <div>
