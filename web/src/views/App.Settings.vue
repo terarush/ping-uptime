@@ -55,6 +55,7 @@ const smtpEncryption = ref('TLS');
 // Bot Setting fields
 const discordBotToken = ref('');
 const telegramBotToken = ref('');
+const discordClientId = ref('');
 
 // Fetch settings wrapper
 const fetchAll = async () => {
@@ -94,6 +95,9 @@ const fetchAll = async () => {
 
     const telegramSetting = settings.value.find(s => s.key === 'telegram_bot_token');
     if (telegramSetting) telegramBotToken.value = telegramSetting.value;
+
+    const clientIdSetting = settings.value.find(s => s.key === 'discord_client_id');
+    if (clientIdSetting) discordClientId.value = clientIdSetting.value;
 
   } catch (err) {
     console.error('Failed to load settings:', err);
@@ -141,6 +145,7 @@ const handleSaveSettings = async () => {
       { key: 'smtp_encryption', value: smtpEncryption.value, description: 'SMTP Encryption: SSL, TLS, or None.' },
       { key: 'discord_bot_token', value: discordBotToken.value, description: 'Discord Bot Token for sending notifications.' },
       { key: 'telegram_bot_token', value: telegramBotToken.value, description: 'Telegram Bot Token for sending notifications.' },
+      { key: 'discord_client_id', value: discordClientId.value, description: 'Discord Client ID for bot invite OAuth URL.' },
     ];
 
     await saveSettingsData(payloads);
@@ -417,6 +422,18 @@ onMounted(() => {
                 />
               </div>
               <span class="text-[10px] text-muted-foreground">The bot token from Telegram's @BotFather.</span>
+            </div>
+
+            <!-- Discord Client ID -->
+            <div class="space-y-2">
+              <Label for="discord_client_id">Discord Client ID</Label>
+              <Input
+                id="discord_client_id"
+                v-model="discordClientId"
+                placeholder="e.g. 123456789012345678"
+                :disabled="!isAdmin || saveLoading"
+              />
+              <span class="text-[10px] text-muted-foreground">Used to generate OAuth invite URL for users to add the bot to their server.</span>
             </div>
           </div>
         </CardContent>

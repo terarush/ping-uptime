@@ -19,6 +19,7 @@ import (
 	settingEntity "ping-uptime/modules/settings/domain/entity"
 	userEntity "ping-uptime/modules/users/domain/entity"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -34,6 +35,11 @@ type Module struct {
 	notificationService *service.NotificationService
 	notificationHandler *handler.NotificationHandler
 	event               *bus.EventBus
+
+	// Persistent Discord bot session
+	discordMu      sync.Mutex
+	discordSession *discordgo.Session
+	discordToken   string
 }
 
 func (m *Module) Name() string {
@@ -62,9 +68,125 @@ func (m *Module) Initialize(db *gorm.DB, log *logger.Logger, event *bus.EventBus
 	// Register event bus subscribers
 	event.SubscribeFunc("incident.created", m.HandleIncidentCreated)
 	event.SubscribeFunc("incident.resolved", m.HandleIncidentResolved)
+	event.SubscribeFunc("setting.saved", m.HandleSettingSaved)
+
+	// Start persistent Discord bot session if token configured
+	m.startDiscordBot()
 
 	m.logger.Info("Notification module initialized successfully")
 	return nil
+}
+
+func (m *Module) startDiscordBot() {
+	token := m.getDiscordBotToken()
+	if token == "" {
+		m.logger.Debug("No Discord bot token configured, skipping persistent session")
+		return
+	}
+
+	m.discordMu.Lock()
+	defer m.discordMu.Unlock()
+
+	// If already running with same token, skip
+	if m.discordSession != nil && m.discordToken == token {
+		return
+	}
+
+	// Close existing session if any
+	m.closeDiscordSessionUnsafe()
+
+	dg, err := discordgo.New("Bot " + token)
+	if err != nil {
+		m.logger.Error("Failed to create Discord session: %v", err)
+		return
+	}
+
+	// Set initial presence — will be updated in Ready handler after connect
+	dg.Identify.Presence = discordgo.GatewayStatusUpdate{
+		Status: "online",
+		Since:  0,
+	}
+	// Register ready handler -- set online status after connect
+	dg.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+		m.logger.Info("Discord bot connected as %s#%s", r.User.Username, r.User.Discriminator)
+		m.updateDiscordPresence(s)
+	})
+
+	// Reconnect handler — keep session alive
+	dg.AddHandler(func(s *discordgo.Session, r *discordgo.Resumed) {
+		m.logger.Info("Discord bot session resumed")
+	})
+
+	err = dg.Open()
+	if err != nil {
+		m.logger.Error("Failed to open Discord websocket connection: %v", err)
+		return
+	}
+
+	m.discordSession = dg
+	m.discordToken = token
+	m.logger.Info("Discord bot persistent session established")
+}
+
+func (m *Module) updateDiscordPresence(s *discordgo.Session) {
+	count := int64(0)
+	m.db.Model(&monitorEntity.Monitor{}).Count(&count)
+	err := s.UpdateStatusComplex(discordgo.UpdateStatusData{
+		Status: "online",
+		AFK:    false,
+		Activities: []*discordgo.Activity{
+			{
+				Name:    "ping-uptime",
+				Type:    discordgo.ActivityTypeGame,
+				State:   fmt.Sprintf("%d monitors", count),
+				Details: "Monitoring servers uptime",
+				Assets: discordgo.Assets{
+					LargeImageID: "mp:external/logo/https://raw.githubusercontent.com/rafia9005/ping-uptime/main/public/favicon.svg",
+					LargeText:    "Ping Uptime",
+				},
+			},
+		},
+	})
+	if err != nil {
+		m.logger.Warn("Failed to set Discord presence: %v", err)
+	} else {
+		m.logger.Debug("Discord presence updated")
+	}
+}
+
+func (m *Module) closeDiscordSessionUnsafe() {
+	if m.discordSession != nil {
+		m.logger.Info("Closing Discord bot session")
+		m.discordSession.Close()
+		m.discordSession = nil
+	}
+	m.discordToken = ""
+}
+
+func (m *Module) getDiscordBotToken() string {
+	var settings []settingEntity.Setting
+	if err := m.db.Find(&settings).Error; err != nil {
+		m.logger.Error("Failed to fetch settings for Discord token: %v", err)
+		return ""
+	}
+	for _, s := range settings {
+		if s.Key == "discord_bot_token" {
+			return s.Value
+		}
+	}
+	return ""
+}
+
+// HandleSettingSaved listens for setting.saved events to restart Discord bot on token change
+func (m *Module) HandleSettingSaved(event bus.Event) {
+	setting, ok := event.Payload.(*settingEntity.Setting)
+	if !ok {
+		return
+	}
+	if setting.Key == "discord_bot_token" {
+		m.logger.Info("Discord bot token changed, restarting session")
+		m.startDiscordBot()
+	}
 }
 
 func (m *Module) RegisterRoutes(e *echo.Echo, basePath string) {
@@ -106,7 +228,10 @@ func (m *Module) HandleIncidentCreated(event bus.Event) {
 		<p><strong>Response Latency:</strong> %dms</p>
 	`, mon.Name, mon.URL, mon.URL, inc.ErrorMessage, inc.CreatedAt.Format("2006-01-02 15:04:05 MST"), inc.Latency)
 
-	go m.sendEmailAlert(inc, subject, body)
+	// Send email once per incident
+	go m.sendEmail(inc, subject, body, "down")
+
+	// Send channel alerts (discord, telegram, webhook, etc.)
 	go m.sendChannelAlerts(inc, &mon, true)
 }
 
@@ -138,20 +263,32 @@ func (m *Module) HandleIncidentResolved(event bus.Event) {
 		<p><strong>Response Latency:</strong> %dms</p>
 	`, mon.Name, mon.URL, mon.URL, resolvedAtStr, inc.Latency)
 
-	go m.sendEmailAlert(inc, subject, body)
+	// Send email once per resolution
+	go m.sendEmail(inc, subject, body, "up")
+
+	// Send channel alerts
 	go m.sendChannelAlerts(inc, &mon, false)
 }
 
-func (m *Module) sendEmailAlert(incident *incidentEntity.Incident, subject, body string) {
-	var settings []settingEntity.Setting
-	if err := m.db.Find(&settings).Error; err != nil {
-		m.logger.Error("Failed to fetch settings for email alert: %v", err)
+// sendEmail sends ONE email per incident — to owner only, no admin backup, no spam.
+func (m *Module) sendEmail(incident *incidentEntity.Incident, subject, body, status string) {
+	var user userEntity.User
+	if err := m.db.First(&user, incident.UserID).Error; err != nil {
+		m.logger.Error("Failed to fetch monitor owner for email: %v", err)
+		return
+	}
+	if user.Email == "" {
 		return
 	}
 
-	var smtpHost, smtpUsername, smtpPassword, smtpSender, smtpEncryption, adminEmail string
-	var smtpPortVal int
+	var settings []settingEntity.Setting
+	if err := m.db.Find(&settings).Error; err != nil {
+		m.logger.Error("Failed to fetch SMTP settings: %v", err)
+		return
+	}
 
+	var smtpHost, smtpUsername, smtpPassword, smtpSender, smtpEncryption string
+	var smtpPortVal int
 	for _, s := range settings {
 		switch s.Key {
 		case "smtp_host":
@@ -166,13 +303,11 @@ func (m *Module) sendEmailAlert(incident *incidentEntity.Incident, subject, body
 			smtpSender = s.Value
 		case "smtp_encryption":
 			smtpEncryption = s.Value
-		case "admin_email":
-			adminEmail = s.Value
 		}
 	}
 
 	if smtpHost == "" {
-		m.logger.Debug("SMTP not configured, skipping email alert")
+		m.logger.Debug("SMTP not configured, skipping email")
 		return
 	}
 
@@ -185,29 +320,12 @@ func (m *Module) sendEmailAlert(incident *incidentEntity.Incident, subject, body
 		Encryption: smtpEncryption,
 	}
 
-	// Fetch monitor owner
-	var user userEntity.User
-	if err := m.db.First(&user, incident.UserID).Error; err != nil {
-		m.logger.Error("Failed to fetch monitor owner user: %v", err)
-		return
-	}
-
-	// Send to owner user email
-	if user.Email != "" {
-		m.logger.Info("Sending email alert to owner: %s", user.Email)
-		err := email.SendEmail(cfg, user.Email, subject, body)
-		if err != nil {
-			m.logger.Error("Failed to send email alert to owner %s: %v", user.Email, err)
-		}
-	}
-
-	// Send to backup admin email if it's set and different
-	if adminEmail != "" && adminEmail != user.Email {
-		m.logger.Info("Sending email alert to admin backup: %s", adminEmail)
-		err := email.SendEmail(cfg, adminEmail, subject, body)
-		if err != nil {
-			m.logger.Error("Failed to send email alert to admin backup %s: %v", adminEmail, err)
-		}
+	m.logger.Info("Sending %s alert email to %s", status, user.Email)
+	err := email.SendEmail(cfg, user.Email, subject, body)
+	if err != nil {
+		m.logger.Error("Failed to send email to %s: %v", user.Email, err)
+	} else {
+		m.logger.Info("Email sent to %s", user.Email)
 	}
 }
 
@@ -230,11 +348,9 @@ func (m *Module) sendChannelAlerts(incident *incidentEntity.Incident, mon *monit
 		return
 	}
 
-	var discordBotToken, telegramBotToken string
+	var telegramBotToken string
 	for _, s := range settings {
-		if s.Key == "discord_bot_token" {
-			discordBotToken = s.Value
-		} else if s.Key == "telegram_bot_token" {
+		if s.Key == "telegram_bot_token" {
 			telegramBotToken = s.Value
 		}
 	}
@@ -242,11 +358,7 @@ func (m *Module) sendChannelAlerts(incident *incidentEntity.Incident, mon *monit
 	for _, ch := range channels {
 		switch ch.Type {
 		case "discord_bot":
-			if discordBotToken == "" {
-				m.logger.Warn("Discord bot token not configured globally, skipping discord_bot channel")
-				continue
-			}
-			go m.sendDiscordBotAlert(ch, discordBotToken, mon, incident, isDown)
+			go m.sendDiscordBotAlert(ch, mon, incident, isDown)
 		case "telegram":
 			if telegramBotToken == "" {
 				m.logger.Warn("Telegram bot token not configured globally, skipping telegram channel")
@@ -259,13 +371,13 @@ func (m *Module) sendChannelAlerts(incident *incidentEntity.Incident, mon *monit
 			go m.sendSlackWebhookAlert(ch, mon, incident, isDown)
 		case "webhook":
 			go m.sendCustomWebhookAlert(ch, mon, incident, isDown)
-		case "email":
-			go m.sendEmailChannelAlert(ch, mon, incident, isDown)
+			// email channel type is skipped — email already sent once in sendEmail()
 		}
 	}
 }
 
-func (m *Module) sendDiscordBotAlert(ch entity.NotificationChannel, token string, mon *monitorEntity.Monitor, incident *incidentEntity.Incident, isDown bool) {
+// sendDiscordBotAlert uses the persistent session instead of creating one per alert.
+func (m *Module) sendDiscordBotAlert(ch entity.NotificationChannel, mon *monitorEntity.Monitor, incident *incidentEntity.Incident, isDown bool) {
 	var config struct {
 		ChannelID string `json:"channel_id"`
 	}
@@ -279,12 +391,14 @@ func (m *Module) sendDiscordBotAlert(ch entity.NotificationChannel, token string
 		return
 	}
 
-	dg, err := discordgo.New("Bot " + token)
-	if err != nil {
-		m.logger.Error("Failed to create Discord session: %v", err)
+	m.discordMu.Lock()
+	session := m.discordSession
+	m.discordMu.Unlock()
+
+	if session == nil {
+		m.logger.Warn("Discord bot not connected, cannot send message")
 		return
 	}
-	defer dg.Close()
 
 	var content string
 	if isDown {
@@ -299,7 +413,7 @@ func (m *Module) sendDiscordBotAlert(ch entity.NotificationChannel, token string
 			mon.Name, mon.URL, resolvedAtStr, incident.Latency)
 	}
 
-	_, err = dg.ChannelMessageSend(config.ChannelID, content)
+	_, err := session.ChannelMessageSend(config.ChannelID, content)
 	if err != nil {
 		m.logger.Error("Failed to send Discord bot message to channel %s: %v", config.ChannelID, err)
 	} else {
@@ -433,14 +547,14 @@ func (m *Module) sendCustomWebhookAlert(ch entity.NotificationChannel, mon *moni
 		status = "DOWN"
 	}
 
-	payload := map[string]interface{}{
+	payload := map[string]any{
 		"event": "monitor.status_changed",
-		"monitor": map[string]interface{}{
+		"monitor": map[string]any{
 			"id":   mon.ID,
 			"name": mon.Name,
 			"url":  mon.URL,
 		},
-		"incident": map[string]interface{}{
+		"incident": map[string]any{
 			"id":            incident.ID,
 			"status":        status,
 			"error_message": incident.ErrorMessage,
@@ -451,82 +565,7 @@ func (m *Module) sendCustomWebhookAlert(ch entity.NotificationChannel, mon *moni
 	m.sendJSONPost(config.WebhookURL, payload)
 }
 
-func (m *Module) sendEmailChannelAlert(ch entity.NotificationChannel, mon *monitorEntity.Monitor, incident *incidentEntity.Incident, isDown bool) {
-	// Fetch monitor owner
-	var user userEntity.User
-	if err := m.db.First(&user, incident.UserID).Error; err != nil {
-		m.logger.Error("Failed to fetch monitor owner user for email channel: %v", err)
-		return
-	}
-
-	if user.Email == "" {
-		m.logger.Warn("Owner email is empty, skipping email channel alert")
-		return
-	}
-
-	var settings []settingEntity.Setting
-	if err := m.db.Find(&settings).Error; err != nil {
-		m.logger.Error("Failed to fetch settings for email channel alert: %v", err)
-		return
-	}
-
-	var smtpHost, smtpUsername, smtpPassword, smtpSender, smtpEncryption string
-	var smtpPortVal int
-
-	for _, s := range settings {
-		switch s.Key {
-		case "smtp_host":
-			smtpHost = s.Value
-		case "smtp_port":
-			smtpPortVal, _ = strconv.Atoi(s.Value)
-		case "smtp_username":
-			smtpUsername = s.Value
-		case "smtp_password":
-			smtpPassword = s.Value
-		case "smtp_sender":
-			smtpSender = s.Value
-		case "smtp_encryption":
-			smtpEncryption = s.Value
-		}
-	}
-
-	if smtpHost == "" {
-		m.logger.Debug("SMTP not configured, skipping email channel alert")
-		return
-	}
-
-	cfg := email.SMTPConfig{
-		Host:       smtpHost,
-		Port:       smtpPortVal,
-		Username:   smtpUsername,
-		Password:   smtpPassword,
-		Sender:     smtpSender,
-		Encryption: smtpEncryption,
-	}
-
-	subject := fmt.Sprintf("[ALERT] Monitor %s is %s", mon.Name, map[bool]string{true: "DOWN", false: "UP"}[isDown])
-	body := fmt.Sprintf(`
-		<h3>Monitor Alert: %s</h3>
-		<p><strong>Monitor Name:</strong> %s</p>
-		<p><strong>Target URL:</strong> <a href="%s">%s</a></p>
-		<p><strong>Status:</strong> <span style="color: %s; font-weight: bold;">%s</span></p>
-		<p><strong>Triggered/Resolved At:</strong> %s</p>
-		<p><strong>Response Latency:</strong> %dms</p>
-	`, map[bool]string{true: "DOWN", false: "UP (RESOLVED)"}[isDown],
-		mon.Name, mon.URL, mon.URL,
-		map[bool]string{true: "red", false: "green"}[isDown],
-		map[bool]string{true: "DOWN", false: "UP"}[isDown],
-		incident.CreatedAt.Format("2006-01-02 15:04:05 MST"), incident.Latency)
-
-	err := email.SendEmail(cfg, user.Email, subject, body)
-	if err != nil {
-		m.logger.Error("Failed to send email channel alert to %s: %v", user.Email, err)
-	} else {
-		m.logger.Info("Email channel alert sent successfully to %s", user.Email)
-	}
-}
-
-func (m *Module) sendJSONPost(url string, payload interface{}) {
+func (m *Module) sendJSONPost(url string, payload any) {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		m.logger.Error("Failed to marshal webhook payload: %v", err)
@@ -549,4 +588,3 @@ func (m *Module) sendJSONPost(url string, payload interface{}) {
 func NewModule() *Module {
 	return &Module{}
 }
-
