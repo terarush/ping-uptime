@@ -25,7 +25,9 @@ import {
   Trash2,
   Search,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  ExternalLink,
+  MessageCircle
 } from '@lucide/vue';
 import gsap from 'gsap';
 
@@ -52,6 +54,12 @@ const hasDiscordBot = computed(() => {
 const hasTelegramBot = computed(() => {
   const s = globalSettings.value.find(x => x.key === 'telegram_bot_token');
   return !!s?.value;
+});
+
+const discordInviteLink = computed(() => {
+  const clientId = globalSettings.value.find(x => x.key === 'discord_client_id');
+  if (!clientId?.value) return '';
+  return `https://discord.com/api/oauth2/authorize?client_id=${clientId.value}&permissions=0&scope=bot%20applications.commands`;
 });
 
 // Dialog states
@@ -288,6 +296,21 @@ onMounted(() => {
           <span>Add Channel</span>
         </Button>
       </div>
+    </div>
+
+    <!-- Discord Bot Invite Banner -->
+    <div v-if="discordInviteLink" class="flex items-center gap-3 p-4 rounded-lg border border-indigo-500/25 bg-indigo-500/5 z-10 relative">
+      <MessageCircle class="w-5 h-5 shrink-0 text-indigo-500" />
+      <div class="flex-1 min-w-0">
+        <p class="text-xs font-bold text-foreground">Discord Bot</p>
+        <p class="text-[11px] text-muted-foreground">Invite the bot to your server to receive alerts directly in a Discord channel.</p>
+      </div>
+      <a :href="discordInviteLink" target="_blank" rel="noopener noreferrer">
+        <Button size="sm" class="h-8 gap-1.5">
+          <ExternalLink class="w-3.5 h-3.5" />
+          <span>Invite Bot</span>
+        </Button>
+      </a>
     </div>
 
     <!-- Main Card -->

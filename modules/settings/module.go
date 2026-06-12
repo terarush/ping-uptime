@@ -119,6 +119,11 @@ func (m *Module) Migrations() error {
 			Description: "Telegram Bot Token for sending notifications.",
 		},
 		{
+			Key:         "discord_client_id",
+			Value:       "",
+			Description: "Discord Client ID for generating bot OAuth invite URL.",
+		},
+		{
 			Key: "whatsapp_webhooks",
 			Value: "",
 			Description: "WhatsApp webhooks fro sending notifications",

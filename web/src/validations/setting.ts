@@ -25,6 +25,7 @@ export const settingSchema = z.object({
   smtp_encryption: z.string().optional().or(z.literal('')),
   discord_bot_token: z.string().optional().or(z.literal('')),
   telegram_bot_token: z.string().optional().or(z.literal('')),
+  discord_client_id: z.string().optional().or(z.literal('')),
 });
 
 export type SettingFields = z.infer<typeof settingSchema>;
