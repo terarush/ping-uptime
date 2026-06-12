@@ -2,9 +2,21 @@
 import { Separator } from '@/components/ui/separator'
 
 const footerLinks = {
-  Platforms: ['iOS', 'Android', 'Web'],
-  Help: ['Contact Us', 'FAQ', 'Feedback'],
-  Resources: ['Github', 'Community', 'Company'],
+  Navigate: [
+    { name: 'Benefits', url: '#benefits' },
+    { name: 'Features', url: '#features' },
+    { name: 'Services', url: '#services' },
+  ],
+  Help: [
+    { name: 'Contact Us', url: '#contact' },
+    { name: 'FAQ', url: '#' },
+    { name: 'Feedback', url: '#' },
+  ],
+  Resources: [
+    { name: 'Repository', url: 'https://github.com/terarush/ping-uptime' },
+    { name: 'Community', url: 'https://discord.gg/G32T9q55xh' },
+    { name: 'Company', url: 'https://terarush.dev/' },
+  ],
 }
 </script>
 
@@ -33,11 +45,13 @@ const footerLinks = {
             {{ title }}
           </h4>
           <ul class="space-y-2">
-            <li v-for="link in links" :key="link">
+            <li v-for="link in links" :key="link.name">
               <a
-                href="#"
+                :href="link.url"
+                :target="link.url.startsWith('#') ? undefined : '_blank'"
+                :rel="link.url.startsWith('#') ? undefined : 'noopener noreferrer'"
                 class="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >{{ link }}</a
+                >{{ link.name }}</a
               >
             </li>
           </ul>
@@ -59,7 +73,7 @@ const footerLinks = {
             class="p-2 rounded-full bg-card border border-border shadow-sm hover:shadow-md hover:border-primary/50 transition-shadow text-muted-foreground hover:text-foreground"
             aria-label="Twitter"
           >
-            <img src="/twitter.svg" class="h-4 w-4 opacity-70" aria-hidden="true" />
+            <img src="/twitter.svg" class="h-4 w-4 opacity-70 dark:invert" aria-hidden="true" />
           </a>
           <a
             href="https://linkedin.com/company/terarush"
@@ -68,7 +82,7 @@ const footerLinks = {
             class="p-2 rounded-full bg-card border border-border shadow-sm hover:shadow-md hover:border-primary/50 transition-shadow text-muted-foreground hover:text-blue-500"
             aria-label="LinkedIn"
           >
-            <img src="/linkedin.svg" class="h-4 w-4 opacity-70" aria-hidden="true" />
+            <img src="/linkedin.svg" class="h-4 w-4 opacity-70 dark:invert" aria-hidden="true" />
           </a>
           <a
             href="https://github.com/terarush"
@@ -77,7 +91,7 @@ const footerLinks = {
             class="p-2 rounded-full bg-card border border-border shadow-sm hover:shadow-md hover:border-primary/50 transition-shadow text-muted-foreground hover:text-foreground"
             aria-label="GitHub"
           >
-            <img src="/github.svg" class="h-4 w-4 opacity-70" aria-hidden="true" />
+            <img src="/github.svg" class="h-4 w-4 opacity-70 dark:invert" aria-hidden="true" />
           </a>
         </div>
       </div>
