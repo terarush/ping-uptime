@@ -78,6 +78,7 @@ func Initialize() error {
 		_ = flag.String("pool_conn_lifetime", defaultPoolConnLifetime, "Pool Connection Lifetime in minutes")
 		_ = flag.String("jwt_day_expired", defaultJWTDayExpired, "JWT expiration time in days")
 		_ = flag.String("jwt_signature_key", defaultJWTSignatureKey, "JWT signature key")
+		_ = flag.Bool("init", false, "Generate systemd service file and exit")
 
 		if !flag.Parsed() {
 			flag.Parse()

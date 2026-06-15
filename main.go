@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"log"
 	"os"
 	"ping-uptime/internal/app"
@@ -26,6 +27,42 @@ func main() {
 	if err := config.Initialize(); err != nil {
 		log.Fatalf("Error loading config: %v", err)
 		os.Exit(1)
+	}
+
+	// Handle --init flag: generate systemd service file
+	if config.GetBool("INIT") {
+		exePath, err := os.Executable()
+		if err != nil {
+			log.Fatalf("Failed to get executable path: %v", err)
+		}
+
+		svc := fmt.Sprintf(`[Unit]
+Description=Ping Uptime - Website Monitoring & Uptime Tracking
+After=network.target
+
+[Service]
+Type=simple
+User=%s
+ExecStart=%s
+WorkingDirectory=%s
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+
+[Install]
+WantedBy=multi-user.target
+`, "nobody", exePath, "/opt/ping-uptime")
+
+		path := "/etc/systemd/system/ping-uptime.service"
+		if err := os.WriteFile(path, []byte(svc), 0644); err != nil {
+			log.Fatalf("Failed to write systemd service file: %v", err)
+		}
+		fmt.Printf("Systemd service file created: %s\n", path)
+		fmt.Println("Run the following commands to enable and start the service:")
+		fmt.Println("  sudo systemctl daemon-reload")
+		fmt.Println("  sudo systemctl enable ping-uptime")
+		fmt.Println("  sudo systemctl start ping-uptime")
+		os.Exit(0)
 	}
 
 	// initialize logger
