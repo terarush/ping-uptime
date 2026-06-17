@@ -14,6 +14,7 @@ import (
 	"ping-uptime/modules/monitors/dto/request"
 	"ping-uptime/modules/monitors/dto/response"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -197,7 +198,11 @@ func (h *MonitorHandler) CreateMonitor(c echo.Context) error {
 	h.event.Publish(bus.Event{Type: "monitor.created", Payload: monitor})
 
 	// Run initial check immediately in the background
-	go h.monitorService.PerformCheck(context.Background(), monitor)
+	checkCtx, checkCancel := context.WithTimeout(context.Background(), time.Duration(monitor.Timeout+10)*time.Second)
+	go func() {
+		defer checkCancel()
+		h.monitorService.PerformCheck(checkCtx, monitor)
+	}()
 
 	return h.r.CreatedResponse(c, response.FromEntity(monitor), "Monitor created successfully")
 }
@@ -256,7 +261,11 @@ func (h *MonitorHandler) UpdateMonitor(c echo.Context) error {
 	h.event.Publish(bus.Event{Type: "monitor.updated", Payload: monitor})
 
 	// Run check immediately in the background
-	go h.monitorService.PerformCheck(context.Background(), monitor)
+	checkCtx, checkCancel := context.WithTimeout(context.Background(), time.Duration(monitor.Timeout+10)*time.Second)
+	go func() {
+		defer checkCancel()
+		h.monitorService.PerformCheck(checkCtx, monitor)
+	}()
 
 	return h.r.SuccessResponse(c, response.FromEntity(monitor), "Monitor updated successfully")
 }
