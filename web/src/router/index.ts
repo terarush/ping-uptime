@@ -26,6 +26,11 @@ const router = createRouter({
           component: () => import('@/views/App.Monitors.vue'),
         },
         {
+          path: 'status-pages',
+          name: 'StatusPages',
+          component: () => import('@/views/App.StatusPages.vue'),
+        },
+        {
           path: 'analytics',
           name: 'Analytics',
           component: () => import('@/views/App.Analytics.vue'),

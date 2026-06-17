@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useStatusPages, type StatusPage, type Monitor } from '@/composables/useStatusPages';
+import { useAnalytics } from '@/composables/useAnalytics';
 import { statusPageSchema } from '@/validations/status-page';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,13 @@ const {
   deleteStatusPage
 } = useStatusPages();
 
+// Analytics for real status data
+const {
+  stats: monitorStats,
+  loading: analyticsLoading,
+  fetchDashboardStats,
+} = useAnalytics();
+
 const searchQuery = ref('');
 const success = ref('');
 
@@ -58,10 +66,26 @@ const formSelectedMonitors = ref<number[]>([]);
 
 const isEditMode = computed(() => !!actionPage.value);
 
-// Fetch wrapper with animation callback
+// Merge analytics stats into status pages monitors
+const pagesWithStats = computed(() => {
+  return statusPages.value.map(page => {
+    const monitors = page.monitors?.map(m => {
+      const stats = monitorStats.value?.find(s => s.monitor_id === m.id);
+      return stats
+        ? { ...m, uptime_pct: stats.uptime_pct, status_label: stats.status, avg_latency: stats.avg_latency }
+        : { ...m, uptime_pct: null, status_label: null, avg_latency: null };
+    }) || [];
+    return { ...page, monitors };
+  });
+});
+
+// Fetch wrapper with animation callback and analytics
 const fetchAll = async () => {
   try {
-    await fetchStatusPagesData();
+    await Promise.all([
+      fetchStatusPagesData(),
+      fetchDashboardStats('1m'),
+    ]);
   } catch (err) {
     console.error('Failed to load status pages list:', err);
   } finally {
@@ -69,12 +93,13 @@ const fetchAll = async () => {
   }
 };
 
-// Filtered status pages list
+// Filtered status pages list — use pagesWithStats so search + real data work together
 const filteredPages = computed(() => {
-  if (!statusPages.value) return [];
+  const pages = pagesWithStats.value;
+  if (!pages) return [];
   const query = searchQuery.value.toLowerCase().trim();
-  if (!query) return statusPages.value;
-  return statusPages.value.filter(p =>
+  if (!query) return pages;
+  return pages.filter(p =>
     p.name.toLowerCase().includes(query) ||
     p.slug.toLowerCase().includes(query) ||
     p.description.toLowerCase().includes(query)
@@ -267,7 +292,7 @@ onMounted(() => {
 
         <StatusPageTable
           v-else
-          :pages="filteredPages"
+          :pages="pagesWithStats"
           @edit="openEditDialog"
           @delete="openDeleteDialog"
         />
