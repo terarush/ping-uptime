@@ -5,7 +5,7 @@ type CreateMonitorRequest struct {
 	URL      string `json:"url" validate:"required,url"`
 	Type     string `json:"type" validate:"required"`
 	Interval int    `json:"interval" validate:"required,min=1"`
-	Timeout  int    `json:"timeout" validate:"required,min=1"`
+	Timeout  int    `json:"timeout" validate:"required,min=5"`
 }
 
 type UpdateMonitorRequest struct {
@@ -13,6 +13,6 @@ type UpdateMonitorRequest struct {
 	URL      string `json:"url" validate:"required,url"`
 	Type     string `json:"type" validate:"required"`
 	Interval int    `json:"interval" validate:"required,min=1"`
-	Timeout  int    `json:"timeout" validate:"required,min=1"`
+	Timeout  int    `json:"timeout" validate:"required,min=5"`
 	Status   string `json:"status" validate:"required"`
 }

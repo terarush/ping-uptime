@@ -2,15 +2,18 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"ping-uptime/internal/pkg/bus"
 	"ping-uptime/internal/pkg/database"
 	incidentEntity "ping-uptime/modules/incidents/domain/entity"
 	"ping-uptime/modules/monitors/domain/entity"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -126,7 +129,7 @@ func performHTTPCheck(urlStr string, timeoutSec int) (bool, int, int, string) {
 	latency := int(time.Since(start).Milliseconds())
 
 	if err != nil {
-		return false, 0, latency, err.Error()
+		return false, 0, latency, friendlyHTTPError(err, timeoutSec)
 	}
 	defer resp.Body.Close()
 
@@ -135,6 +138,50 @@ func performHTTPCheck(urlStr string, timeoutSec int) (bool, int, int, string) {
 	}
 
 	return true, resp.StatusCode, latency, ""
+}
+
+func friendlyHTTPError(err error, timeoutSec int) string {
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) {
+		err = urlErr.Err
+	}
+
+	var netErr net.Error
+	if errors.As(err, &netErr) && netErr.Timeout() {
+		return fmt.Sprintf("Request timed out after %d seconds — the server may be down or blocking connections", timeoutSec)
+	}
+
+	var opErr *net.OpError
+	if errors.As(err, &opErr) {
+		var syscallErr syscall.Errno
+		if errors.As(opErr.Err, &syscallErr) {
+			switch syscallErr {
+			case syscall.ECONNREFUSED:
+				return fmt.Sprintf("Connection refused — no service listening at this address")
+			case syscall.ECONNRESET:
+				return fmt.Sprintf("Connection reset by server — the service may have crashed or restarted")
+			case syscall.ENETUNREACH:
+				return fmt.Sprintf("Network unreachable — check your internet connection or firewall")
+			case syscall.ETIMEDOUT:
+				return fmt.Sprintf("Connection timed out — the server is not responding")
+			case syscall.EHOSTUNREACH:
+				return fmt.Sprintf("Host unreachable — no route to this server")
+			case syscall.EHOSTDOWN:
+				return fmt.Sprintf("Host is down — the server is powered off or disconnected")
+			}
+		}
+	}
+
+	if errors.Is(err, os.ErrDeadlineExceeded) {
+		return fmt.Sprintf("Request timed out after %d seconds", timeoutSec)
+	}
+
+	// Return the last segment of the error for unknown cases
+	errStr := err.Error()
+	if len(errStr) > 120 {
+		errStr = errStr[:120]
+	}
+	return errStr
 }
 
 func performPingCheck(urlStr string, timeoutSec int) (bool, int, string) {
@@ -173,9 +220,49 @@ func performPingCheck(urlStr string, timeoutSec int) (bool, int, string) {
 	latency := int(time.Since(start).Milliseconds())
 
 	if err != nil {
-		return false, latency, err.Error()
+		return false, latency, friendlyPingError(err, hostOnly, port, timeoutSec)
 	}
 	conn.Close()
 
 	return true, latency, ""
+}
+
+func friendlyPingError(err error, host, port string, timeoutSec int) string {
+	var netErr net.Error
+	if errors.As(err, &netErr) && netErr.Timeout() {
+		return fmt.Sprintf("Connection to %s:%s timed out after %d seconds", host, port, timeoutSec)
+	}
+
+	var opErr *net.OpError
+	if errors.As(err, &opErr) {
+		var syscallErr syscall.Errno
+		if errors.As(opErr.Err, &syscallErr) {
+			switch syscallErr {
+			case syscall.ECONNREFUSED:
+				return fmt.Sprintf("Connection refused — no service listening at %s:%s", host, port)
+			case syscall.ECONNRESET:
+				return "Connection reset by server"
+			case syscall.ENETUNREACH:
+				return fmt.Sprintf("Network unreachable — cannot reach %s", host)
+			case syscall.ETIMEDOUT:
+				return fmt.Sprintf("Connection to %s timed out", host)
+			case syscall.EHOSTUNREACH:
+				return fmt.Sprintf("Host unreachable — no route to %s", host)
+			case syscall.EHOSTDOWN:
+				return fmt.Sprintf("Host %s is down", host)
+			case syscall.ENXIO:
+				return fmt.Sprintf("No such device or address — invalid host %s", host)
+			}
+		}
+	}
+
+	if errors.Is(err, os.ErrDeadlineExceeded) {
+		return fmt.Sprintf("Connection to %s:%s timed out after %d seconds", host, port, timeoutSec)
+	}
+
+	errStr := err.Error()
+	if len(errStr) > 120 {
+		errStr = errStr[:120]
+	}
+	return errStr
 }
