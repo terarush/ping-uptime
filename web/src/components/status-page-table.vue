@@ -7,8 +7,17 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Edit, Trash2, ExternalLink, ChevronLeft, ChevronRight } from '@lucide/vue';
 import type { StatusPage } from '@/stores/statusPages';
 
+interface MonitorWithStats {
+  id: number;
+  name: string;
+  url: string;
+  uptime_pct: number | null;
+  status_label: string | null;
+  avg_latency: number | null;
+}
+
 const props = defineProps<{
-  pages: StatusPage[];
+  pages: (StatusPage & { monitors: MonitorWithStats[] })[];
 }>();
 
 const emit = defineEmits<{
@@ -39,6 +48,26 @@ watch(() => totalPages.value, () => {
 const getPublicUrl = (slug: string) => {
   return `${window.location.origin}/status/${slug}`;
 };
+
+const calcAvgUptime = (monitors: MonitorWithStats[]) => {
+  const withData = monitors.filter(m => m.uptime_pct !== null);
+  if (withData.length === 0) return '—';
+  const avg = withData.reduce((s, m) => s + m.uptime_pct!, 0) / withData.length;
+  return `${avg.toFixed(2)}%`;
+};
+
+const pageStatus = (monitors: MonitorWithStats[]) => {
+  const withData = monitors.filter(m => m.status_label !== null);
+  if (withData.length === 0) return null;
+
+  if (withData.some(m => m.status_label === 'outage')) {
+    return { label: 'Outage', class: 'text-red-500', dot: 'bg-red-500' };
+  }
+  if (withData.some(m => m.status_label === 'degraded')) {
+    return { label: 'Degraded', class: 'text-amber-500', dot: 'bg-amber-500' };
+  }
+  return { label: 'Operational', class: 'text-emerald-500', dot: 'bg-emerald-500' };
+};
 </script>
 
 <template>
@@ -49,6 +78,8 @@ const getPublicUrl = (slug: string) => {
           <TableHead>Page Name / Slug</TableHead>
           <TableHead>Description</TableHead>
           <TableHead>Linked Monitors</TableHead>
+          <TableHead>Avg Uptime</TableHead>
+          <TableHead>Status</TableHead>
           <TableHead class="w-[120px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -75,6 +106,26 @@ const getPublicUrl = (slug: string) => {
             <Badge variant="secondary" class="font-bold py-0.5 px-2 bg-slate-100 dark:bg-slate-900 border-border/50 text-[10px]">
               {{ item.monitors?.length || 0 }} Monitors
             </Badge>
+          </TableCell>
+
+          <!-- Avg Uptime -->
+          <TableCell class="text-xs font-semibold">
+            <template v-if="item.monitors && item.monitors.length > 0">
+              <span v-if="item.monitors.some(m => m.uptime_pct !== null)">
+                {{ calcAvgUptime(item.monitors) }}
+              </span>
+              <span v-else class="text-muted-foreground">—</span>
+            </template>
+            <span v-else class="text-muted-foreground">—</span>
+          </TableCell>
+
+          <!-- Status -->
+          <TableCell class="text-xs">
+            <span v-if="pageStatus(item.monitors)" :class="pageStatus(item.monitors)?.class" class="inline-flex items-center gap-1.5 font-bold">
+              <span class="h-2 w-2 rounded-full" :class="pageStatus(item.monitors)?.dot"></span>
+              {{ pageStatus(item.monitors)?.label }}
+            </span>
+            <span v-else class="text-muted-foreground">No data</span>
           </TableCell>
 
           <!-- Actions -->

@@ -7,6 +7,7 @@ import {
   FileText,
   ShieldCheck,
   BarChart3,
+  Globe,
 } from '@lucide/vue'
 import { siteConfig } from './config'
 
@@ -37,6 +38,11 @@ export const sidebarContent: SidebarGroup[] = [
         href: `${siteConfig.appPath}/monitors`,
         icon: Activity,
         badge: 'Live',
+      },
+      {
+        title: 'Status Pages',
+        href: `${siteConfig.appPath}/status-pages`,
+        icon: Globe,
       },
       {
         title: 'Analytics',

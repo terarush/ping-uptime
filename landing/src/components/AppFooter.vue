@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import { Separator } from '@/components/ui/separator'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+function navigateTo(url: string) {
+  if (url.startsWith('/')) {
+    router.push(url)
+  }
+}
 
 const footerLinks = {
   Navigate: [
@@ -13,6 +22,7 @@ const footerLinks = {
     { name: 'Feedback', url: '#' },
   ],
   Resources: [
+    { name: 'How to Contribute', url: '/contributing' },
     { name: 'Repository', url: 'https://github.com/terarush/ping-uptime' },
     { name: 'Community', url: 'https://discord.gg/G32T9q55xh' },
     { name: 'Company', url: 'https://terarush.dev/' },
@@ -48,9 +58,10 @@ const footerLinks = {
             <li v-for="link in links" :key="link.name">
               <a
                 :href="link.url"
-                :target="link.url.startsWith('#') ? undefined : '_blank'"
-                :rel="link.url.startsWith('#') ? undefined : 'noopener noreferrer'"
-                class="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                :target="link.url.startsWith('#') || link.url.startsWith('/') ? undefined : '_blank'"
+                :rel="link.url.startsWith('#') || link.url.startsWith('/') ? undefined : 'noopener noreferrer'"
+                @click.prevent="link.url.startsWith('/') ? navigateTo(link.url) : undefined"
+                class="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >{{ link.name }}</a
               >
             </li>

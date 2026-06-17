@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Menu, X, Moon, Sun } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
+
+const router = useRouter()
 
 const isScrolled = ref(false)
 const isMobileMenuOpen = ref(false)
@@ -32,12 +35,14 @@ function toggleDark() {
   document.documentElement.classList.toggle('dark', isDark.value)
 }
 
-function scrollTo(href: string) {
+function navigateTo(href: string) {
   isMobileMenuOpen.value = false
-  const id = href.slice(1)
-  const el = document.getElementById(id)
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  if (href.startsWith('#')) {
+    const id = href.slice(1)
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  } else {
+    router.push(href)
   }
 }
 
@@ -58,6 +63,7 @@ const navLinks = [
   { label: 'Services', href: '#services' },
   { label: 'Contributors', href: '#contributors' },
   { label: 'Contact', href: '#contact' },
+  { label: 'Contributing', href: '/contributing', external: true },
 ]
 </script>
 
@@ -83,7 +89,7 @@ const navLinks = [
         <!-- Brand -->
         <a
           href="#hero"
-          @click.prevent="scrollTo('#hero')"
+          @click.prevent="navigateTo('#hero')"
           class="flex items-center gap-2.5 shrink-0 group"
         >
           <div class="relative flex h-3 w-3">
@@ -104,10 +110,10 @@ const navLinks = [
               v-for="link in navLinks"
               :key="link.label"
               :href="link.href"
-              @click.prevent="scrollTo(link.href)"
+              @click.prevent="navigateTo(link.href)"
               class="relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300"
               :class="[
-                activeSection === link.href.slice(1)
+                !link.external && activeSection === link.href.slice(1)
                   ? 'text-foreground bg-background shadow-xs'
                   : 'text-muted-foreground hover:text-foreground hover:bg-background/50',
               ]"
@@ -189,10 +195,10 @@ const navLinks = [
             v-for="link in navLinks"
             :key="link.label"
             :href="link.href"
-            @click.prevent="scrollTo(link.href)"
+            @click.prevent="navigateTo(link.href)"
             class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors"
             :class="
-              activeSection === link.href.slice(1)
+              !link.external && activeSection === link.href.slice(1)
                 ? 'text-foreground bg-accent'
                 : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
             "
@@ -200,7 +206,7 @@ const navLinks = [
             <span
               class="h-1.5 w-1.5 rounded-full"
               :class="
-                activeSection === link.href.slice(1) ? 'bg-primary' : 'bg-muted-foreground/30'
+                activeSection && activeSection === link.href.slice(1) ? 'bg-primary' : 'bg-muted-foreground/30'
               "
             />
             {{ link.label }}
