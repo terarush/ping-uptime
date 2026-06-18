@@ -25,10 +25,6 @@ export interface SidebarGroup {
   admin?: boolean
   items: SidebarItem[]
 }
-
-// Re-export as actual SidebarItem type for import consistency
-export type { SidebarItem }
-
 export const sidebarContent: SidebarGroup[] = [
   {
     groupName: 'Overview',
