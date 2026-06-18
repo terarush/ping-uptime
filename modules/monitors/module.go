@@ -60,6 +60,12 @@ func (m *Module) RegisterRoutes(e *echo.Echo, basePath string) {
 
 func (m *Module) Migrations() error {
 	m.logger.Info("Registering monitor module migrations")
+
+	// Fix existing heartbeat_token empty strings -> NULL to avoid UNIQUE constraint violations
+	if err := m.db.Exec("UPDATE monitors SET heartbeat_token = NULL WHERE heartbeat_token = ''").Error; err != nil {
+		m.logger.Error("Failed to cleanup heartbeat_token: %v", err)
+	}
+
 	return m.db.AutoMigrate(&entity.Monitor{}, &entity.CheckRecord{})
 }
 

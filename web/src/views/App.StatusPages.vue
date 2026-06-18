@@ -117,8 +117,15 @@ const resetForm = () => {
   success.value = '';
 };
 
-const openCreateDialog = () => {
+const openCreateDialog = async () => {
   resetForm();
+  // Refetch monitors in case the initial load failed
+  if (availableMonitors.value.length === 0) {
+    try {
+      const { data } = await (await import('@/lib/fetch')).default.get('/monitors');
+      availableMonitors.value = data?.data || data || [];
+    } catch { /* ignore */ }
+  }
   isFormDialogOpen.value = true;
 };
 
