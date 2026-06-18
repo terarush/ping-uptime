@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net"
@@ -58,10 +59,26 @@ func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) 
 	var latency int
 	var errMsg string
 
-	if strings.ToLower(mon.Type) == "ping" {
+	switch strings.ToLower(mon.Type) {
+	case "ping":
 		success, latency, errMsg = performPingCheck(mon.URL, mon.Timeout)
 		statusCode = 0
-	} else {
+	case "heartbeat":
+		if mon.LastCheckedAt != nil {
+			deadline := mon.LastCheckedAt.Add(time.Duration(mon.Interval) * 2 * time.Second)
+			if time.Now().After(deadline) {
+				success = false
+				errMsg = "No heartbeat received — exceeded interval"
+				latency = 0
+			} else {
+				success = true
+				latency = 0
+			}
+		} else {
+			return
+		}
+		statusCode = 0
+	default:
 		success, statusCode, latency, errMsg = performHTTPCheck(mon.URL, mon.Timeout)
 	}
 
@@ -80,6 +97,27 @@ func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) 
 		mon.LastLatency = latency
 	}
 
+	// SSL certificate check — only for HTTPS monitors with check_ssl enabled
+	if success && mon.CheckSSL && strings.HasPrefix(strings.ToLower(mon.URL), "https://") {
+		sslExpiry, sslErr := checkSSLCert(mon.URL, mon.Timeout)
+		if sslErr == nil {
+			mon.SSLExpiresAt = sslExpiry
+		}
+	}
+
+	// Check if monitor is in active maintenance window — skip incident triggers
+	inMaintenance := false
+	if newStatus == "down" {
+		var count int64
+		database.DB.WithContext(ctx).
+			Table("maintenance_monitors").
+			Joins("JOIN maintenances ON maintenances.id = maintenance_monitors.maintenance_id").
+			Where("maintenance_monitors.monitor_id = ?", mon.ID).
+			Where("maintenances.start_at <= ? AND maintenances.end_at >= ?", time.Now(), time.Now()).
+			Count(&count)
+		inMaintenance = count > 0
+	}
+
 	err := database.DB.WithContext(ctx).Save(mon).Error
 	if err != nil {
 		return
@@ -87,8 +125,8 @@ func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) 
 
 	_ = s.monitorRepo.CreateCheckRecord(ctx, entity.NewCheckRecord(mon.ID, success, latency, statusCode))
 
-	// Trigger Incidents transition
-	if newStatus == "down" {
+	// Trigger Incidents transition — skip if in maintenance window
+	if newStatus == "down" && !inMaintenance {
 		if oldStatus == "up" || oldStatus == "unknown" {
 			if errMsg == "" {
 				errMsg = "Connection failed"
@@ -115,7 +153,6 @@ func (s *MonitorService) PerformCheck(ctx context.Context, mon *entity.Monitor) 
 }
 
 func performHTTPCheck(urlStr string, timeoutSec int) (bool, int, int, string) {
-	// Ensure protocol is present
 	if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
 		urlStr = "http://" + urlStr
 	}
@@ -176,7 +213,6 @@ func friendlyHTTPError(err error, timeoutSec int) string {
 		return fmt.Sprintf("Request timed out after %d seconds", timeoutSec)
 	}
 
-	// Return the last segment of the error for unknown cases
 	errStr := err.Error()
 	if len(errStr) > 120 {
 		errStr = errStr[:120]
@@ -185,17 +221,14 @@ func friendlyHTTPError(err error, timeoutSec int) string {
 }
 
 func performPingCheck(urlStr string, timeoutSec int) (bool, int, string) {
-	// Parse URL host
 	u, err := url.Parse(urlStr)
 	var host string
 	if err != nil || u.Host == "" {
-		// Attempt parsing direct address
 		host = urlStr
 	} else {
 		host = u.Host
 	}
 
-	// Ensure port mapping
 	hostOnly := host
 	port := "80"
 	if strings.Contains(host, ":") {
@@ -210,7 +243,6 @@ func performPingCheck(urlStr string, timeoutSec int) (bool, int, string) {
 		}
 	}
 
-	// Filter protocols prefixes if host contains it
 	hostOnly = strings.TrimPrefix(hostOnly, "http://")
 	hostOnly = strings.TrimPrefix(hostOnly, "https://")
 
@@ -265,4 +297,30 @@ func friendlyPingError(err error, host, port string, timeoutSec int) string {
 		errStr = errStr[:120]
 	}
 	return errStr
+}
+
+func checkSSLCert(urlStr string, timeoutSec int) (*time.Time, error) {
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, err
+	}
+	host := u.Host
+	if host == "" {
+		return nil, fmt.Errorf("invalid URL: no host")
+	}
+
+	dialer := &net.Dialer{Timeout: time.Duration(timeoutSec) * time.Second}
+	conn, err := tls.DialWithDialer(dialer, "tcp", host, &tls.Config{
+		InsecureSkipVerify: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	certs := conn.ConnectionState().PeerCertificates
+	if len(certs) == 0 {
+		return nil, fmt.Errorf("no peer certificates")
+	}
+	return &certs[0].NotAfter, nil
 }

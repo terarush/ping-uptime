@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"ping-uptime/internal/pkg/bus"
+	"ping-uptime/internal/pkg/database"
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/internal/pkg/middleware"
 	"ping-uptime/internal/pkg/utils"
+	incidentEntity "ping-uptime/modules/incidents/domain/entity"
 	"ping-uptime/modules/monitors/domain/entity"
 	"ping-uptime/modules/monitors/domain/service"
 	"ping-uptime/modules/monitors/dto/request"
@@ -190,6 +192,7 @@ func (h *MonitorHandler) CreateMonitor(c echo.Context) error {
 	}
 
 	monitor := entity.NewMonitor(req.Name, req.URL, req.Type, interval, timeout, userID)
+	monitor.CheckSSL = req.CheckSSL
 	err = h.monitorService.CreateMonitor(ctx, monitor)
 	if err != nil {
 		return h.r.InternalServerErrorResponse(c, err.Error())
@@ -241,6 +244,7 @@ func (h *MonitorHandler) UpdateMonitor(c echo.Context) error {
 	monitor.Name = req.Name
 	monitor.URL = req.URL
 	monitor.Type = req.Type
+	monitor.CheckSSL = req.CheckSSL
 
 	// Only admins can modify interval and timeout
 	if role == "admin" {
@@ -345,8 +349,51 @@ func (h *MonitorHandler) StreamEvents(c echo.Context) error {
 	}
 }
 
+func (h *MonitorHandler) HandleHeartbeat(c echo.Context) error {
+	token := c.Param("token")
+	if token == "" {
+		return h.r.BadRequestResponse(c, "Missing heartbeat token")
+	}
+
+	ctx := c.Request().Context()
+	var mon entity.Monitor
+	err := database.DB.WithContext(ctx).Where("heartbeat_token = ?", token).First(&mon).Error
+	if err != nil {
+		return h.r.NotFoundResponse(c, "Invalid heartbeat token")
+	}
+
+	if mon.Status != "active" {
+		return h.r.BadRequestResponse(c, "Monitor is not active")
+	}
+
+	now := time.Now()
+	mon.UptimeStatus = "up"
+	mon.LastCheckedAt = &now
+	mon.LastLatency = 0
+
+	database.DB.WithContext(ctx).Save(&mon)
+	database.DB.WithContext(ctx).Create(entity.NewCheckRecord(mon.ID, true, 0, 0))
+
+	h.event.Publish(bus.Event{Type: "monitor.checked", Payload: &mon})
+
+	// If monitor was down, resolve incidents
+	var activeIncidents []*incidentEntity.Incident
+	database.DB.WithContext(ctx).Where("monitor_id = ? AND status = ?", mon.ID, "active").Find(&activeIncidents)
+	for _, inc := range activeIncidents {
+		inc.Status = "resolved"
+		inc.ResolvedAt = &now
+		database.DB.WithContext(ctx).Save(inc)
+		h.event.Publish(bus.Event{Type: "incident.resolved", Payload: inc})
+	}
+
+	return h.r.SuccessResponse(c, response.FromEntity(&mon), "Heartbeat received")
+}
+
 func (h *MonitorHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	e.GET(basePath+"/monitors/events", h.StreamEvents)
+
+	// Public heartbeat endpoint (no auth)
+	e.POST(basePath+"/heartbeat/:token", h.HandleHeartbeat)
 
 	group := e.Group(basePath+"/monitors", middleware.Auth)
 	group.GET("", h.GetAllMonitors)

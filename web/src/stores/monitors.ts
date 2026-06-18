@@ -14,6 +14,9 @@ export interface Monitor {
   uptime_status: string; // up, down, unknown
   last_checked_at?: string;
   last_latency?: number;
+  check_ssl?: boolean;
+  ssl_expires_at?: string;
+  heartbeat_token?: string;
   user_id: number;
   created_at: string;
 }

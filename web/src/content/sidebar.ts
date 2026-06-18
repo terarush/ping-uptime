@@ -8,6 +8,8 @@ import {
   ShieldCheck,
   BarChart3,
   Globe,
+  Wrench,
+  ClipboardList,
 } from '@lucide/vue'
 import { siteConfig } from './config'
 
@@ -23,7 +25,6 @@ export interface SidebarGroup {
   admin?: boolean
   items: SidebarItem[]
 }
-
 export const sidebarContent: SidebarGroup[] = [
   {
     groupName: 'Overview',
@@ -59,6 +60,11 @@ export const sidebarContent: SidebarGroup[] = [
         href: `${siteConfig.appPath}/incidents`,
         icon: FileText,
       },
+      {
+        title: 'Maintenance',
+        href: `${siteConfig.appPath}/maintenances`,
+        icon: Wrench,
+      },
     ],
   },
   {
@@ -79,6 +85,11 @@ export const sidebarContent: SidebarGroup[] = [
         title: 'Users',
         href: `${siteConfig.appPath}/users`,
         icon: Users,
+      },
+      {
+        title: 'Audit Logs',
+        href: `${siteConfig.appPath}/audit-logs`,
+        icon: ClipboardList,
       },
       {
         title: 'Settings',

@@ -41,6 +41,17 @@ const router = createRouter({
           component: () => import('@/views/App.Incidents.vue'),
         },
         {
+          path: 'maintenances',
+          name: 'Maintenances',
+          component: () => import('@/views/App.Maintenances.vue'),
+        },
+        {
+          path: 'audit-logs',
+          name: 'AuditLogs',
+          component: () => import('@/views/App.AuditLogs.vue'),
+          meta: { requiresAdmin: true },
+        },
+        {
           path: 'users',
           name: 'Users',
           component: () => import('@/views/App.Users.vue'),

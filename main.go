@@ -9,11 +9,14 @@ import (
 	"ping-uptime/internal/pkg/config"
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/internal/pkg/middleware"
+	auditLogs "ping-uptime/modules/audit_logs"
 	"ping-uptime/modules/auth"
 	incident "ping-uptime/modules/incidents"
+	maintenances "ping-uptime/modules/maintenances"
 	monitor "ping-uptime/modules/monitors"
 	notification "ping-uptime/modules/notifications"
 	setting "ping-uptime/modules/settings"
+	subscribers "ping-uptime/modules/subscribers"
 	user "ping-uptime/modules/users"
 	analytics "ping-uptime/modules/analytics"
 )
@@ -30,28 +33,28 @@ func main() {
 	}
 
 	// Handle --init flag: generate systemd service file
-	if config.GetBool("INIT") {
+	if config.GetBool("INIT", false) {
 		exePath, err := os.Executable()
 		if err != nil {
 			log.Fatalf("Failed to get executable path: %v", err)
 		}
 
 		svc := fmt.Sprintf(`[Unit]
-Description=Ping Uptime - Website Monitoring & Uptime Tracking
-After=network.target
+	Description=Ping Uptime - Website Monitoring & Uptime Tracking
+	After=network.target
 
-[Service]
-Type=simple
-User=%s
-ExecStart=%s
-WorkingDirectory=%s
-Restart=on-failure
-RestartSec=5
-StartLimitIntervalSec=60
+	[Service]
+	Type=simple
+	User=%s
+	ExecStart=%s
+	WorkingDirectory=%s
+	Restart=on-failure
+	RestartSec=5
+	StartLimitIntervalSec=60
 
-[Install]
-WantedBy=multi-user.target
-`, "nobody", exePath, "/opt/ping-uptime")
+	[Install]
+	WantedBy=multi-user.target
+	`, "nobody", exePath, "/opt/ping-uptime")
 
 		path := "/etc/systemd/system/ping-uptime.service"
 		if err := os.WriteFile(path, []byte(svc), 0644); err != nil {
@@ -88,6 +91,9 @@ WantedBy=multi-user.target
 	application.RegisterModule(notification.NewModule())
 	application.RegisterModule(setting.NewModule())
 	application.RegisterModule(analytics.NewModule())
+	application.RegisterModule(maintenances.NewModule())
+	application.RegisterModule(auditLogs.NewModule())
+	application.RegisterModule(subscribers.NewModule())
 
 	// initialize the application
 	if err := application.Initialize(); err != nil {

@@ -30,6 +30,7 @@ import {
   BarChart3,
   CheckCircle2,
   Clock,
+  Shield,
   X
 } from '@lucide/vue';
 import gsap from 'gsap';
@@ -81,6 +82,7 @@ const formUrl = ref('');
 const formType = ref('http');
 const formInterval = ref(60);
 const formTimeout = ref(10);
+const formCheckSsl = ref(false);
 const formStatus = ref('active');
 
 const isEditMode = computed(() => !!actionMonitor.value);
@@ -168,6 +170,7 @@ const resetForm = () => {
   formType.value = 'http';
   formInterval.value = 60;
   formTimeout.value = 10;
+  formCheckSsl.value = false;
   formStatus.value = 'active';
   actionMonitor.value = null;
   error.value = '';
@@ -187,6 +190,7 @@ const openEditDialog = (monitor: Monitor) => {
   formType.value = monitor.type;
   formInterval.value = monitor.interval;
   formTimeout.value = monitor.timeout;
+  formCheckSsl.value = monitor.check_ssl ?? false;
   formStatus.value = monitor.status;
   isFormDialogOpen.value = true;
 };
@@ -207,6 +211,7 @@ const handleFormSubmit = async () => {
     type: formType.value,
     interval: isAdmin.value ? Number(formInterval.value) : 60,
     timeout: isAdmin.value ? Number(formTimeout.value) : 10,
+    check_ssl: formCheckSsl.value,
     status: formStatus.value,
   };
 
@@ -580,6 +585,7 @@ onMounted(async () => {
                 <SelectContent>
                   <SelectItem value="http">HTTP/HTTPS</SelectItem>
                   <SelectItem value="ping">ICMP Ping</SelectItem>
+                  <SelectItem value="heartbeat">Heartbeat</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -596,6 +602,15 @@ onMounted(async () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div class="flex items-center gap-2 py-1.5">
+            <input id="check_ssl" type="checkbox" v-model="formCheckSsl"
+              class="h-4 w-4 rounded border-border text-primary focus-ring cursor-pointer" />
+            <Label for="check_ssl" class="text-xs font-medium flex items-center gap-1.5 cursor-pointer">
+              <Shield class="w-3.5 h-3.5 text-muted-foreground" />
+              Check SSL certificate expiry
+            </Label>
           </div>
 
           <div class="grid grid-cols-2 gap-4" v-if="isAdmin">
