@@ -33,7 +33,9 @@ func (s *SubscriberService) Subscribe(ctx context.Context, email string, pageID 
 	}
 
 	token := make([]byte, 32)
-	rand.Read(token)
+	if _, err := rand.Read(token); err != nil {
+		return nil, err
+	}
 	sub := &entity.Subscriber{
 		Email:        email,
 		StatusPageID: pageID,
@@ -55,6 +57,14 @@ func (s *SubscriberService) Verify(ctx context.Context, token string) error {
 
 func (s *SubscriberService) Unsubscribe(ctx context.Context, email string, pageID uint) error {
 	sub, err := s.repo.FindByEmailAndPage(ctx, email, pageID)
+	if err != nil {
+		return ErrNotFound
+	}
+	return s.repo.Delete(ctx, sub.ID)
+}
+
+func (s *SubscriberService) UnsubscribeByToken(ctx context.Context, token string) error {
+	sub, err := s.repo.FindByToken(ctx, token)
 	if err != nil {
 		return ErrNotFound
 	}

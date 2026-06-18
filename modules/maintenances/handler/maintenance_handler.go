@@ -66,7 +66,10 @@ func (h *MaintenanceHandler) GetAll(c echo.Context) error {
 	// Populate monitor IDs for each maintenance
 	resp := response.FromEntities(items)
 	for i, m := range items {
-		monitorIDs, _ := h.svc.GetMonitorIDs(ctx, m.ID)
+		monitorIDs, err := h.svc.GetMonitorIDs(ctx, m.ID)
+		if err != nil {
+			h.log.Error("Failed to get monitor IDs:", err)
+		}
 		resp[i].MonitorIDs = monitorIDs
 	}
 
@@ -91,7 +94,11 @@ func (h *MaintenanceHandler) GetByID(c echo.Context) error {
 	}
 
 	resp := response.FromEntity(m)
-	resp.MonitorIDs, _ = h.svc.GetMonitorIDs(ctx, m.ID)
+	monitorIDs, err := h.svc.GetMonitorIDs(ctx, m.ID)
+	if err != nil {
+		h.log.Error("Failed to get monitor IDs:", err)
+	}
+	resp.MonitorIDs = monitorIDs
 	return h.r.SuccessResponse(c, resp, "Maintenance retrieved")
 }
 
@@ -144,7 +151,9 @@ func (h *MaintenanceHandler) Create(c echo.Context) error {
 	}
 
 	if len(req.MonitorIDs) > 0 {
-		h.svc.SetMonitorIDs(ctx, m.ID, req.MonitorIDs)
+		if err := h.svc.SetMonitorIDs(ctx, m.ID, req.MonitorIDs); err != nil {
+			h.log.Error("Failed to set monitor IDs:", err)
+		}
 	}
 
 	resp := response.FromEntity(m)
@@ -205,7 +214,9 @@ func (h *MaintenanceHandler) Update(c echo.Context) error {
 		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
 
-	h.svc.SetMonitorIDs(ctx, m.ID, req.MonitorIDs)
+	if err := h.svc.SetMonitorIDs(ctx, m.ID, req.MonitorIDs); err != nil {
+		h.log.Error("Failed to set monitor IDs:", err)
+	}
 
 	resp := response.FromEntity(m)
 	resp.MonitorIDs = req.MonitorIDs

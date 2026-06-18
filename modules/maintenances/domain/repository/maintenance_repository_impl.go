@@ -14,8 +14,19 @@ func (r MaintenanceRepositoryImpl) Create(ctx context.Context, m *entity.Mainten
 }
 
 func (r MaintenanceRepositoryImpl) Delete(ctx context.Context, id uint) error {
-	database.DB.WithContext(ctx).Where("maintenance_id = ?", id).Delete(&entity.MaintenanceMonitor{})
-	return database.DB.WithContext(ctx).Delete(&entity.Maintenance{}, id).Error
+	tx := database.DB.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if err := tx.Where("maintenance_id = ?", id).Delete(&entity.MaintenanceMonitor{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Delete(&entity.Maintenance{}, id).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }
 
 func (r MaintenanceRepositoryImpl) FindAll(ctx context.Context) ([]*entity.Maintenance, error) {
@@ -52,11 +63,21 @@ func (r MaintenanceRepositoryImpl) FindActiveByMonitorID(ctx context.Context, mo
 }
 
 func (r MaintenanceRepositoryImpl) SetMonitorIDs(ctx context.Context, maintenanceID uint, monitorIDs []uint) error {
-	database.DB.WithContext(ctx).Where("maintenance_id = ?", maintenanceID).Delete(&entity.MaintenanceMonitor{})
-	for _, mid := range monitorIDs {
-		database.DB.WithContext(ctx).Create(&entity.MaintenanceMonitor{MaintenanceID: maintenanceID, MonitorID: mid})
+	tx := database.DB.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return tx.Error
 	}
-	return nil
+	if err := tx.Where("maintenance_id = ?", maintenanceID).Delete(&entity.MaintenanceMonitor{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	for _, mid := range monitorIDs {
+		if err := tx.Create(&entity.MaintenanceMonitor{MaintenanceID: maintenanceID, MonitorID: mid}).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit().Error
 }
 
 func (r MaintenanceRepositoryImpl) GetMonitorIDs(ctx context.Context, maintenanceID uint) ([]uint, error) {

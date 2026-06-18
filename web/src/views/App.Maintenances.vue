@@ -27,6 +27,21 @@ const formMonitorIDs = ref<number[]>([]);
 
 const isEdit = computed(() => !!actionItem.value);
 
+// Helper: convert RFC3339 to local datetime-local value (preserve offset)
+function toLocalDatetimeInput(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso.slice(0, 16);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// Helper: convert local datetime-local value back to RFC3339 with local offset
+function fromLocalDatetimeInput(val: string): string {
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return val;
+  return d.toISOString();
+}
+
 const resetForm = () => {
   formName.value = '';
   formDesc.value = '';
@@ -45,8 +60,8 @@ const openEdit = (item: Maintenance) => {
   actionItem.value = item;
   formName.value = item.name;
   formDesc.value = item.description;
-  formStart.value = item.start_at.slice(0, 16);
-  formEnd.value = item.end_at.slice(0, 16);
+  formStart.value = toLocalDatetimeInput(item.start_at);
+  formEnd.value = toLocalDatetimeInput(item.end_at);
   formMonitorIDs.value = item.monitor_ids || [];
   isFormOpen.value = true;
 };
@@ -62,8 +77,8 @@ const handleSubmit = async () => {
     const payload = {
       name: formName.value,
       description: formDesc.value,
-      start_at: new Date(formStart.value).toISOString(),
-      end_at: new Date(formEnd.value).toISOString(),
+      start_at: fromLocalDatetimeInput(formStart.value),
+      end_at: fromLocalDatetimeInput(formEnd.value),
       monitor_ids: formMonitorIDs.value,
     };
 

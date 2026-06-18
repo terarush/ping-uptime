@@ -64,6 +64,24 @@ func (h *SubscriberHandler) Verify(c echo.Context) error {
 	return h.r.SuccessResponse(c, nil, "Email verified successfully")
 }
 
+type unsubscribeTokenQuery struct {
+	Token string `json:"token" query:"token"`
+}
+
+func (h *SubscriberHandler) UnsubscribeByToken(c echo.Context) error {
+	ctx := c.Request().Context()
+	token := c.QueryParam("token")
+	if token == "" {
+		return h.r.BadRequestResponse(c, "Missing unsubscribe token")
+	}
+
+	if err := h.svc.UnsubscribeByToken(ctx, token); err != nil {
+		return h.r.NotFoundResponse(c, "Subscription not found")
+	}
+
+	return h.r.SuccessResponse(c, nil, "Unsubscribed successfully")
+}
+
 type unsubscribeRequest struct {
 	Email        string `json:"email" validate:"required,email"`
 	StatusPageID uint   `json:"status_page_id" validate:"required"`
@@ -100,12 +118,16 @@ func (h *SubscriberHandler) Count(c echo.Context) error {
 }
 
 func (h *SubscriberHandler) RegisterRoutes(e *echo.Echo, basePath string) {
-	// Public routes (no auth)
+	// Public routes (no auth) — by token only
 	e.POST(basePath+"/status-pages/subscribe", h.Subscribe)
 	e.GET(basePath+"/status-pages/subscribe/verify", h.Verify)
-	e.POST(basePath+"/status-pages/unsubscribe", h.Unsubscribe)
+	e.GET(basePath+"/status-pages/unsubscribe", h.UnsubscribeByToken)
 
 	// Authenticated routes
 	group := e.Group(basePath+"/status-pages", middleware.Auth)
 	group.GET("/:pageID/subscribers/count", h.Count)
+
+	// Admin-only — email+pageID based
+	adminGroup := e.Group(basePath+"/status-pages", middleware.Auth, middleware.Admin)
+	adminGroup.POST("/:pageID/subscribers/unsubscribe", h.Unsubscribe)
 }

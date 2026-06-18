@@ -87,7 +87,9 @@ func (h *AuditLogHandler) SubscribeToEvents(event *bus.EventBus, svc *service.Au
 				entityID = uint(id)
 			}
 
-			svc.Log(ctx, 0, action, entityType, entityID, details)
+			if err := svc.Log(ctx, 0, action, entityType, entityID, details); err != nil {
+				h.log.Error("failed to log audit event", "type", ev.Type, "error", err)
+			}
 		})
 	}
 

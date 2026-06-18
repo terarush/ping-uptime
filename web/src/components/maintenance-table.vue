@@ -61,10 +61,10 @@ const fmtDate = (s: string) => {
         </TableCell>
         <TableCell class="text-right">
           <div class="flex items-center justify-end gap-1">
-            <Button variant="ghost" size="icon" class="h-8 w-8" @click="$emit('edit', item)">
+            <Button variant="ghost" size="icon" class="h-8 w-8" aria-label="Edit maintenance" @click="$emit('edit', item)">
               <Edit class="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="icon" class="h-8 w-8 text-destructive" @click="$emit('delete', item)">
+            <Button variant="ghost" size="icon" class="h-8 w-8 text-destructive" aria-label="Delete maintenance" @click="$emit('delete', item)">
               <Trash2 class="w-4 h-4" />
             </Button>
           </div>
