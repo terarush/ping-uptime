@@ -159,7 +159,7 @@ onMounted(async () => {
                 <SelectValue placeholder="All monitors" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Monitors</SelectItem>
+                <SelectItem value="all">All Monitors</SelectItem>
                 <SelectItem v-for="m in monitors" :key="m.id" :value="String(m.id)">
                   {{ m.name }}
                 </SelectItem>

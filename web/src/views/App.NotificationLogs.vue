@@ -34,10 +34,10 @@ const filteredLogs = computed(() => {
       l.event_type?.toLowerCase().includes(q)
     );
   }
-  if (filterChannel.value) {
+  if (filterChannel.value && filterChannel.value !== 'all-channels') {
     result = result.filter(l => l.channel_type === filterChannel.value);
   }
-  if (filterStatus.value) {
+  if (filterStatus.value && filterStatus.value !== 'all-status') {
     result = result.filter(l => l.status === filterStatus.value);
   }
   return result;
@@ -103,7 +103,7 @@ onMounted(async () => {
                 <SelectValue placeholder="Channel" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Channels</SelectItem>
+                <SelectItem value="all-channels">All Channels</SelectItem>
                 <SelectItem value="email">Email</SelectItem>
                 <SelectItem value="discord">Discord</SelectItem>
                 <SelectItem value="discord_bot">Discord Bot</SelectItem>
@@ -118,7 +118,7 @@ onMounted(async () => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all-status">All Status</SelectItem>
                 <SelectItem value="sent">Sent</SelectItem>
                 <SelectItem value="failed">Failed</SelectItem>
               </SelectContent>
