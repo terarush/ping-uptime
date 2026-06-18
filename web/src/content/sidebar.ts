@@ -10,6 +10,13 @@ import {
   Globe,
   Wrench,
   ClipboardList,
+  Tag,
+  KeyRound,
+  Mail,
+  UsersRound,
+  Link,
+  FolderArchive,
+  UserPlus,
 } from '@lucide/vue'
 import { siteConfig } from './config'
 
@@ -27,7 +34,7 @@ export interface SidebarGroup {
 }
 export const sidebarContent: SidebarGroup[] = [
   {
-    groupName: 'Overview',
+    groupName: 'Monitoring',
     items: [
       {
         title: 'Dashboard',
@@ -41,13 +48,29 @@ export const sidebarContent: SidebarGroup[] = [
         badge: 'Live',
       },
       {
+        title: 'SSL Certificates',
+        href: `${siteConfig.appPath}/ssl-monitors`,
+        icon: ShieldCheck,
+        badge: 'Expiry',
+      },
+    ],
+  },
+  {
+    groupName: 'Status & Reports',
+    items: [
+      {
         title: 'Status Pages',
         href: `${siteConfig.appPath}/status-pages`,
         icon: Globe,
       },
       {
-        title: 'Analytics',
-        href: `${siteConfig.appPath}/analytics`,
+        title: 'Subscribers',
+        href: `${siteConfig.appPath}/subscribers`,
+        icon: Mail,
+      },
+      {
+        title: 'Reports',
+        href: `${siteConfig.appPath}/reports`,
         icon: BarChart3,
       },
     ],
@@ -61,19 +84,29 @@ export const sidebarContent: SidebarGroup[] = [
         icon: FileText,
       },
       {
-        title: 'Maintenance',
+        title: 'Maintenances',
         href: `${siteConfig.appPath}/maintenances`,
         icon: Wrench,
+      },
+      {
+        title: 'Notification History',
+        href: `${siteConfig.appPath}/notification-logs`,
+        icon: ClipboardList,
       },
     ],
   },
   {
-    groupName: 'Preferences',
+    groupName: 'Notifications',
     items: [
       {
-        title: 'Notifications',
+        title: 'Channels',
         href: `${siteConfig.appPath}/settings/notifications`,
         icon: Bell,
+      },
+      {
+        title: 'Integrations',
+        href: `${siteConfig.appPath}/integrations`,
+        icon: Link,
       },
     ],
   },
@@ -87,9 +120,29 @@ export const sidebarContent: SidebarGroup[] = [
         icon: Users,
       },
       {
+        title: 'Teams',
+        href: `${siteConfig.appPath}/teams`,
+        icon: UsersRound,
+      },
+      {
         title: 'Audit Logs',
         href: `${siteConfig.appPath}/audit-logs`,
-        icon: ClipboardList,
+        icon: FileText,
+      },
+      {
+        title: 'API Tokens',
+        href: `${siteConfig.appPath}/api-tokens`,
+        icon: KeyRound,
+      },
+      {
+        title: 'Tags & Labels',
+        href: `${siteConfig.appPath}/tags`,
+        icon: Tag,
+      },
+      {
+        title: 'Backup & Export',
+        href: `${siteConfig.appPath}/backup`,
+        icon: FolderArchive,
       },
       {
         title: 'Settings',
