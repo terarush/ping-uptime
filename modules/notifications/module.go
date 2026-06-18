@@ -36,6 +36,9 @@ type Module struct {
 	notificationHandler *handler.NotificationHandler
 	event               *bus.EventBus
 
+	// Notification log repo
+	notificationLogRepo repository.NotificationLogRepository
+
 	// Persistent Discord bot session
 	discordMu      sync.Mutex
 	discordSession *discordgo.Session
@@ -55,7 +58,9 @@ func (m *Module) Initialize(db *gorm.DB, log *logger.Logger, event *bus.EventBus
 
 	// Initialize repositories
 	channelRepo := repository.NewNotificationRepositoryImpl()
-	m.logger.Debug("Notification repository initialized")
+	logRepo := repository.NewNotificationLogRepositoryImpl()
+	m.logger.Debug("Notification repositories initialized")
+	m.notificationLogRepo = logRepo
 
 	// Initialize services
 	m.notificationService = service.NewNotificationService(channelRepo)
@@ -193,11 +198,16 @@ func (m *Module) RegisterRoutes(e *echo.Echo, basePath string) {
 	m.logger.Info("Registering notification routes at %s/notification-channels", basePath)
 	m.notificationHandler.RegisterRoutes(e, basePath)
 	m.logger.Debug("Notification routes registered successfully")
+
+	// Register notification log routes
+	logHandler := handler.NewNotificationLogHandler(m.logger, m.notificationLogRepo)
+	logHandler.RegisterRoutes(e, basePath)
+	m.logger.Debug("Notification log routes registered successfully")
 }
 
 func (m *Module) Migrations() error {
 	m.logger.Info("Registering notification module migrations")
-	return m.db.AutoMigrate(&entity.NotificationChannel{})
+	return m.db.AutoMigrate(&entity.NotificationChannel{}, &entity.NotificationLog{})
 }
 
 func (m *Module) Logger() *logger.Logger {
@@ -219,14 +229,14 @@ func (m *Module) HandleIncidentCreated(event bus.Event) {
 
 	subject := fmt.Sprintf("[ALERT] Monitor %s is DOWN", mon.Name)
 	body := fmt.Sprintf(`
-		<h3>Monitor Alert: DOWN</h3>
-		<p><strong>Monitor Name:</strong> %s</p>
-		<p><strong>Target URL:</strong> <a href="%s">%s</a></p>
-		<p><strong>Status:</strong> <span style="color: red; font-weight: bold;">DOWN</span></p>
-		<p><strong>Error Details:</strong> %s</p>
-		<p><strong>Triggered At:</strong> %s</p>
-		<p><strong>Response Latency:</strong> %dms</p>
-	`, mon.Name, mon.URL, mon.URL, inc.ErrorMessage, inc.CreatedAt.Format("2006-01-02 15:04:05 MST"), inc.Latency)
+			<h3>Monitor Alert: DOWN</h3>
+			<p><strong>Monitor Name:</strong> %s</p>
+			<p><strong>Target URL:</strong> <a href="%s">%s</a></p>
+			<p><strong>Status:</strong> <span style="color: red; font-weight: bold;">DOWN</span></p>
+			<p><strong>Error Details:</strong> %s</p>
+			<p><strong>Triggered At:</strong> %s</p>
+			<p><strong>Response Latency:</strong> %dms</p>
+		`, mon.Name, mon.URL, mon.URL, inc.ErrorMessage, inc.CreatedAt.Format("2006-01-02 15:04:05 MST"), inc.Latency)
 
 	// Send email once per incident
 	go m.sendEmail(inc, subject, body, "down")
@@ -255,13 +265,13 @@ func (m *Module) HandleIncidentResolved(event bus.Event) {
 
 	subject := fmt.Sprintf("[RESOLVED] Monitor %s is UP", mon.Name)
 	body := fmt.Sprintf(`
-		<h3>Monitor Alert: RESOLVED</h3>
-		<p><strong>Monitor Name:</strong> %s</p>
-		<p><strong>Target URL:</strong> <a href="%s">%s</a></p>
-		<p><strong>Status:</strong> <span style="color: green; font-weight: bold;">UP (RESOLVED)</span></p>
-		<p><strong>Resolved At:</strong> %s</p>
-		<p><strong>Response Latency:</strong> %dms</p>
-	`, mon.Name, mon.URL, mon.URL, resolvedAtStr, inc.Latency)
+			<h3>Monitor Alert: RESOLVED</h3>
+			<p><strong>Monitor Name:</strong> %s</p>
+			<p><strong>Target URL:</strong> <a href="%s">%s</a></p>
+			<p><strong>Status:</strong> <span style="color: green; font-weight: bold;">UP (RESOLVED)</span></p>
+			<p><strong>Resolved At:</strong> %s</p>
+			<p><strong>Response Latency:</strong> %dms</p>
+		`, mon.Name, mon.URL, mon.URL, resolvedAtStr, inc.Latency)
 
 	// Send email once per resolution
 	go m.sendEmail(inc, subject, body, "up")
