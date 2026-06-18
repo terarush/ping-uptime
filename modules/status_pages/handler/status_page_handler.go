@@ -147,7 +147,6 @@ func (h *StatusPageHandler) CreateStatusPage(c echo.Context) error {
 		return h.r.BadRequestResponse(c, err.Error())
 	}
 
-	// Validate monitor ownership for the monitors to be added
 	var monitors []*monitorEntity.Monitor
 	for _, mID := range req.MonitorIDs {
 		mon, err := h.monitorService.GetMonitorByID(ctx, mID)
@@ -206,7 +205,6 @@ func (h *StatusPageHandler) UpdateStatusPage(c echo.Context) error {
 		return h.r.BadRequestResponse(c, err.Error())
 	}
 
-	// Validate monitor ownership for new monitors list
 	var monitors []*monitorEntity.Monitor
 	for _, mID := range req.MonitorIDs {
 		mon, err := h.monitorService.GetMonitorByID(ctx, mID)
@@ -268,9 +266,58 @@ func (h *StatusPageHandler) DeleteStatusPage(c echo.Context) error {
 	return h.r.NoContentResponse(c)
 }
 
+func (h *StatusPageHandler) BadgeSVG(c echo.Context) error {
+	slug := c.Param("slug")
+	if slug == "" {
+		return c.String(400, "")
+	}
+
+	ctx := c.Request().Context()
+	page, err := h.statusPageService.GetStatusPageBySlug(ctx, slug)
+	if err != nil {
+		return c.String(404, "")
+	}
+
+	label := "Operational"
+	color := "#22c55e"
+
+	if len(page.Monitors) > 0 {
+		downCount := 0
+		for _, m := range page.Monitors {
+			if m.UptimeStatus == "down" {
+				downCount++
+			}
+		}
+		if downCount == len(page.Monitors) {
+			label = "Outage"
+			color = "#ef4444"
+		} else if downCount > 0 {
+			label = "Partial Outage"
+			color = "#f59e0b"
+		}
+	}
+
+	svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="140" height="20">
+  <rect rx="3" width="140" height="20" fill="#555"/>
+  <rect rx="3" width="75" height="20" fill="#444"/>
+  <rect rx="3" x="75" width="65" height="20" fill="%[1]s"/>
+  <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
+    <text x="38" y="14" fill="#010101" fill-opacity=".3">uptime</text>
+    <text x="38" y="13">uptime</text>
+    <text x="107" y="14" fill="#010101" fill-opacity=".3">%[2]s</text>
+    <text x="107" y="13">%[2]s</text>
+  </g>
+</svg>`, color, label)
+
+	c.Response().Header().Set(echo.HeaderContentType, "image/svg+xml")
+	c.Response().Header().Set(echo.HeaderCacheControl, "public, max-age=60")
+	return c.String(200, svg)
+}
+
 func (h *StatusPageHandler) RegisterRoutes(e *echo.Echo, basePath string) {
-	// Public route to view status page by slug
+	// Public routes
 	e.GET(basePath+"/status-pages/slug/:slug", h.GetPublicStatusPage)
+	e.GET(basePath+"/status-pages/:slug/badge.svg", h.BadgeSVG)
 
 	// Authenticated routes
 	group := e.Group(basePath+"/status-pages", middleware.Auth)

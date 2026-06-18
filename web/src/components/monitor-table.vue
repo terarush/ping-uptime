@@ -4,7 +4,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Clock, Activity, Edit, Trash2, ExternalLink, ChevronLeft, ChevronRight } from '@lucide/vue';
+import { Clock, Activity, Edit, Trash2, ExternalLink, Shield, ChevronLeft, ChevronRight } from '@lucide/vue';
 import type { Monitor } from '@/stores/monitors';
 
 const props = defineProps<{
@@ -36,6 +36,30 @@ watch(() => totalPages.value, () => {
     currentPage.value = totalPages.value;
   }
 });
+
+const sslStatusClass = (expiresAt: string) => {
+  const days = daysUntilExpiryNum(expiresAt);
+  if (days === null) return 'text-muted-foreground';
+  if (days <= 7) return 'text-red-500 font-bold';
+  if (days <= 30) return 'text-amber-500';
+  return 'text-emerald-500';
+};
+
+const daysUntilExpiryNum = (expiresAt: string): number | null => {
+  const expiry = new Date(expiresAt);
+  if (isNaN(expiry.getTime())) return null;
+  const diff = expiry.getTime() - Date.now();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+};
+
+const daysUntilExpiry = (expiresAt: string): string => {
+  const days = daysUntilExpiryNum(expiresAt);
+  if (days === null) return '—';
+  if (days < 0) return 'Expired';
+  if (days === 0) return 'Today';
+  if (days === 1) return '1 day';
+  return `${days}d`;
+};
 </script>
 
 <template>
@@ -46,6 +70,7 @@ watch(() => totalPages.value, () => {
           <TableHead class="w-[80px] text-center">Status</TableHead>
           <TableHead>Name / URL</TableHead>
           <TableHead>Type</TableHead>
+          <TableHead class="w-[110px]">SSL</TableHead>
           <TableHead>Interval / Timeout</TableHead>
           <TableHead class="w-[120px] text-right">Actions</TableHead>
         </TableRow>
@@ -90,6 +115,19 @@ watch(() => totalPages.value, () => {
             <Badge variant="outline" class="uppercase text-[10px] font-bold py-0.5 px-2 bg-slate-50 dark:bg-slate-900 border-border/50">
               {{ item.type }}
             </Badge>
+          </TableCell>
+
+          <!-- SSL -->
+          <TableCell>
+            <div v-if="item.check_ssl" class="flex items-center gap-1.5">
+              <Shield class="w-3.5 h-3.5 text-emerald-500" />
+              <span v-if="item.ssl_expires_at" class="text-[10px] font-semibold whitespace-nowrap"
+                :class="sslStatusClass(item.ssl_expires_at)">
+                {{ daysUntilExpiry(item.ssl_expires_at) }}
+              </span>
+              <span v-else class="text-[10px] text-muted-foreground">Pending</span>
+            </div>
+            <span v-else class="text-[10px] text-muted-foreground">—</span>
           </TableCell>
 
           <!-- Interval/Timeout -->
