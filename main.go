@@ -30,7 +30,7 @@ func main() {
 	}
 
 	// Handle --init flag: generate systemd service file
-	if config.GetBool("INIT") {
+	if config.GetBool("INIT", false) {
 		exePath, err := os.Executable()
 		if err != nil {
 			log.Fatalf("Failed to get executable path: %v", err)

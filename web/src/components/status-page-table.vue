@@ -16,9 +16,13 @@ interface MonitorWithStats {
   avg_latency: number | null;
 }
 
+type PageRow = StatusPage & { monitors: MonitorWithStats[] };
+
 const props = defineProps<{
-  pages: (StatusPage & { monitors: MonitorWithStats[] })[];
+  pages: PageRow[];
 }>();
+
+const monitorsOf = (item: PageRow): MonitorWithStats[] => item.monitors;
 
 const emit = defineEmits<{
   (e: 'edit', page: StatusPage): void;
@@ -104,15 +108,15 @@ const pageStatus = (monitors: MonitorWithStats[]) => {
           <!-- Linked Monitors -->
           <TableCell class="text-xs">
             <Badge variant="secondary" class="font-bold py-0.5 px-2 bg-slate-100 dark:bg-slate-900 border-border/50 text-[10px]">
-              {{ item.monitors?.length || 0 }} Monitors
+              {{ monitorsOf(item).length || 0 }} Monitors
             </Badge>
           </TableCell>
 
           <!-- Avg Uptime -->
           <TableCell class="text-xs font-semibold">
-            <template v-if="item.monitors && item.monitors.length > 0">
-              <span v-if="item.monitors.some(m => m.uptime_pct !== null)">
-                {{ calcAvgUptime(item.monitors) }}
+            <template v-if="monitorsOf(item).length > 0">
+              <span v-if="monitorsOf(item).some(m => m.uptime_pct !== null)">
+                {{ calcAvgUptime(monitorsOf(item)) }}
               </span>
               <span v-else class="text-muted-foreground">—</span>
             </template>
@@ -121,9 +125,9 @@ const pageStatus = (monitors: MonitorWithStats[]) => {
 
           <!-- Status -->
           <TableCell class="text-xs">
-            <span v-if="pageStatus(item.monitors)" :class="pageStatus(item.monitors)?.class" class="inline-flex items-center gap-1.5 font-bold">
-              <span class="h-2 w-2 rounded-full" :class="pageStatus(item.monitors)?.dot"></span>
-              {{ pageStatus(item.monitors)?.label }}
+            <span v-if="pageStatus(monitorsOf(item))" :class="pageStatus(monitorsOf(item))?.class" class="inline-flex items-center gap-1.5 font-bold">
+              <span class="h-2 w-2 rounded-full" :class="pageStatus(monitorsOf(item))?.dot"></span>
+              {{ pageStatus(monitorsOf(item))?.label }}
             </span>
             <span v-else class="text-muted-foreground">No data</span>
           </TableCell>
