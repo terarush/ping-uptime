@@ -4,6 +4,7 @@ import { useNotificationLogs } from '@/composables/useNotificationLogs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import {
   ClipboardList,
@@ -11,7 +12,7 @@ import {
   Loader2,
   RefreshCw,
   CheckCircle2,
-  XCircle,
+  X,
 } from '@lucide/vue';
 import gsap from 'gsap';
 
@@ -173,7 +174,7 @@ onMounted(async () => {
                     <CheckCircle2 class="w-3.5 h-3.5" /> Sent
                   </span>
                   <span v-else class="inline-flex items-center gap-1 text-red-500 text-xs font-medium" :title="log.error_message">
-                    <XCircle class="w-3.5 h-3.5" /> Failed
+                    <X class="w-3.5 h-3.5" /> Failed
                   </span>
                 </td>
                 <td class="px-4 py-3 text-sm text-right text-muted-foreground">

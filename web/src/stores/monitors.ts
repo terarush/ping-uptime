@@ -16,7 +16,7 @@ export interface Monitor {
   last_latency?: number;
   check_ssl?: boolean;
   ssl_expires_at?: string;
-  heartbeat_token?: string;
+  heartbeat_token?: string | null;
   user_id: number;
   created_at: string;
 }

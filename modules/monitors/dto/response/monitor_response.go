@@ -18,7 +18,7 @@ type MonitorResponse struct {
 	LastLatency    int        `json:"last_latency"`
 	CheckSSL       bool       `json:"check_ssl"`
 	SSLExpiresAt   *time.Time `json:"ssl_expires_at,omitempty"`
-	HeartbeatToken string     `json:"heartbeat_token,omitempty"`
+	HeartbeatToken *string    `json:"heartbeat_token,omitempty"`
 	UserID         uint       `json:"user_id"`
 	CreatedAt      time.Time  `json:"created_at"`
 	UpdatedAt      time.Time  `json:"updated_at"`
