@@ -10,25 +10,9 @@ const isScrolled = ref(false)
 const isMobileMenuOpen = ref(false)
 const isDark = ref(false)
 const activeSection = ref('')
-const isInHero = ref(true)
 
-function handleScroll() {
-  isScrolled.value = window.scrollY > 50
-
-  const sections = ['hero', 'benefits', 'features', 'services', 'contributors', 'contact']
-  for (const id of sections) {
-    const el = document.getElementById(id)
-    if (el) {
-      const rect = el.getBoundingClientRect()
-      if (rect.top <= 150 && rect.bottom >= 150) {
-        activeSection.value = id
-        break
-      }
-    }
-  }
-
-  isInHero.value = window.scrollY < window.innerHeight * 0.6
-}
+const sentinel = ref<HTMLElement | null>(null)
+let sectionObserver: IntersectionObserver | null = null
 
 function toggleDark() {
   isDark.value = !isDark.value
@@ -47,13 +31,33 @@ function navigateTo(href: string) {
 }
 
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll, { passive: true })
   isDark.value = document.documentElement.classList.contains('dark')
-  handleScroll()
+
+  // Scroll detection via sentinel + IntersectionObserver
+  const scrollObserver = new IntersectionObserver(
+    ([entry]) => { if (entry) isScrolled.value = !entry.isIntersecting },
+    { threshold: 0 }
+  )
+  if (sentinel.value) scrollObserver.observe(sentinel.value)
+
+  // Active section via IntersectionObserver
+  const sectionIds = ['hero', 'benefits', 'features', 'services', 'contributors', 'contact']
+  sectionObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) activeSection.value = entry.target.id
+      }
+    },
+    { rootMargin: '-40% 0px -55% 0px' }
+  )
+  sectionIds.forEach((id) => {
+    const el = document.getElementById(id)
+    if (el) sectionObserver?.observe(el)
+  })
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
+  sectionObserver?.disconnect()
 })
 
 const navLinks = [
@@ -68,22 +72,17 @@ const navLinks = [
 </script>
 
 <template>
+  <!-- Sentinel for scroll detection -->
+  <div ref="sentinel" class="absolute top-0 left-0 w-px h-px pointer-events-none" />
+
   <nav
     :class="[
       'fixed top-0 z-50 w-full transition-all duration-500',
       isScrolled
-        ? 'bg-background/70 backdrop-blur-2xl border-b border-border/40 shadow-sm'
+        ? 'bg-background/80 backdrop-blur-2xl border-b border-border/40 shadow-xs'
         : 'bg-transparent',
     ]"
   >
-    <!-- Top gradient bar (subtle) -->
-    <div
-      :class="[
-        'h-0.5 bg-linear-to-r from-transparent via-primary/30 to-transparent transition-opacity duration-700',
-        isScrolled ? 'opacity-100' : 'opacity-0',
-      ]"
-    />
-
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16 md:h-18">
         <!-- Brand -->
@@ -92,12 +91,12 @@ const navLinks = [
           @click.prevent="navigateTo('#hero')"
           class="flex items-center gap-2.5 shrink-0 group"
         >
-          <div class="relative flex h-3 w-3">
+          <span class="relative flex h-2.5 w-2.5">
             <span
               class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"
             />
-            <span class="relative inline-flex h-3 w-3 rounded-full bg-primary" />
-          </div>
+            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+          </span>
           <span class="font-display text-lg font-bold tracking-tight text-foreground"
             >ping-uptime</span
           >
@@ -133,8 +132,8 @@ const navLinks = [
             class="rounded-full text-muted-foreground hover:text-foreground"
             aria-label="Toggle theme"
           >
-            <Sun v-if="!isDark" class="h-4 w-4 transition-transform duration-300 rotate-0" />
-            <Moon v-else class="h-4 w-4 transition-transform duration-300 rotate-0" />
+            <Sun v-if="!isDark" class="h-4 w-4" />
+            <Moon v-else class="h-4 w-4" />
           </Button>
 
           <!-- GitHub link -->
@@ -165,7 +164,6 @@ const navLinks = [
   </nav>
 
   <!-- Mobile drawer -->
-  <!-- Backdrop -->
   <Transition
     enter-active-class="transition-opacity duration-300 ease-out"
     leave-active-class="transition-opacity duration-200 ease-in"
@@ -179,7 +177,6 @@ const navLinks = [
     />
   </Transition>
 
-  <!-- Panel -->
   <Transition
     enter-active-class="transition-all duration-300 ease-out"
     leave-active-class="transition-all duration-200 ease-in"
@@ -203,12 +200,6 @@ const navLinks = [
                 : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
             "
           >
-            <span
-              class="h-1.5 w-1.5 rounded-full"
-              :class="
-                activeSection && activeSection === link.href.slice(1) ? 'bg-primary' : 'bg-muted-foreground/30'
-              "
-            />
             {{ link.label }}
           </a>
         </div>

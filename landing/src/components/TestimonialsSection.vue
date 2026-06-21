@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { Card, CardContent } from '@/components/ui/card'
 import { ref } from 'vue'
-import { ChevronLeft, ChevronRight, Star } from '@lucide/vue'
+import { ChevronLeft, ChevronRight } from '@lucide/vue'
 
 const testimonials = [
-  { name: 'John Doe', role: 'Product Manager', initial: 'JD', quote: 'Wow NextJs + Shadcn is awesome!. This template lets me change colors, fonts and images to match my brand identity.' },
-  { name: 'Sophia Collins', role: 'Cybersecurity Analyst', initial: 'SC', quote: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.' },
-  { name: 'Adam Johnson', role: 'Chief Technology Officer', initial: 'AJ', quote: 'Lorem ipsum dolor sit amet,exercitation. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.' },
-  { name: 'Ethan Parker', role: 'Data Scientist', initial: 'EP', quote: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod labore et dolore magna aliqua. Ut enim ad minim veniam.' },
-  { name: 'Ava Mitchell', role: 'IT Project Manager', initial: 'AM', quote: 'Lorem ipsum dolor sit amet, tempor incididunt aliqua. Ut enim ad minim veniam, quis nostrud incididunt consectetur adipiscing elit.' },
-  { name: 'Isabella Reed', role: 'DevOps Engineer', initial: 'IR', quote: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' },
+  { name: 'Maya Chen', role: 'Senior DevOps Engineer', initial: 'MC', quote: 'Cut our incident response time by more than half. The multi-region checks caught a regional outage before any of our users reported it.' },
+  { name: 'James Okonkwo', role: 'CTO at Syncbase', initial: 'JO', quote: 'We evaluated five uptime monitors. Self-hosting this was the right call for our compliance requirements, and the setup took under an hour.' },
+  { name: 'Priya Sharma', role: 'Infrastructure Lead', initial: 'PS', quote: 'The status page feature alone was worth the switch. Our users finally have transparent visibility into our system health.' },
+  { name: 'Liam Gallagher', role: 'Platform Engineer', initial: 'LG', quote: 'Clean, fast, and no surprise billing. We monitor over 200 endpoints across three regions without breaking a sweat.' },
+  { name: 'Sofia Torres', role: 'Principal Engineer', initial: 'ST', quote: 'The alerting pipeline is solid. Slack, Discord, email, and custom webhooks — it covers every channel our team uses.' },
+  { name: 'Kenji Nakamura', role: 'VP of Engineering', initial: 'KN', quote: 'Having full control over our monitoring data was the deciding factor. Ping uptime delivered exactly what we needed.' },
 ]
 
 const current = ref(0)
@@ -28,8 +28,8 @@ function prev() {
   <section id="testimonials" class="py-20 md:py-28 bg-muted/30">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-2xl text-center mb-16">
-        <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Testimonials</h2>
-        <p class="mt-3 text-lg text-muted-foreground">Hear What Our 1000+ Clients Say</p>
+        <h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Trusted by engineering teams</h2>
+        <p class="mt-3 text-lg text-muted-foreground">From startups to enterprises</p>
       </div>
 
       <div class="relative">
@@ -40,10 +40,7 @@ function prev() {
             class="border-border/50 bg-card/60 dark:bg-card/40"
           >
             <CardContent class="p-6">
-              <div class="flex gap-1 mb-4">
-                <Star v-for="i in 5" :key="i" class="h-4 w-4 fill-primary text-primary" />
-              </div>
-              <p class="text-sm text-muted-foreground leading-relaxed mb-6">&ldquo;{{ item.quote }}&rdquo;</p>
+              <p class="text-sm text-muted-foreground leading-relaxed mb-6">{{ item.quote }}</p>
               <div class="flex items-center gap-3">
                 <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold">
                   {{ item.initial }}
@@ -69,8 +66,8 @@ function prev() {
               v-for="i in total"
               :key="i"
               :class="[
-                'h-2 w-2 rounded-full transition-all',
-                i - 1 === current ? 'bg-primary w-6' : 'bg-muted-foreground/30',
+                'h-2 rounded-full transition-all',
+                i - 1 === current ? 'w-6 bg-primary' : 'w-2 bg-muted-foreground/30',
               ]"
             />
           </div>
