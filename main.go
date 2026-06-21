@@ -25,6 +25,7 @@ import (
 	integration "ping-uptime/modules/integrations"
 	"ping-uptime/modules/backup"
 	teams "ping-uptime/modules/teams"
+	statusPage "ping-uptime/modules/status_pages"
 )
 
 //go:embed static
@@ -106,6 +107,7 @@ func main() {
 	application.RegisterModule(integration.NewModule())
 	application.RegisterModule(backup.NewModule())
 	application.RegisterModule(teams.NewModule())
+	application.RegisterModule(statusPage.NewModule())
 
 	// initialize the application
 	if err := application.Initialize(); err != nil {
