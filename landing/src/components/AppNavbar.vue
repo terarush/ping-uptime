@@ -22,9 +22,16 @@ function toggleDark() {
 function navigateTo(href: string) {
   isMobileMenuOpen.value = false
   if (href.startsWith('#')) {
-    const id = href.slice(1)
-    const el = document.getElementById(id)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const currentRoute = router.currentRoute.value
+    if (currentRoute.path === '/') {
+      // Already on landing page, just scroll to element
+      const id = href.slice(1)
+      const el = document.getElementById(id)
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else {
+      // Navigate to landing page with hash
+      router.push({ path: '/', hash: href })
+    }
   } else {
     router.push(href)
   }
@@ -35,8 +42,10 @@ onMounted(() => {
 
   // Scroll detection via sentinel + IntersectionObserver
   const scrollObserver = new IntersectionObserver(
-    ([entry]) => { if (entry) isScrolled.value = !entry.isIntersecting },
-    { threshold: 0 }
+    ([entry]) => {
+      if (entry) isScrolled.value = !entry.isIntersecting
+    },
+    { threshold: 0 },
   )
   if (sentinel.value) scrollObserver.observe(sentinel.value)
 
@@ -48,7 +57,7 @@ onMounted(() => {
         if (entry.isIntersecting) activeSection.value = entry.target.id
       }
     },
-    { rootMargin: '-40% 0px -55% 0px' }
+    { rootMargin: '-40% 0px -55% 0px' },
   )
   sectionIds.forEach((id) => {
     const el = document.getElementById(id)
