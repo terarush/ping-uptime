@@ -19,6 +19,13 @@ import (
 	subscribers "ping-uptime/modules/subscribers"
 	user "ping-uptime/modules/users"
 	analytics "ping-uptime/modules/analytics"
+	sslMonitors "ping-uptime/modules/ssl_monitors"
+	tags "ping-uptime/modules/tags"
+	apiTokens "ping-uptime/modules/api_tokens"
+	integration "ping-uptime/modules/integrations"
+	"ping-uptime/modules/backup"
+	teams "ping-uptime/modules/teams"
+	statusPage "ping-uptime/modules/status_pages"
 )
 
 //go:embed static
@@ -94,6 +101,13 @@ func main() {
 	application.RegisterModule(maintenances.NewModule())
 	application.RegisterModule(auditLogs.NewModule())
 	application.RegisterModule(subscribers.NewModule())
+	application.RegisterModule(sslMonitors.NewModule())
+	application.RegisterModule(tags.NewModule())
+	application.RegisterModule(apiTokens.NewModule())
+	application.RegisterModule(integration.NewModule())
+	application.RegisterModule(backup.NewModule())
+	application.RegisterModule(teams.NewModule())
+	application.RegisterModule(statusPage.NewModule())
 
 	// initialize the application
 	if err := application.Initialize(); err != nil {

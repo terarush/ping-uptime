@@ -58,6 +58,53 @@ const router = createRouter({
           meta: { requiresAdmin: true },
         },
         {
+          path: 'tags',
+          name: 'Tags',
+          component: () => import('@/views/App.Tags.vue'),
+        },
+        {
+          path: 'api-tokens',
+          name: 'ApiTokens',
+          component: () => import('@/views/App.ApiTokens.vue'),
+        },
+        {
+          path: 'ssl-monitors',
+          name: 'SSLMonitors',
+          component: () => import('@/views/App.SSLMonitors.vue'),
+        },
+        {
+          path: 'subscribers',
+          name: 'Subscribers',
+          component: () => import('@/views/App.Subscribers.vue'),
+        },
+        {
+          path: 'notification-logs',
+          name: 'NotificationLogs',
+          component: () => import('@/views/App.NotificationLogs.vue'),
+        },
+        {
+          path: 'reports',
+          name: 'Reports',
+          component: () => import('@/views/App.Reports.vue'),
+        },
+        {
+          path: 'integrations',
+          name: 'Integrations',
+          component: () => import('@/views/App.Integrations.vue'),
+        },
+        {
+          path: 'teams',
+          name: 'Teams',
+          component: () => import('@/views/App.Teams.vue'),
+          meta: { requiresAdmin: true },
+        },
+        {
+          path: 'backup',
+          name: 'Backup',
+          component: () => import('@/views/App.Backup.vue'),
+          meta: { requiresAdmin: true },
+        },
+        {
           path: 'settings/notifications',
           name: 'Notifications',
           component: () => import('@/views/App.Notifications.vue'),

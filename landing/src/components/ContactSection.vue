@@ -19,17 +19,9 @@ const contactInfo = [
 <template>
   <section id="contact" class="section-grid py-20 md:py-28 bg-muted/30">
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <!-- Section header -->
       <div class="mx-auto max-w-2xl text-center mb-16 reveal" :ref="(el: any) => observe(el)">
-        <span class="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3.5 py-1 text-xs font-mono font-medium text-muted-foreground backdrop-blur-sm mb-5 tracking-wider">
-          <span class="h-1.5 w-1.5 rounded-full bg-primary/60" />
-          04 / Contact
-        </span>
         <h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">Get in touch</h2>
-        <p class="mt-3 text-lg text-muted-foreground">Questions? Ideas? We're listening</p>
-        <p class="mt-2 text-sm text-muted-foreground/80 max-w-md mx-auto">
-          Whether you need help with setup, want to contribute, or just want to say hi — drop us a message.
-        </p>
+        <p class="mt-3 text-lg text-muted-foreground">Questions, ideas, or just want to say hi</p>
       </div>
 
       <div class="grid gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
@@ -39,25 +31,25 @@ const contactInfo = [
             <CardContent class="p-6 space-y-4">
               <div class="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label class="text-xs font-medium text-foreground mb-1.5 block">First Name</label>
-                  <Input placeholder="John" class="rounded-lg" />
+                  <label class="text-xs font-medium text-foreground mb-1.5 block" for="first-name">First name</label>
+                  <Input id="first-name" placeholder="Alex" class="rounded-lg" />
                 </div>
                 <div>
-                  <label class="text-xs font-medium text-foreground mb-1.5 block">Last Name</label>
-                  <Input placeholder="Doe" class="rounded-lg" />
+                  <label class="text-xs font-medium text-foreground mb-1.5 block" for="last-name">Last name</label>
+                  <Input id="last-name" placeholder="Rivera" class="rounded-lg" />
                 </div>
               </div>
               <div>
-                <label class="text-xs font-medium text-foreground mb-1.5 block">Email</label>
-                <Input type="email" placeholder="john@example.com" class="rounded-lg" />
+                <label class="text-xs font-medium text-foreground mb-1.5 block" for="email">Email</label>
+                <Input id="email" type="email" placeholder="alex@example.com" class="rounded-lg" />
               </div>
               <div>
-                <label class="text-xs font-medium text-foreground mb-1.5 block">Subject</label>
-                <Input placeholder="How can we help?" class="rounded-lg" />
+                <label class="text-xs font-medium text-foreground mb-1.5 block" for="subject">Subject</label>
+                <Input id="subject" placeholder="How can we help?" class="rounded-lg" />
               </div>
               <div>
-                <label class="text-xs font-medium text-foreground mb-1.5 block">Message</label>
-                <Textarea placeholder="Tell us more..." class="min-h-30 rounded-lg" />
+                <label class="text-xs font-medium text-foreground mb-1.5 block" for="message">Message</label>
+                <Textarea id="message" placeholder="Tell us more..." class="min-h-30 rounded-lg" />
               </div>
               <Button class="w-full rounded-lg font-semibold">Send message</Button>
             </CardContent>

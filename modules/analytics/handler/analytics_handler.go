@@ -124,8 +124,57 @@ func (h *AnalyticsHandler) GetDashboardStats(c echo.Context) error {
 	}, "Dashboard stats retrieved successfully")
 }
 
+func (h *AnalyticsHandler) GetReport(c echo.Context) error {
+	ctx := c.Request().Context()
+	userID, role, err := h.getAuthUser(c)
+	if err != nil {
+		return h.r.UnauthorizedResponse(c, err.Error())
+	}
+
+	dateFrom := c.QueryParam("from")
+	dateTo := c.QueryParam("to")
+	if dateFrom == "" || dateTo == "" {
+		return h.r.BadRequestResponse(c, "from and to query params required (YYYY-MM-DD)")
+	}
+
+	var targetUserID uint = userID
+	if role == "admin" {
+		monitorIDStr := c.QueryParam("monitor_id")
+		if monitorIDStr != "" {
+			// Single monitor report
+			monitorID, err := strconv.ParseUint(monitorIDStr, 10, 32)
+			if err != nil {
+				return h.r.BadRequestResponse(c, "Invalid monitor ID")
+			}
+			data, err := h.analyticsService.GetChartData(ctx, uint(monitorID), "3m")
+			if err != nil {
+				return h.r.InternalServerErrorResponse(c, err.Error())
+			}
+			return h.r.SuccessResponse(c, map[string]interface{}{
+				"monitor_id": monitorID,
+				"from":       dateFrom,
+				"to":         dateTo,
+				"data":       data,
+			}, "Report data retrieved successfully")
+		}
+		targetUserID = 0
+	}
+
+	stats, err := h.analyticsService.GetMonitorStats(ctx, targetUserID, "3m")
+	if err != nil {
+		return h.r.InternalServerErrorResponse(c, err.Error())
+	}
+
+	return h.r.SuccessResponse(c, map[string]interface{}{
+		"from":  dateFrom,
+		"to":    dateTo,
+		"stats": stats,
+	}, "Report data retrieved successfully")
+}
+
 func (h *AnalyticsHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group := e.Group(basePath+"/analytics", middleware.Auth)
 	group.GET("/monitors/:id/chart", h.GetMonitorChart)
 	group.GET("/dashboard", h.GetDashboardStats)
+	group.GET("/report", h.GetReport)
 }

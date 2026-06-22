@@ -1,0 +1,2435 @@
+openapi: "3.0.3"
+info:
+  title: Ping Uptime API
+  description: Website monitoring and uptime tracking API
+  version: "1.0.0"
+servers:
+  - url: http://localhost:3000/api
+    description: Local development
+  - url: https://your-instance.com/api
+    description: Production
+
+paths:
+  /auth/setup-status:
+    get:
+      tags: [Auth]
+      summary: Check if system setup is complete
+      operationId: getSetupStatus
+      responses:
+        "200":
+          description: Setup status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_setup:
+                    type: boolean
+                  system_name:
+                    type: string
+                  allow_registration:
+                    type: boolean
+
+  /auth/setup:
+    post:
+      tags: [Auth]
+      summary: Perform initial admin setup
+      operationId: setup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: Admin user created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate and receive JWT tokens
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/UserResponse"
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh expired access token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        "200":
+          description: New tokens
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register new user (if enabled)
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+
+  /users/verify:
+    get:
+      tags: [Users]
+      summary: Verify authenticated user
+      operationId: verifyUser
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+
+  /users:
+    get:
+      tags: [Users]
+      summary: List all users
+      operationId: getUsers
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      responses:
+        "200":
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserResponse"
+    post:
+      tags: [Users]
+      summary: Create user
+      operationId: createUser
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user by ID
+      operationId: getUser
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+    put:
+      tags: [Users]
+      summary: Update user
+      operationId: updateUser
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+    delete:
+      tags: [Users]
+      summary: Delete user
+      operationId: deleteUser
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User deleted
+
+  /monitors/events:
+    get:
+      tags: [Monitors]
+      summary: SSE stream for real-time monitor events
+      operationId: streamMonitorEvents
+      responses:
+        "200":
+          description: SSE event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /heartbeat/{token}:
+    post:
+      tags: [Monitors]
+      summary: Register heartbeat ping
+      operationId: handleHeartbeat
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Heartbeat registered
+
+  /monitors:
+    get:
+      tags: [Monitors]
+      summary: List all monitors
+      operationId: getMonitors
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Monitor list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonitorResponse"
+    post:
+      tags: [Monitors]
+      summary: Create monitor
+      operationId: createMonitor
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMonitorRequest"
+      responses:
+        "201":
+          description: Monitor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorResponse"
+
+  /monitors/{id}:
+    get:
+      tags: [Monitors]
+      summary: Get monitor by ID
+      operationId: getMonitor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Monitor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorResponse"
+    put:
+      tags: [Monitors]
+      summary: Update monitor
+      operationId: updateMonitor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMonitorRequest"
+      responses:
+        "200":
+          description: Monitor updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorResponse"
+    delete:
+      tags: [Monitors]
+      summary: Delete monitor
+      operationId: deleteMonitor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Monitor deleted
+
+  /incidents:
+    get:
+      tags: [Incidents]
+      summary: List all incidents
+      operationId: getIncidents
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Incident list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IncidentResponse"
+    post:
+      tags: [Incidents]
+      summary: Create incident
+      operationId: createIncident
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIncidentRequest"
+      responses:
+        "201":
+          description: Incident created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentResponse"
+
+  /incidents/{id}:
+    get:
+      tags: [Incidents]
+      summary: Get incident by ID
+      operationId: getIncident
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Incident
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentResponse"
+    put:
+      tags: [Incidents]
+      summary: Update incident
+      operationId: updateIncident
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateIncidentRequest"
+      responses:
+        "200":
+          description: Incident updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentResponse"
+    delete:
+      tags: [Incidents]
+      summary: Delete incident
+      operationId: deleteIncident
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Incident deleted
+
+  /incidents/monitor/{monitorId}:
+    get:
+      tags: [Incidents]
+      summary: Get incidents by monitor
+      operationId: getIncidentsByMonitor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: monitorId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Incidents for monitor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IncidentResponse"
+
+  /notification-channels:
+    get:
+      tags: [Notification Channels]
+      summary: List notification channels
+      operationId: getNotificationChannels
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Channel list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChannelResponse"
+    post:
+      tags: [Notification Channels]
+      summary: Create notification channel
+      operationId: createNotificationChannel
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateChannelRequest"
+      responses:
+        "201":
+          description: Channel created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelResponse"
+
+  /notification-channels/{id}:
+    get:
+      tags: [Notification Channels]
+      summary: Get notification channel by ID
+      operationId: getNotificationChannel
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Channel
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelResponse"
+    put:
+      tags: [Notification Channels]
+      summary: Update notification channel
+      operationId: updateNotificationChannel
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateChannelRequest"
+      responses:
+        "200":
+          description: Channel updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelResponse"
+    delete:
+      tags: [Notification Channels]
+      summary: Delete notification channel
+      operationId: deleteNotificationChannel
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Channel deleted
+
+  /notification-logs:
+    get:
+      tags: [Notification Logs]
+      summary: List notification delivery logs
+      operationId: getNotificationLogs
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: channel_type
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [sent, failed]
+        - name: event_type
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notification logs
+
+  /integrations:
+    get:
+      tags: [Integrations]
+      summary: List integrations
+      operationId: getIntegrations
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Integration list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IntegrationResponse"
+    post:
+      tags: [Integrations]
+      summary: Create integration
+      operationId: createIntegration
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIntegrationRequest"
+      responses:
+        "201":
+          description: Integration created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrationResponse"
+
+  /integrations/{id}:
+    put:
+      tags: [Integrations]
+      summary: Update integration
+      operationId: updateIntegration
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateIntegrationRequest"
+      responses:
+        "200":
+          description: Integration updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrationResponse"
+    delete:
+      tags: [Integrations]
+      summary: Delete integration
+      operationId: deleteIntegration
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Integration deleted
+    post:
+      tags: [Integrations]
+      summary: Test integration connection
+      operationId: testIntegration
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Test result
+
+  /backup/export:
+    get:
+      tags: [Backup]
+      summary: Export system configuration
+      operationId: exportBackup
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      responses:
+        "200":
+          description: Configuration JSON
+
+  /backup/download:
+    get:
+      tags: [Backup]
+      summary: Download backup file
+      operationId: downloadBackup
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      responses:
+        "200":
+          description: Backup JSON file
+
+  /backup/import:
+    post:
+      tags: [Backup]
+      summary: Import configuration
+      operationId: importBackup
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Import result
+
+  /backup/history:
+    get:
+      tags: [Backup]
+      summary: Get backup history
+      operationId: getBackupHistory
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      responses:
+        "200":
+          description: Backup history
+
+  /backup/history/{id}:
+    delete:
+      tags: [Backup]
+      summary: Delete backup record
+      operationId: deleteBackupRecord
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Record deleted
+
+  /maintenances:
+    get:
+      tags: [Maintenances]
+      summary: List maintenances
+      operationId: getMaintenances
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Maintenance list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MaintenanceResponse"
+    post:
+      tags: [Maintenances]
+      summary: Create maintenance window
+      operationId: createMaintenance
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMaintenanceRequest"
+      responses:
+        "201":
+          description: Maintenance created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceResponse"
+
+  /maintenances/{id}:
+    get:
+      tags: [Maintenances]
+      summary: Get maintenance by ID
+      operationId: getMaintenance
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Maintenance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceResponse"
+    put:
+      tags: [Maintenances]
+      summary: Update maintenance
+      operationId: updateMaintenance
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMaintenanceRequest"
+      responses:
+        "200":
+          description: Maintenance updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceResponse"
+    delete:
+      tags: [Maintenances]
+      summary: Delete maintenance
+      operationId: deleteMaintenance
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Maintenance deleted
+
+  /audit-logs:
+    get:
+      tags: [Audit Logs]
+      summary: List audit logs
+      operationId: getAuditLogs
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      responses:
+        "200":
+          description: Audit log entries
+
+  /audit-logs/search:
+    get:
+      tags: [Audit Logs]
+      summary: Search audit logs
+      operationId: searchAuditLogs
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      parameters:
+        - name: entity_type
+          in: query
+          schema:
+            type: string
+        - name: entity_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Filtered audit logs
+
+  /api-tokens:
+    get:
+      tags: [API Tokens]
+      summary: List API tokens
+      operationId: getApiTokens
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Token list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TokenResponse"
+    post:
+      tags: [API Tokens]
+      summary: Create API token
+      operationId: createApiToken
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTokenRequest"
+      responses:
+        "201":
+          description: Token created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateTokenResponse"
+
+  /api-tokens/{id}:
+    delete:
+      tags: [API Tokens]
+      summary: Revoke API token
+      operationId: revokeApiToken
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Token revoked
+
+  /ssl-monitors:
+    get:
+      tags: [SSL Monitors]
+      summary: List SSL certificates
+      operationId: getSslMonitors
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: SSL certificate list
+
+  /ssl-monitors/{id}:
+    get:
+      tags: [SSL Monitors]
+      summary: Get SSL certificate by ID
+      operationId: getSslMonitor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: SSL certificate
+    delete:
+      tags: [SSL Monitors]
+      summary: Delete SSL certificate record
+      operationId: deleteSslMonitor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: SSL certificate deleted
+
+  /ssl-monitors/check/{monitorId}:
+    post:
+      tags: [SSL Monitors]
+      summary: Check SSL for specific monitor
+      operationId: checkSslMonitor
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: monitorId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: SSL check result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  monitor_id:
+                    type: integer
+                  domain:
+                    type: string
+                  status:
+                    type: string
+                  error:
+                    type: string
+
+  /ssl-monitors/check-all:
+    post:
+      tags: [SSL Monitors]
+      summary: Check SSL for all monitors
+      operationId: checkAllSsl
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: SSL check results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    monitor_id:
+                      type: integer
+                    domain:
+                      type: string
+                    status:
+                      type: string
+                    error:
+                      type: string
+
+  /ssl-monitors/expiring:
+    get:
+      tags: [SSL Monitors]
+      summary: Get expiring certificates
+      operationId: getExpiringSsl
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: Expiring certificates
+
+  /settings/public/system-name:
+    get:
+      tags: [Settings]
+      summary: Get public system name
+      operationId: getPublicSystemName
+      responses:
+        "200":
+          description: System name
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  value:
+                    type: string
+
+  /settings:
+    get:
+      tags: [Settings]
+      summary: List all settings
+      operationId: getSettings
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Setting list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SettingResponse"
+    post:
+      tags: [Settings]
+      summary: Save setting
+      operationId: saveSetting
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveSettingRequest"
+      responses:
+        "200":
+          description: Setting saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingResponse"
+
+  /settings/{key}:
+    get:
+      tags: [Settings]
+      summary: Get setting by key
+      operationId: getSetting
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Setting
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingResponse"
+    delete:
+      tags: [Settings]
+      summary: Delete setting
+      operationId: deleteSetting
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Setting deleted
+
+  /tags:
+    get:
+      tags: [Tags]
+      summary: List tags
+      operationId: getTags
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Tag list
+    post:
+      tags: [Tags]
+      summary: Create tag
+      operationId: createTag
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                color:
+                  type: string
+      responses:
+        "201":
+          description: Tag created
+
+  /tags/{id}:
+    put:
+      tags: [Tags]
+      summary: Update tag
+      operationId: updateTag
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                color:
+                  type: string
+      responses:
+        "200":
+          description: Tag updated
+    delete:
+      tags: [Tags]
+      summary: Delete tag
+      operationId: deleteTag
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tag deleted
+
+  /monitors/{id}/tags:
+    post:
+      tags: [Tags]
+      summary: Attach tags to monitor
+      operationId: attachTags
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tag_ids]
+              properties:
+                tag_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        "200":
+          description: Tags attached
+    get:
+      tags: [Tags]
+      summary: Get tags for monitor
+      operationId: getMonitorTags
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Monitor tags
+
+  /monitors/{id}/tags/{tagID}:
+    delete:
+      tags: [Tags]
+      summary: Detach tag from monitor
+      operationId: detachTag
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: tagID
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tag detached
+
+  /status-pages/slug/{slug}:
+    get:
+      tags: [Status Pages]
+      summary: Get public status page by slug
+      operationId: getPublicStatusPage
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Public status page
+
+  /status-pages/{slug}/badge.svg:
+    get:
+      tags: [Status Pages]
+      summary: Get SVG status badge
+      operationId: getStatusBadge
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: SVG badge
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+
+  /status-pages:
+    get:
+      tags: [Status Pages]
+      summary: List status pages
+      operationId: getStatusPages
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Status page list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StatusPageResponse"
+    post:
+      tags: [Status Pages]
+      summary: Create status page
+      operationId: createStatusPage
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStatusPageRequest"
+      responses:
+        "201":
+          description: Status page created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusPageResponse"
+
+  /status-pages/{id}:
+    get:
+      tags: [Status Pages]
+      summary: Get status page by ID
+      operationId: getStatusPage
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Status page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusPageResponse"
+    put:
+      tags: [Status Pages]
+      summary: Update status page
+      operationId: updateStatusPage
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStatusPageRequest"
+      responses:
+        "200":
+          description: Status page updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusPageResponse"
+    delete:
+      tags: [Status Pages]
+      summary: Delete status page
+      operationId: deleteStatusPage
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Status page deleted
+
+  /status-pages/subscribe:
+    post:
+      tags: [Subscribers]
+      summary: Subscribe to status page
+      operationId: subscribe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, status_page_id]
+              properties:
+                email:
+                  type: string
+                  format: email
+                status_page_id:
+                  type: integer
+      responses:
+        "200":
+          description: Subscription created
+
+  /status-pages/subscribe/verify:
+    get:
+      tags: [Subscribers]
+      summary: Verify subscription
+      operationId: verifySubscription
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Subscription verified
+
+  /status-pages/unsubscribe:
+    get:
+      tags: [Subscribers]
+      summary: Unsubscribe by token
+      operationId: unsubscribeByToken
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Unsubscribed
+
+  /status-pages/{pageID}/subscribers/count:
+    get:
+      tags: [Subscribers]
+      summary: Count subscribers
+      operationId: countSubscribers
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: pageID
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Subscriber count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+
+  /status-pages/{pageID}/subscribers:
+    get:
+      tags: [Subscribers]
+      summary: List subscribers
+      operationId: getSubscribers
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      parameters:
+        - name: pageID
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Subscriber list
+
+  /status-pages/{pageID}/subscribers/unsubscribe:
+    post:
+      tags: [Subscribers]
+      summary: Admin unsubscribe
+      operationId: adminUnsubscribe
+      security:
+        - BearerAuth: []
+        - AdminAuth: []
+      parameters:
+        - name: pageID
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, status_page_id]
+              properties:
+                email:
+                  type: string
+                  format: email
+                status_page_id:
+                  type: integer
+      responses:
+        "200":
+          description: User unsubscribed
+
+  /teams:
+    get:
+      tags: [Teams]
+      summary: List teams
+      operationId: getTeams
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Team list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamResponse"
+    post:
+      tags: [Teams]
+      summary: Create team
+      operationId: createTeam
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTeamRequest"
+      responses:
+        "201":
+          description: Team created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamResponse"
+
+  /teams/{id}:
+    put:
+      tags: [Teams]
+      summary: Update team
+      operationId: updateTeam
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTeamRequest"
+      responses:
+        "200":
+          description: Team updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamResponse"
+    delete:
+      tags: [Teams]
+      summary: Delete team
+      operationId: deleteTeam
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Team deleted
+
+  /teams/{id}/members:
+    get:
+      tags: [Teams]
+      summary: List team members
+      operationId: getTeamMembers
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamMemberResponse"
+    post:
+      tags: [Teams]
+      summary: Invite team member
+      operationId: inviteTeamMember
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InviteMemberRequest"
+      responses:
+        "201":
+          description: Member invited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamMemberResponse"
+
+  /teams/{id}/members/{memberID}:
+    put:
+      tags: [Teams]
+      summary: Update team member role
+      operationId: updateTeamMember
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: memberID
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMemberRequest"
+      responses:
+        "200":
+          description: Member updated
+    delete:
+      tags: [Teams]
+      summary: Remove team member
+      operationId: removeTeamMember
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: memberID
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member removed
+
+  /teams/{id}/members/accept:
+    post:
+      tags: [Teams]
+      summary: Accept team invitation
+      operationId: acceptTeamInvitation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Invitation accepted
+
+  /teams/{id}/members/reject:
+    post:
+      tags: [Teams]
+      summary: Reject team invitation
+      operationId: rejectTeamInvitation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Invitation rejected
+
+  /analytics/monitors/{id}/chart:
+    get:
+      tags: [Analytics]
+      summary: Get monitor chart data
+      operationId: getMonitorChart
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: window
+          in: query
+          schema:
+            type: string
+            enum: [1h, 24h, 7d, 30d, 1m, 3m, 1y]
+            default: 1m
+      responses:
+        "200":
+          description: Chart data
+
+  /analytics/dashboard:
+    get:
+      tags: [Analytics]
+      summary: Get dashboard statistics
+      operationId: getDashboardStats
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: window
+          in: query
+          schema:
+            type: string
+            default: 1m
+      responses:
+        "200":
+          description: Dashboard stats
+
+  /analytics/report:
+    get:
+      tags: [Analytics]
+      summary: Get analytics report
+      operationId: getReport
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: monitor_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Report data
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token (15min expiry). Obtain via POST /auth/login
+    AdminAuth:
+      type: apiKey
+      in: header
+      name: X-Admin-Role
+      description: User must have admin role
+
+  schemas:
+    CreateUserRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        role:
+          type: string
+          default: member
+        is_blocked:
+          type: boolean
+          default: false
+
+    UpdateUserRequest:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        role:
+          type: string
+        is_blocked:
+          type: boolean
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        is_blocked:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateMonitorRequest:
+      type: object
+      required: [name, url, type, interval, timeout]
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+        type:
+          type: string
+          enum: [http, ping, port, heartbeat]
+        interval:
+          type: integer
+          minimum: 1
+        timeout:
+          type: integer
+          minimum: 5
+        check_ssl:
+          type: boolean
+          default: false
+
+    UpdateMonitorRequest:
+      type: object
+      required: [name, url, type, interval, timeout, status]
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+        type:
+          type: string
+          enum: [http, ping, port, heartbeat]
+        interval:
+          type: integer
+          minimum: 1
+        timeout:
+          type: integer
+          minimum: 5
+        status:
+          type: string
+          enum: [active, paused]
+        check_ssl:
+          type: boolean
+
+    MonitorResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        url:
+          type: string
+        type:
+          type: string
+        interval:
+          type: integer
+        timeout:
+          type: integer
+        status:
+          type: string
+        uptime_status:
+          type: string
+        last_checked_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_latency:
+          type: integer
+        check_ssl:
+          type: boolean
+        ssl_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        heartbeat_token:
+          type: string
+          nullable: true
+        user_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateIncidentRequest:
+      type: object
+      required: [monitor_id, status]
+      properties:
+        monitor_id:
+          type: integer
+        status:
+          type: string
+          enum: [down, degraded]
+        error_message:
+          type: string
+        latency:
+          type: integer
+
+    UpdateIncidentRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+        error_message:
+          type: string
+        latency:
+          type: integer
+
+    IncidentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        monitor_id:
+          type: integer
+        user_id:
+          type: integer
+        status:
+          type: string
+        error_message:
+          type: string
+        latency:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    CreateChannelRequest:
+      type: object
+      required: [name, type, config]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [email, slack, discord, webhook, telegram, sms]
+        config:
+          type: string
+          description: JSON-stringified provider settings
+        enabled:
+          type: boolean
+          default: true
+
+    UpdateChannelRequest:
+      type: object
+      required: [name, type, config]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        config:
+          type: string
+        enabled:
+          type: boolean
+
+    ChannelResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        config:
+          type: string
+        enabled:
+          type: boolean
+        user_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateIntegrationRequest:
+      type: object
+      required: [name, type, config]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        type:
+          type: string
+          enum: [slack, discord, webhook, github, pagerduty]
+        config:
+          type: string
+
+    UpdateIntegrationRequest:
+      type: object
+      required: [name, type, config]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        type:
+          type: string
+        config:
+          type: string
+        enabled:
+          type: boolean
+
+    IntegrationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        config:
+          type: string
+        enabled:
+          type: boolean
+        user_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateMaintenanceRequest:
+      type: object
+      required: [name, start_at, end_at]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        monitor_ids:
+          type: array
+          items:
+            type: integer
+
+    UpdateMaintenanceRequest:
+      type: object
+      required: [name, start_at, end_at]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        monitor_ids:
+          type: array
+          items:
+            type: integer
+
+    MaintenanceResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [scheduled, ongoing, completed, cancelled]
+        user_id:
+          type: integer
+        monitor_ids:
+          type: array
+          items:
+            type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateTokenRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        expires_at:
+          type: string
+          format: date-time
+
+    TokenResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        token_prefix:
+          type: string
+        last_used_at:
+          type: string
+          format: date-time
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_revoked:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    CreateTokenResponse:
+      allOf:
+        - $ref: "#/components/schemas/TokenResponse"
+        - type: object
+          properties:
+            raw_token:
+              type: string
+              description: Full token shown only on creation
+
+    SaveSettingRequest:
+      type: object
+      required: [key]
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        description:
+          type: string
+
+    SettingResponse:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateStatusPageRequest:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        monitor_ids:
+          type: array
+          items:
+            type: integer
+
+    UpdateStatusPageRequest:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        monitor_ids:
+          type: array
+          items:
+            type: integer
+
+    StatusPageResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        user_id:
+          type: integer
+        monitors:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonitorResponse"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateTeamRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+
+    UpdateTeamRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+
+    TeamResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        member_count:
+          type: integer
+        created_at:
+          type: string
+        updated_at:
+          type: string
+
+    InviteMemberRequest:
+      type: object
+      required: [user_id]
+      properties:
+        user_id:
+          type: integer
+        role:
+          type: string
+          enum: [admin, member]
+          default: member
+
+    UpdateMemberRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [admin, member]
+
+    TeamMemberResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        team_id:
+          type: integer
+        user_id:
+          type: integer
+        role:
+          type: string
+        status:
+          type: string
+          enum: [pending, accepted, rejected]
+        invited_by:
+          type: integer
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            email:
+              type: string
+            name:
+              type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string

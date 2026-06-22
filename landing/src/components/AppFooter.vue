@@ -36,12 +36,10 @@ const footerLinks = {
       <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <div class="flex items-center gap-2 mb-4">
-            <div class="relative flex h-3 w-3">
-              <span
-                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"
-              ></span>
-              <span class="relative inline-flex h-3 w-3 rounded-full bg-primary"></span>
-            </div>
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+              <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+            </span>
             <span class="text-lg font-bold tracking-tight">ping-uptime</span>
           </div>
           <p class="text-xs text-muted-foreground leading-relaxed">
@@ -62,8 +60,7 @@ const footerLinks = {
                 :rel="link.url.startsWith('#') || link.url.startsWith('/') ? undefined : 'noopener noreferrer'"
                 @click.prevent="link.url.startsWith('/') ? navigateTo(link.url) : undefined"
                 class="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                >{{ link.name }}</a
-              >
+              >{{ link.name }}</a>
             </li>
           </ul>
         </div>
@@ -72,37 +69,36 @@ const footerLinks = {
       <Separator class="my-8" />
 
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <span class="text-xs text-muted-foreground mr-2"
+        <span class="text-xs text-muted-foreground"
           >&copy; 2026 Terarush. All rights reserved.</span
         >
-        <div class="flex items-center gap-4">
-          <span class="text-xs text-muted-foreground mr-2">Follow us:</span>
+        <div class="flex items-center gap-3">
           <a
             href="https://twitter.com/terarush"
             target="_blank"
             rel="noopener noreferrer"
-            class="p-2 rounded-full bg-card border border-border shadow-sm hover:shadow-md hover:border-primary/50 transition-shadow text-muted-foreground hover:text-foreground"
+            class="p-2 rounded-full bg-card border border-border shadow-sm hover:shadow-md hover:border-primary/50 transition-all text-muted-foreground hover:text-foreground"
             aria-label="Twitter"
           >
-            <img src="/twitter.svg" class="h-4 w-4 opacity-70 dark:invert" aria-hidden="true" />
+            <img src="/twitter.svg" class="h-3.5 w-3.5 opacity-70 dark:invert" aria-hidden="true" />
           </a>
           <a
             href="https://linkedin.com/company/terarush"
             target="_blank"
             rel="noopener noreferrer"
-            class="p-2 rounded-full bg-card border border-border shadow-sm hover:shadow-md hover:border-primary/50 transition-shadow text-muted-foreground hover:text-blue-500"
+            class="p-2 rounded-full bg-card border border-border shadow-sm hover:shadow-md hover:border-primary/50 transition-all text-muted-foreground hover:text-blue-500"
             aria-label="LinkedIn"
           >
-            <img src="/linkedin.svg" class="h-4 w-4 opacity-70 dark:invert" aria-hidden="true" />
+            <img src="/linkedin.svg" class="h-3.5 w-3.5 opacity-70 dark:invert" aria-hidden="true" />
           </a>
           <a
             href="https://github.com/terarush"
             target="_blank"
             rel="noopener noreferrer"
-            class="p-2 rounded-full bg-card border border-border shadow-sm hover:shadow-md hover:border-primary/50 transition-shadow text-muted-foreground hover:text-foreground"
+            class="p-2 rounded-full bg-card border border-border shadow-sm hover:shadow-md hover:border-primary/50 transition-all text-muted-foreground hover:text-foreground"
             aria-label="GitHub"
           >
-            <img src="/github.svg" class="h-4 w-4 opacity-70 dark:invert" aria-hidden="true" />
+            <img src="/github.svg" class="h-3.5 w-3.5 opacity-70 dark:invert" aria-hidden="true" />
           </a>
         </div>
       </div>

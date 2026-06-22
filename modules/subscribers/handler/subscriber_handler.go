@@ -117,6 +117,22 @@ func (h *SubscriberHandler) Count(c echo.Context) error {
 	return h.r.SuccessResponse(c, map[string]int64{"count": count}, "Subscriber count retrieved")
 }
 
+func (h *SubscriberHandler) GetSubscribers(c echo.Context) error {
+	ctx := c.Request().Context()
+	pageIDStr := c.Param("pageID")
+	pageID, err := strconv.ParseUint(pageIDStr, 10, 32)
+	if err != nil {
+		return h.r.BadRequestResponse(c, "Invalid page ID")
+	}
+
+	subs, err := h.svc.GetSubscribers(ctx, uint(pageID))
+	if err != nil {
+		return h.r.InternalServerErrorResponse(c, err.Error())
+	}
+
+	return h.r.SuccessResponse(c, subs, "Subscribers retrieved")
+}
+
 func (h *SubscriberHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	// Public routes (no auth) — by token only
 	e.POST(basePath+"/status-pages/subscribe", h.Subscribe)
@@ -127,7 +143,8 @@ func (h *SubscriberHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group := e.Group(basePath+"/status-pages", middleware.Auth)
 	group.GET("/:pageID/subscribers/count", h.Count)
 
-	// Admin-only — email+pageID based
+	// Admin-only — manage subscribers
 	adminGroup := e.Group(basePath+"/status-pages", middleware.Auth, middleware.Admin)
+	adminGroup.GET("/:pageID/subscribers", h.GetSubscribers)
 	adminGroup.POST("/:pageID/subscribers/unsubscribe", h.Unsubscribe)
 }
