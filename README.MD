@@ -1,4 +1,4 @@
-# 🟢 ping-uptime
+# ping-uptime
 
 A self-hosted **uptime monitoring** service built with Go (Echo v4) and Vue 3. Monitor your websites, APIs, and services — get instant **Discord notifications** when something goes down or comes back up.
 

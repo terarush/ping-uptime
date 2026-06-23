@@ -2,9 +2,7 @@
 
 TARGET_DIR="/usr/local/bin"
 
-echo "============================================="
 echo " Installing ping-uptime (Auto-detecting version)"
-echo "============================================="
 
 echo "Detecting the latest release version from GitHub..."
 VERSION=$(curl -s https://api.github.com/repos/terarush/ping-uptime/releases/latest | grep '"tag_name":' | cut -d '"' -f 4)
@@ -58,6 +56,4 @@ else
     echo "Unknown shell or configuration file not found. Please ensure $TARGET_DIR is in your PATH manually."
 fi
 
-echo "============================================="
 echo "Installation Complete! Try running: ping-uptime -h"
-echo "============================================="
