@@ -6,42 +6,36 @@ echo "============================================="
 echo " Installing ping-uptime (Auto-detecting version)"
 echo "============================================="
 
-# 1. Mengambil versi tag terbaru secara otomatis dari GitHub API
-echo "🔍 Mendeteksi versi rilis terbaru dari GitHub..."
+echo "Detecting the latest release version from GitHub..."
 VERSION=$(curl -s https://api.github.com/repos/terarush/ping-uptime/releases/latest | grep '"tag_name":' | cut -d '"' -f 4)
 
 if [ -z "$VERSION" ]; then
-    echo "⚠️  Gagal mendeteksi versi secara otomatis. Menggunakan fallback v0.0.3..."
+    echo "Failed to detect version automatically. Using fallback v0.0.3..."
     VERSION="v0.0.3"
 else
-    echo "✅ Versi terbaru terdeteksi: $VERSION"
+    echo "Latest version detected: $VERSION"
 fi
 
-# Link download dinamis menggunakan versi yang terdeteksi
 DOWNLOAD_URL="https://github.com/terarush/ping-uptime/releases/download/${VERSION}/ping-uptime"
 
-# 2. Download binary ke folder tmp
-echo "📥 Downloading binary dari GitHub..."
+echo "Downloading binary from GitHub..."
 curl -L "$DOWNLOAD_URL" -o /tmp/ping-uptime
 
 if [ $? -ne 0 ]; then
-    echo "❌ Gagal mengunduh file. Periksa koneksi internet Anda."
+    echo "Failed to download file. Please check your internet connection."
     exit 1
 fi
 
-# 3. Buat file menjadi executable
 chmod +x /tmp/ping-uptime
 
-# 4. Pindahkan ke /usr/local/bin
-echo "⚙️  Memindahkan binary ke $TARGET_DIR..."
+echo "Moving binary to $TARGET_DIR..."
 sudo mv /tmp/ping-uptime "$TARGET_DIR/ping-uptime"
 
 if [ $? -ne 0 ]; then
-    echo "❌ Gagal memindahkan file. Pastikan Anda memiliki akses sudo."
+    echo "Failed to move file. Make sure you have sudo privileges."
     exit 1
 fi
 
-# 5. Deteksi Shell dan update PATH di .bashrc atau .zshrc
 DETECTED_SHELL=$(basename "$SHELL")
 RC_FILE=""
 
@@ -52,19 +46,18 @@ elif [ "$DETECTED_SHELL" = "bash" ]; then
 fi
 
 if [ -n "$RC_FILE" ] && [ -f "$RC_FILE" ]; then
-    # Cek apakah /usr/local/bin sudah ada di PATH rc file
     if ! grep -q "$TARGET_DIR" "$RC_FILE"; then
-        echo "📝 Menambahkan $TARGET_DIR ke PATH di $RC_FILE..."
+        echo "Adding $TARGET_DIR to PATH in $RC_FILE..."
         echo "export PATH=\"$TARGET_DIR:\$PATH\"" >> "$RC_FILE"
-        echo "✅ Konfigurasi shell berhasil di-update."
-        echo "👉 Silakan jalankan: source $RC_FILE untuk me-refresh terminal Anda."
+        echo "Shell configuration updated successfully."
+        echo "Please run: source $RC_FILE to refresh your terminal."
     else
-        echo "ℹ️  PATH $TARGET_DIR sudah terdaftar di $RC_FILE."
+        echo "PATH $TARGET_DIR is already registered in $RC_FILE."
     fi
 else
-    echo "⚠️  Shell tidak dikenal atau file konfigurasi tidak ditemukan. Pastikan $TARGET_DIR ada di PATH Anda secara manual."
+    echo "Unknown shell or configuration file not found. Please ensure $TARGET_DIR is in your PATH manually."
 fi
 
 echo "============================================="
-echo "🎉 Instalasi Selesai! Coba jalankan: ping-uptime -h"
+echo "Installation Complete! Try running: ping-uptime -h"
 echo "============================================="
