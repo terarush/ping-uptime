@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import ExtendedFetch from '@/lib/fetch';
 import { useIncidentsStore } from '@/stores/incidents';
+import type { Tag } from '@/stores/tags';
 
 export interface Monitor {
   id: number;
@@ -17,6 +18,7 @@ export interface Monitor {
   check_ssl?: boolean;
   ssl_expires_at?: string;
   heartbeat_token?: string | null;
+  tags?: Tag[];
   user_id: number;
   created_at: string;
 }
