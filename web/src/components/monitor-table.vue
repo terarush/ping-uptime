@@ -70,6 +70,7 @@ const daysUntilExpiry = (expiresAt: string): string => {
           <TableHead class="w-[80px] text-center">Status</TableHead>
           <TableHead>Name / URL</TableHead>
           <TableHead>Type</TableHead>
+          <TableHead>Tags</TableHead>
           <TableHead class="w-[110px]">SSL</TableHead>
           <TableHead>Interval / Timeout</TableHead>
           <TableHead class="w-[120px] text-right">Actions</TableHead>
@@ -115,6 +116,23 @@ const daysUntilExpiry = (expiresAt: string): string => {
             <Badge variant="outline" class="uppercase text-[10px] font-bold py-0.5 px-2 bg-slate-50 dark:bg-slate-900 border-border/50">
               {{ item.type }}
             </Badge>
+          </TableCell>
+
+          <!-- Tags -->
+          <TableCell>
+            <div class="flex flex-wrap gap-1" v-if="item.tags && item.tags.length">
+              <span
+                v-for="t in item.tags"
+                :key="t.id"
+                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium"
+                :style="{ backgroundColor: t.color + '20', color: t.color, borderColor: t.color + '40' }"
+                style="border-width: 1px"
+              >
+                <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: t.color }"></span>
+                {{ t.name }}
+              </span>
+            </div>
+            <span v-else class="text-[10px] text-muted-foreground">—</span>
           </TableCell>
 
           <!-- SSL -->
