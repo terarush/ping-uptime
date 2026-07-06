@@ -198,6 +198,13 @@ func (h *MonitorHandler) CreateMonitor(c echo.Context) error {
 		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
 
+	// Attach tags if provided
+	if len(req.TagIDs) > 0 {
+		h.attachTags(ctx, monitor.ID, req.TagIDs)
+		// Reload to include tags
+		monitor, _ = h.monitorService.GetMonitorByID(ctx, monitor.ID)
+	}
+
 	h.event.Publish(bus.Event{Type: "monitor.created", Payload: monitor})
 
 	// Run initial check immediately in the background
@@ -262,6 +269,16 @@ func (h *MonitorHandler) UpdateMonitor(c echo.Context) error {
 		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
 
+	// Attach tags if provided (replaces existing)
+	if req.TagIDs != nil {
+		h.detachAllTags(ctx, monitor.ID)
+		if len(req.TagIDs) > 0 {
+			h.attachTags(ctx, monitor.ID, req.TagIDs)
+		}
+		// Reload to include tags
+		monitor, _ = h.monitorService.GetMonitorByID(ctx, monitor.ID)
+	}
+
 	h.event.Publish(bus.Event{Type: "monitor.updated", Payload: monitor})
 
 	// Run check immediately in the background
@@ -304,6 +321,19 @@ func (h *MonitorHandler) DeleteMonitor(c echo.Context) error {
 	h.event.Publish(bus.Event{Type: "monitor.deleted", Payload: monitor})
 
 	return h.r.NoContentResponse(c)
+}
+
+func (h *MonitorHandler) attachTags(ctx context.Context, monitorID uint, tagIDs []uint) {
+	for _, tid := range tagIDs {
+		database.DB.WithContext(ctx).Exec(
+			"INSERT OR IGNORE INTO monitor_tags (monitor_id, tag_id, created_at) VALUES (?, ?, datetime('now'))",
+			monitorID, tid,
+		)
+	}
+}
+
+func (h *MonitorHandler) detachAllTags(ctx context.Context, monitorID uint) {
+	database.DB.WithContext(ctx).Exec("DELETE FROM monitor_tags WHERE monitor_id = ?", monitorID)
 }
 
 func (h *MonitorHandler) broadcastEvent(event bus.Event) {
