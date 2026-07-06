@@ -3,6 +3,7 @@ package entity
 import (
 	"crypto/rand"
 	"encoding/hex"
+	tagEntity "ping-uptime/modules/tags/domain/entity"
 	"time"
 )
 
@@ -20,9 +21,10 @@ type Monitor struct {
 	CheckSSL       bool       `json:"check_ssl" gorm:"default:false"`
 	SSLExpiresAt   *time.Time `json:"ssl_expires_at,omitempty"`
 	HeartbeatToken  *string    `json:"heartbeat_token,omitempty" gorm:"type:varchar(64);uniqueIndex"`
-	UserID          uint       `json:"user_id" gorm:"index"`
-	CreatedAt       time.Time  `json:"created_at"`
-	UpdatedAt       time.Time  `json:"updated_at"`
+	UserID          uint                `json:"user_id" gorm:"index"`
+	CreatedAt       time.Time           `json:"created_at"`
+	UpdatedAt       time.Time           `json:"updated_at"`
+	Tags            []*tagEntity.Tag    `json:"tags,omitempty" gorm:"many2many:monitor_tags;"`
 }
 
 func (*Monitor) TableName() string {
