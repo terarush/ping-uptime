@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 import { useMonitors, type Monitor } from '@/composables/useMonitors';
+import { useTags } from '@/composables/useTags';
 import { monitorSchema } from '@/validations/monitor';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -64,6 +65,11 @@ const {
   deleteMonitor
 } = useMonitors();
 
+const {
+  tags,
+  fetchAll: fetchTags,
+} = useTags();
+
 const searchQuery = ref('');
 const success = ref('');
 
@@ -84,6 +90,7 @@ const formInterval = ref(60);
 const formTimeout = ref(10);
 const formCheckSsl = ref(false);
 const formStatus = ref('active');
+const formTagIDs = ref<number[]>([]);
 
 const isEditMode = computed(() => !!actionMonitor.value);
 
@@ -172,6 +179,7 @@ const resetForm = () => {
   formTimeout.value = 10;
   formCheckSsl.value = false;
   formStatus.value = 'active';
+  formTagIDs.value = [];
   actionMonitor.value = null;
   error.value = '';
   success.value = '';
@@ -192,6 +200,7 @@ const openEditDialog = (monitor: Monitor) => {
   formTimeout.value = monitor.timeout;
   formCheckSsl.value = monitor.check_ssl ?? false;
   formStatus.value = monitor.status;
+  formTagIDs.value = (monitor.tags || []).map(t => t.id);
   isFormDialogOpen.value = true;
 };
 
@@ -213,6 +222,7 @@ const handleFormSubmit = async () => {
     timeout: isAdmin.value ? Number(formTimeout.value) : 10,
     check_ssl: formCheckSsl.value,
     status: formStatus.value,
+    tag_ids: formTagIDs.value,
   };
 
   // Perform client-side Zod validation
@@ -300,7 +310,10 @@ onMounted(async () => {
     }
   }
 
-  await fetchAll();
+  await Promise.all([
+    fetchAll(),
+    fetchTags(),
+  ]);
 
   gsap.fromTo('.ambient-orb',
     { opacity: 0, scale: 0.8 },
@@ -611,6 +624,26 @@ onMounted(async () => {
               <Shield class="w-3.5 h-3.5 text-muted-foreground" />
               Check SSL certificate expiry
             </Label>
+          </div>
+
+          <div class="space-y-2">
+            <Label class="text-xs font-medium">Tags</Label>
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="t in tags"
+                :key="t.id"
+                type="button"
+                @click="formTagIDs = formTagIDs.includes(t.id) ? formTagIDs.filter(id => id !== t.id) : [...formTagIDs, t.id]"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-all"
+                :class="formTagIDs.includes(t.id)
+                  ? 'border-foreground bg-foreground/10'
+                  : 'border-border/50 hover:border-foreground/30'"
+              >
+                <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: t.color }"></span>
+                {{ t.name }}
+              </button>
+              <span v-if="tags.length === 0" class="text-[10px] text-muted-foreground">No tags yet — create some in Tags &amp; Labels</span>
+            </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4" v-if="isAdmin">
