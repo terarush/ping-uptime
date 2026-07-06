@@ -117,6 +117,16 @@ const router = createRouter({
       ],
     },
     {
+      path: '/status/:slug',
+      name: 'StatusPagePublic',
+      component: () => import('@/views/StatusPagePublic.vue'),
+    },
+    {
+      path: '/status/:slug/monitor/:monitorId',
+      name: 'StatusPageMonitorDetail',
+      component: () => import('@/views/StatusPageMonitorDetail.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
       component: () => import('@/views/NotFound.vue'),
