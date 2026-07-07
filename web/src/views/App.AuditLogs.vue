@@ -89,11 +89,11 @@ onMounted(async () => {
     <!-- Filter Bar -->
     <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
       <CardContent class="p-4">
-        <div class="flex flex-wrap items-end gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 items-end">
           <div class="space-y-1.5">
             <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Entity</label>
             <Select v-model="filterEntity">
-              <SelectTrigger class="w-40 h-9">
+              <SelectTrigger class="w-full h-9">
                 <SelectValue placeholder="All entities" />
               </SelectTrigger>
               <SelectContent>
@@ -105,7 +105,7 @@ onMounted(async () => {
           <div class="space-y-1.5">
             <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Action</label>
             <Select v-model="filterAction">
-              <SelectTrigger class="w-36 h-9">
+              <SelectTrigger class="w-full h-9">
                 <SelectValue placeholder="All actions" />
               </SelectTrigger>
               <SelectContent>
@@ -117,7 +117,7 @@ onMounted(async () => {
           <div class="space-y-1.5">
             <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">User</label>
             <Select v-model="filterUserID">
-              <SelectTrigger class="w-40 h-9">
+              <SelectTrigger class="w-full h-9">
                 <SelectValue placeholder="All users" />
               </SelectTrigger>
               <SelectContent>
@@ -128,14 +128,16 @@ onMounted(async () => {
           </div>
           <div class="space-y-1.5">
             <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">From</label>
-            <Input v-model="filterFrom" type="datetime-local" class="w-48 h-9" />
+            <Input v-model="filterFrom" type="datetime-local" class="w-full h-9" />
           </div>
           <div class="space-y-1.5">
             <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">To</label>
-            <Input v-model="filterTo" type="datetime-local" class="w-48 h-9" />
+            <Input v-model="filterTo" type="datetime-local" class="w-full h-9" />
           </div>
-          <Button size="sm" @click="applyFilters" class="h-9">Apply</Button>
-          <Button variant="outline" size="sm" @click="clearFilters" class="h-9">Clear</Button>
+          <div class="flex items-end gap-2 sm:col-span-2 lg:col-span-3 xl:col-span-5">
+            <Button size="sm" @click="applyFilters" class="h-9">Apply</Button>
+            <Button variant="outline" size="sm" @click="clearFilters" class="h-9">Clear</Button>
+          </div>
         </div>
       </CardContent>
     </Card>

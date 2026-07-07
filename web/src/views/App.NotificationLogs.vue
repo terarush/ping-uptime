@@ -97,36 +97,45 @@ onMounted(async () => {
             <CardDescription class="text-xs">Filter and review notification delivery status.</CardDescription>
           </div>
 
-          <div class="flex items-center gap-2 flex-wrap">
-            <Select v-model="filterChannel">
-              <SelectTrigger class="w-full h-9">
-                <SelectValue placeholder="Channel" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-channels">All Channels</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="discord">Discord</SelectItem>
-                <SelectItem value="discord_bot">Discord Bot</SelectItem>
-                <SelectItem value="telegram">Telegram</SelectItem>
-                <SelectItem value="slack">Slack</SelectItem>
-                <SelectItem value="webhook">Webhook</SelectItem>
-              </SelectContent>
-            </Select>
+          <div class="flex flex-wrap items-end gap-3">
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Channel</label>
+              <Select v-model="filterChannel">
+                <SelectTrigger class="w-full h-9">
+                  <SelectValue placeholder="All Channels" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Channels</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="discord">Discord</SelectItem>
+                  <SelectItem value="discord_bot">Discord Bot</SelectItem>
+                  <SelectItem value="telegram">Telegram</SelectItem>
+                  <SelectItem value="slack">Slack</SelectItem>
+                  <SelectItem value="webhook">Webhook</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select v-model="filterStatus">
-              <SelectTrigger class="w-full h-9">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-status">All Status</SelectItem>
-                <SelectItem value="sent">Sent</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-              </SelectContent>
-            </Select>
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Status</label>
+              <Select v-model="filterStatus">
+                <SelectTrigger class="w-full h-9">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <div class="relative w-full sm:w-56">
-              <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input v-model="searchQuery" placeholder="Search..." class="pl-9 h-9" />
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Search</label>
+              <div class="relative w-full sm:w-56">
+                <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input v-model="searchQuery" placeholder="Search..." class="pl-9 h-9" />
+              </div>
             </div>
           </div>
         </div>
