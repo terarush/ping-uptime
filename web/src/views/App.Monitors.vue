@@ -588,33 +588,31 @@ onMounted(async () => {
             <Input id="url" v-model="formUrl" placeholder="e.g. https://example.com/health" type="url" required />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label for="type">Check Type</Label>
-              <Select v-model="formType">
-                <SelectTrigger id="type" class="h-9">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="http">HTTP/HTTPS</SelectItem>
-                  <SelectItem value="ping">ICMP Ping</SelectItem>
-                  <SelectItem value="heartbeat">Heartbeat</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div class="space-y-2">
+            <Label for="type">Check Type</Label>
+            <Select v-model="formType">
+              <SelectTrigger id="type" class="w-full h-9">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="http">HTTP/HTTPS</SelectItem>
+                <SelectItem value="ping">ICMP Ping</SelectItem>
+                <SelectItem value="heartbeat">Heartbeat</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div class="space-y-2">
-              <Label for="status">Status</Label>
-              <Select v-model="formStatus">
-                <SelectTrigger id="status" class="h-9">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="paused">Paused</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div class="space-y-2">
+            <Label for="status">Status</Label>
+            <Select v-model="formStatus">
+              <SelectTrigger id="status" class="w-full h-9">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="paused">Paused</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div class="flex items-center gap-2 py-1.5">
@@ -646,16 +644,14 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4" v-if="isAdmin">
-            <div class="space-y-2">
-              <Label for="interval">Interval (seconds)</Label>
-              <Input id="interval" v-model="formInterval" type="number" min="10" required />
-            </div>
+          <div class="space-y-2" v-if="isAdmin">
+            <Label for="interval">Interval (seconds)</Label>
+            <Input id="interval" v-model="formInterval" type="number" min="10" required />
+          </div>
 
-            <div class="space-y-2">
-              <Label for="timeout">Timeout (seconds)</Label>
-              <Input id="timeout" v-model="formTimeout" type="number" min="1" required />
-            </div>
+          <div class="space-y-2" v-if="isAdmin">
+            <Label for="timeout">Timeout (seconds)</Label>
+            <Input id="timeout" v-model="formTimeout" type="number" min="1" required />
           </div>
 
           <p v-if="error" class="text-xs font-semibold text-destructive mt-2">{{ error }}</p>

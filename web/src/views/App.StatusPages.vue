@@ -308,7 +308,7 @@ onMounted(() => {
 
     <!-- Create / Edit Dialog -->
     <Dialog v-model:open="isFormDialogOpen">
-      <DialogContent class="sm:max-w-[480px]">
+      <DialogContent class="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{{ isEditMode ? 'Edit Status Page' : 'Create Status Page' }}</DialogTitle>
           <DialogDescription>
@@ -316,7 +316,7 @@ onMounted(() => {
           </DialogDescription>
         </DialogHeader>
 
-        <form @submit.prevent="handleFormSubmit" class="space-y-4 py-4 max-h-[70vh] overflow-y-auto px-1">
+        <form @submit.prevent="handleFormSubmit" class="space-y-4 py-4">
           <div class="space-y-2">
             <Label for="name">Page Name</Label>
             <Input id="name" v-model="formName" placeholder="e.g. Public Services Dashboard" required />
