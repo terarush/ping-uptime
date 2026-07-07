@@ -419,6 +419,30 @@ func (h *MonitorHandler) HandleHeartbeat(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(&mon), "Heartbeat received")
 }
 
+// GetPublicDailyChart returns daily chart data for a public monitor (no auth).
+func (h *MonitorHandler) GetPublicDailyChart(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		return h.r.BadRequestResponse(c, "Invalid monitor ID")
+	}
+
+	days := 30
+	if dStr := c.QueryParam("days"); dStr != "" {
+		if d, err := strconv.Atoi(dStr); err == nil && d > 0 && d <= 365 {
+			days = d
+		}
+	}
+
+	points, err := h.monitorService.GetDailyChart(ctx, uint(id), days)
+	if err != nil {
+		return h.r.InternalServerErrorResponse(c, err.Error())
+	}
+
+	return h.r.SuccessResponse(c, points, "Daily chart data retrieved")
+}
+
 func (h *MonitorHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	e.GET(basePath+"/monitors/events", h.StreamEvents)
 
