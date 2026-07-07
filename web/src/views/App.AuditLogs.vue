@@ -14,8 +14,8 @@ const { items, loading, fetchAll } = useAuditLogs();
 const { users, fetchUsersData } = useUsers();
 
 // Filters
-const filterAction = ref('');
-const filterEntity = ref('');
+const filterAction = ref('__all__');
+const filterEntity = ref('__all__');
 const filterUserID = ref(0);
 const filterFrom = ref('');
 const filterTo = ref('');
@@ -34,8 +34,8 @@ const userMap = computed(() => {
 
 const applyFilters = async () => {
   const filter: AuditLogFilter = {};
-  if (filterAction.value) filter.action = filterAction.value;
-  if (filterEntity.value) filter.entity_type = filterEntity.value;
+  if (filterAction.value && filterAction.value !== '__all__') filter.action = filterAction.value;
+  if (filterEntity.value && filterEntity.value !== '__all__') filter.entity_type = filterEntity.value;
   if (filterUserID.value && filterUserID.value > 0) filter.user_id = filterUserID.value;
   if (filterFrom.value) filter.from = new Date(filterFrom.value).toISOString();
   if (filterTo.value) filter.to = new Date(filterTo.value).toISOString();
@@ -43,8 +43,8 @@ const applyFilters = async () => {
 };
 
 const clearFilters = async () => {
-  filterAction.value = '';
-  filterEntity.value = '';
+  filterAction.value = '__all__';
+  filterEntity.value = '__all__';
   filterUserID.value = 0;
   filterFrom.value = '';
   filterTo.value = '';
@@ -97,7 +97,7 @@ onMounted(async () => {
                 <SelectValue placeholder="All entities" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All entities</SelectItem>
+                <SelectItem value="__all__">All entities</SelectItem>
                 <SelectItem v-for="et in ENTITY_TYPES" :key="et" :value="et">{{ et }}</SelectItem>
               </SelectContent>
             </Select>
@@ -109,7 +109,7 @@ onMounted(async () => {
                 <SelectValue placeholder="All actions" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All actions</SelectItem>
+                <SelectItem value="__all__">All actions</SelectItem>
                 <SelectItem v-for="a in ACTIONS" :key="a" :value="a">{{ a }}</SelectItem>
               </SelectContent>
             </Select>

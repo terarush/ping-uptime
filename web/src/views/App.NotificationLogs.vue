@@ -19,8 +19,8 @@ import gsap from 'gsap';
 const { logs, loading, fetchLogs, formatDate, channelIcon } = useNotificationLogs();
 
 const searchQuery = ref('');
-const filterChannel = ref('');
-const filterStatus = ref('');
+const filterChannel = ref('__all__');
+const filterStatus = ref('__all__');
 
 const filteredLogs = computed(() => {
   if (!logs.value) return [];
@@ -34,10 +34,10 @@ const filteredLogs = computed(() => {
       l.event_type?.toLowerCase().includes(q)
     );
   }
-  if (filterChannel.value && filterChannel.value !== 'all-channels') {
+  if (filterChannel.value && filterChannel.value !== '__all__') {
     result = result.filter(l => l.channel_type === filterChannel.value);
   }
-  if (filterStatus.value && filterStatus.value !== 'all-status') {
+  if (filterStatus.value && filterStatus.value !== '__all__') {
     result = result.filter(l => l.status === filterStatus.value);
   }
   return result;
@@ -105,7 +105,7 @@ onMounted(async () => {
                   <SelectValue placeholder="All Channels" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Channels</SelectItem>
+                  <SelectItem value="__all__">All Channels</SelectItem>
                   <SelectItem value="email">Email</SelectItem>
                   <SelectItem value="discord">Discord</SelectItem>
                   <SelectItem value="discord_bot">Discord Bot</SelectItem>
@@ -123,7 +123,7 @@ onMounted(async () => {
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="__all__">All Status</SelectItem>
                   <SelectItem value="sent">Sent</SelectItem>
                   <SelectItem value="failed">Failed</SelectItem>
                 </SelectContent>
