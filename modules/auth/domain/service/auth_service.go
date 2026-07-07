@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"ping-uptime/internal/pkg/database"
 	"ping-uptime/internal/pkg/jwt"
@@ -9,6 +11,7 @@ import (
 	"ping-uptime/modules/users/domain/entity"
 	"ping-uptime/modules/users/domain/repository"
 	"sync"
+	"time"
 )
 
 // Errors
@@ -17,6 +20,8 @@ var (
 	ErrEmailAlreadyUsed      = errors.New("email already in use")
 	ErrInvalidPassword       = errors.New("invalid password")
 	ErrRegistrationDisabled  = errors.New("registration is disabled")
+	ErrInvalidResetToken     = errors.New("invalid or expired reset token")
+	ErrSMTPNotConfigured     = errors.New("SMTP not configured")
 )
 
 // AuthService handles user authentication
@@ -117,6 +122,55 @@ func (s *AuthService) ValidateUserExists(ctx context.Context, userID uint) error
 		return errors.New("user is blocked")
 	}
 	return nil
+}
+
+// RequestPasswordReset generates a reset token and returns the user + token.
+func (s *AuthService) RequestPasswordReset(ctx context.Context, email string) (*entity.User, string, error) {
+	user, err := s.userRepo.FindByEmail(ctx, email)
+	if err != nil {
+		// Don't reveal whether email exists
+		return nil, "", nil
+	}
+
+	token := make([]byte, 32)
+	if _, err := rand.Read(token); err != nil {
+		return nil, "", err
+	}
+	resetToken := hex.EncodeToString(token)
+	expiry := time.Now().Add(1 * time.Hour)
+	user.ResetToken = &resetToken
+	user.ResetTokenExpiry = &expiry
+
+	if err := s.userRepo.Update(ctx, user); err != nil {
+		return nil, "", err
+	}
+	return user, resetToken, nil
+}
+
+// ResetPassword validates a reset token and updates the password.
+func (s *AuthService) ResetPassword(ctx context.Context, token, newPassword string) error {
+	if token == "" || newPassword == "" {
+		return errors.New("token and password are required")
+	}
+
+	// Find user by non-nil, non-expired reset token
+	var user entity.User
+	if err := database.DB.WithContext(ctx).
+		Where("reset_token = ? AND reset_token_expiry > ?", token, time.Now()).
+		First(&user).Error; err != nil {
+		return ErrInvalidResetToken
+	}
+
+	hashed, err := utils.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+
+	user.Password = hashed
+	user.ResetToken = nil
+	user.ResetTokenExpiry = nil
+
+	return s.userRepo.Update(ctx, &user)
 }
 
 func (s *AuthService) Register(ctx context.Context, user *entity.User) error {

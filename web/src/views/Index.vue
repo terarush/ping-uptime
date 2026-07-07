@@ -347,6 +347,13 @@ const triggerShake = () => {
               </FormItem>
             </FormField>
 
+            <!-- Forgot Password link (login mode only) -->
+            <div v-if="!isSetupMode && !isRegisterMode" class="text-right -mt-2">
+              <RouterLink to="/forgot-password" class="text-[11px] text-primary hover:underline font-semibold">
+                Forgot password?
+              </RouterLink>
+            </div>
+
             <!-- Submit Button -->
             <Button
               type="submit"
