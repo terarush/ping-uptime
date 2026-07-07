@@ -31,6 +31,7 @@ import {
   BadgeCheck,
   Clock,
   Ban,
+  Search,
 } from '@lucide/vue';
 import gsap from 'gsap';
 import { toast } from 'vue-sonner';
@@ -70,6 +71,14 @@ const inviteUserID = ref<number>(0);
 const inviteRole = ref('member');
 
 const isEditMode = computed(() => !!actionTeam.value);
+
+const searchQuery = ref('');
+
+const filteredTeams = computed(() => {
+  if (!searchQuery.value.trim()) return teams.value;
+  const q = searchQuery.value.toLowerCase().trim();
+  return teams.value.filter(t => t.name.toLowerCase().includes(q));
+});
 
 // Filter members for selected team
 const teamMembers = computed(() => {
@@ -313,6 +322,10 @@ onMounted(() => {
           <CardHeader class="pb-3 border-b border-border/40">
             <CardTitle class="text-sm font-bold text-foreground">All Teams</CardTitle>
             <CardDescription class="text-xs">{{ teams.length }} team{{ teams.length !== 1 ? 's' : '' }}</CardDescription>
+            <div class="relative w-full mt-2">
+              <Search class="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
+              <Input v-model="searchQuery" placeholder="Search teams..." class="pl-8 h-8" />
+            </div>
           </CardHeader>
           <CardContent class="p-0">
             <!-- Loading Skeleton -->
@@ -321,7 +334,7 @@ onMounted(() => {
             </div>
 
             <!-- Empty State -->
-            <div v-else-if="teams.length === 0" class="p-12 flex flex-col items-center text-center space-y-3">
+            <div v-else-if="filteredTeams.length === 0" class="p-12 flex flex-col items-center text-center space-y-3">
               <UsersRound class="w-10 h-10 text-muted-foreground/60" />
               <h3 class="text-sm font-bold text-foreground">No Teams Yet</h3>
               <p class="text-xs text-muted-foreground max-w-48">Create your first team to start collaborating.</p>
@@ -330,8 +343,7 @@ onMounted(() => {
             <!-- Team Cards -->
             <div v-else class="divide-y divide-border/40">
               <div
-                v-for="team in teams"
-                :key="team.id"
+                v-for="team in filteredTeams" :key="team.id"
                 class="team-row flex items-center justify-between p-4 cursor-pointer transition-colors hover:bg-muted/40"
                 :class="{ 'bg-muted/30 border-l-2 border-l-primary': selectedTeam?.id === team.id }"
                 @click="selectTeam(team)"

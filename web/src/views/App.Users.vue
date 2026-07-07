@@ -44,6 +44,7 @@ const {
 } = useUsers();
 
 const searchQuery = ref('');
+const filterUserRole = ref('__all__');
 const success = ref('');
 
 // Dialog states
@@ -72,16 +73,21 @@ const fetchAll = async () => {
   }
 };
 
-// Filter users by search query
+// Filter users by search query + role
 const filteredUsers = computed(() => {
   if (!users.value) return [];
-  const query = searchQuery.value.toLowerCase().trim();
-  if (!query) return users.value;
-  return users.value.filter(u =>
-    u.name.toLowerCase().includes(query) ||
-    u.email.toLowerCase().includes(query) ||
-    u.role.toLowerCase().includes(query)
-  );
+  let result = users.value;
+  const q = searchQuery.value.toLowerCase().trim();
+  if (q) {
+    result = result.filter(u =>
+      u.name.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q)
+    );
+  }
+  if (filterUserRole.value && filterUserRole.value !== '__all__') {
+    result = result.filter(u => u.role === filterUserRole.value);
+  }
+  return result;
 });
 
 // Reset form
@@ -235,22 +241,31 @@ onMounted(() => {
 
     <!-- Main Container Card -->
     <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
-      <CardHeader class="pb-3 border-b border-border/40">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <CardHeader class="pb-3 border-b border-border/40 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <CardTitle class="text-sm font-bold text-foreground">Registered Users</CardTitle>
             <CardDescription class="text-xs">A list of all users registered in this self-hosted system.</CardDescription>
           </div>
 
           <!-- Search Bar -->
-          <div class="relative w-full sm:w-72">
-            <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              v-model="searchQuery"
-              placeholder="Search by name, email or role..."
-              class="pl-9 h-9 rounded-lg"
-            />
+          <div class="relative w-full sm:w-56">
+            <Search class="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+            <Input v-model="searchQuery" placeholder="Search by name or email..." class="pl-8 h-8 rounded-lg" />
           </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <Select v-model="filterUserRole">
+            <SelectTrigger class="w-28 h-8">
+              <SelectValue placeholder="Role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All roles</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="user">User</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         </div>
       </CardHeader>
 

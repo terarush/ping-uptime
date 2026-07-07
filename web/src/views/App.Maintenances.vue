@@ -4,15 +4,27 @@ import { useMaintenances, type Maintenance } from '@/composables/useMaintenances
 import { useMonitors } from '@/composables/useMonitors';
 import MaintenanceTable from '@/components/maintenance-table.vue';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'vue-sonner';
-import { Wrench, Plus, Loader2, RefreshCw } from '@lucide/vue';
+import { Wrench, Plus, Loader2, RefreshCw, Search } from '@lucide/vue';
 
 const { items, loading, fetchAll, create, update, remove } = useMaintenances();
 const { monitors, fetchMonitors } = useMonitors();
+
+const searchQuery = ref('');
+
+const filteredItems = computed(() => {
+  if (!searchQuery.value.trim()) return items.value;
+  const q = searchQuery.value.toLowerCase().trim();
+  return items.value.filter(i =>
+    i.name.toLowerCase().includes(q) ||
+    i.description.toLowerCase().includes(q) ||
+    i.status.toLowerCase().includes(q)
+  );
+});
 
 const isFormOpen = ref(false);
 const isDeleteOpen = ref(false);
@@ -150,8 +162,16 @@ onMounted(async () => {
 
     <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
       <CardHeader class="pb-3 border-b border-border/40">
-        <CardTitle class="text-sm font-bold">Scheduled Maintenances</CardTitle>
-        <CardDescription class="text-xs">Active maintenance windows suppress alert notifications.</CardDescription>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle class="text-sm font-bold">Scheduled Maintenances</CardTitle>
+            <CardDescription class="text-xs">Active maintenance windows suppress alert notifications.</CardDescription>
+          </div>
+          <div class="relative w-full sm:w-64">
+            <Search class="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
+            <Input v-model="searchQuery" placeholder="Search maintenances..." class="pl-8 h-8" />
+          </div>
+        </div>
       </CardHeader>
       <CardContent class="p-0">
         <div v-if="loading && items.length === 0" class="flex justify-center py-20">
@@ -162,7 +182,7 @@ onMounted(async () => {
           <p class="text-sm font-bold text-foreground">No maintenance windows</p>
           <p class="text-xs text-muted-foreground mt-1">Schedule maintenance to avoid false alerts.</p>
         </div>
-        <MaintenanceTable v-else :items="items" @edit="openEdit" @delete="openDelete" />
+        <MaintenanceTable v-else :items="filteredItems" @edit="openEdit" @delete="openDelete" />
       </CardContent>
     </Card>
 

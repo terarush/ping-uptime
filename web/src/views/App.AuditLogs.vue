@@ -1,26 +1,71 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useAuditLogs } from '@/composables/useAuditLogs';
+import { ref, onMounted, computed } from 'vue';
+import { useAuditLogs, type AuditLogFilter } from '@/composables/useAuditLogs';
+import { useUsers } from '@/composables/useUsers';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, RefreshCw, Loader2 } from '@lucide/vue';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { ClipboardList, RefreshCw, Loader2, Search } from '@lucide/vue';
 
 const { items, loading, fetchAll } = useAuditLogs();
-onMounted(fetchAll);
+const { users, fetchUsersData } = useUsers();
+
+// Filters
+const filterAction = ref('__all__');
+const filterEntity = ref('__all__');
+const filterUserID = ref(0);
+const filterFrom = ref('');
+const filterTo = ref('');
+
+const ENTITY_TYPES = ['monitor', 'incident', 'status_page', 'notification_channel'];
+const ACTIONS = ['created', 'updated', 'deleted', 'resolved'];
+
+// Build user map for name lookup
+const userMap = computed(() => {
+  const m: Record<number, string> = {};
+  for (const u of users.value) {
+    m[u.id] = u.name;
+  }
+  return m;
+});
+
+const applyFilters = async () => {
+  const filter: AuditLogFilter = {};
+  if (filterAction.value && filterAction.value !== '__all__') filter.action = filterAction.value;
+  if (filterEntity.value && filterEntity.value !== '__all__') filter.entity_type = filterEntity.value;
+  if (filterUserID.value && filterUserID.value > 0) filter.user_id = filterUserID.value;
+  if (filterFrom.value) filter.from = new Date(filterFrom.value).toISOString();
+  if (filterTo.value) filter.to = new Date(filterTo.value).toISOString();
+  await fetchAll(filter);
+};
+
+const clearFilters = async () => {
+  filterAction.value = '__all__';
+  filterEntity.value = '__all__';
+  filterUserID.value = 0;
+  filterFrom.value = '';
+  filterTo.value = '';
+  await fetchAll();
+};
 
 const fmtTime = (s: string) => new Date(s).toLocaleString();
 
 const actionColor = (a: string) => {
   switch (a) {
-    case 'created': return 'bg-emerald-500/10 text-emerald-500';
-    case 'updated': return 'bg-blue-500/10 text-blue-500';
-    case 'deleted': return 'bg-red-500/10 text-red-500';
-    case 'resolved': return 'bg-emerald-500/10 text-emerald-500';
-    default: return 'bg-slate-500/10 text-slate-500';
+    case 'created': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+    case 'updated': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+    case 'deleted': return 'bg-red-500/10 text-red-500 border-red-500/20';
+    case 'resolved': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+    default: return 'bg-slate-500/10 text-slate-500 border-slate-500/20';
   }
 };
+
+onMounted(async () => {
+  await Promise.all([fetchAll(), fetchUsersData()]);
+});
 </script>
 
 <template>
@@ -35,16 +80,62 @@ const actionColor = (a: string) => {
         </h2>
         <p class="text-xs text-muted-foreground">Track all entity changes in the system.</p>
       </div>
-      <Button variant="outline" size="sm" @click="fetchAll" class="h-9">
+      <Button variant="outline" size="sm" @click="applyFilters" class="h-9">
         <RefreshCw class="w-4 h-4 mr-1.5" :class="{ 'animate-spin': loading }" />
         Refresh
       </Button>
     </div>
 
+    <!-- Filter Bar -->
+    <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
+      <CardContent class="p-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="flex items-center gap-1.5">
+            <Select v-model="filterEntity">
+              <SelectTrigger class="w-36 h-8">
+                <SelectValue placeholder="Entity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All entities</SelectItem>
+                <SelectItem v-for="et in ENTITY_TYPES" :key="et" :value="et">{{ et }}</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select v-model="filterAction">
+              <SelectTrigger class="w-32 h-8">
+                <SelectValue placeholder="Action" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All actions</SelectItem>
+                <SelectItem v-for="a in ACTIONS" :key="a" :value="a">{{ a }}</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select v-model="filterUserID">
+              <SelectTrigger class="w-36 h-8">
+                <SelectValue placeholder="User" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem :value="0">All users</SelectItem>
+                <SelectItem v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <Input v-model="filterFrom" type="datetime-local" class="w-44 h-8" />
+            <span class="text-xs text-muted-foreground">—</span>
+            <Input v-model="filterTo" type="datetime-local" class="w-44 h-8" />
+          </div>
+          <div class="flex items-center gap-1.5">
+            <Button size="sm" @click="applyFilters" class="h-8 text-xs px-3">Apply</Button>
+            <Button variant="outline" size="sm" @click="clearFilters" class="h-8 text-xs px-3">Clear</Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+
     <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
       <CardHeader class="pb-3 border-b border-border/40">
         <CardTitle class="text-sm font-bold">Activity Log</CardTitle>
-        <CardDescription class="text-xs">Last 200 events across all entities.</CardDescription>
+        <CardDescription class="text-xs">{{ items.length }} event(s) recorded.</CardDescription>
       </CardHeader>
       <CardContent class="p-0">
         <div v-if="loading && items.length === 0" class="flex justify-center py-20">
@@ -52,21 +143,26 @@ const actionColor = (a: string) => {
         </div>
         <div v-else-if="items.length === 0" class="flex flex-col items-center py-20 text-center">
           <ClipboardList class="w-12 h-12 text-muted-foreground/30 mb-3" />
-          <p class="text-sm font-bold text-foreground">No audit logs yet</p>
+          <p class="text-sm font-bold text-foreground">No audit logs found</p>
+          <p class="text-xs text-muted-foreground mt-1">Try adjusting filters or wait for events.</p>
         </div>
         <Table v-else>
           <TableHeader>
             <TableRow>
               <TableHead>Time</TableHead>
+              <TableHead>User</TableHead>
               <TableHead>Action</TableHead>
               <TableHead>Entity</TableHead>
-              <TableHead>Entity ID</TableHead>
+              <TableHead>ID</TableHead>
               <TableHead>Details</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-for="item in items" :key="item.id" class="text-xs">
               <TableCell class="text-muted-foreground whitespace-nowrap">{{ fmtTime(item.created_at) }}</TableCell>
+              <TableCell class="text-muted-foreground whitespace-nowrap">
+                {{ userMap[item.user_id] || `User #${item.user_id}` }}
+              </TableCell>
               <TableCell>
                 <Badge variant="outline" :class="['uppercase text-[10px] font-bold', actionColor(item.action)]">
                   {{ item.action }}

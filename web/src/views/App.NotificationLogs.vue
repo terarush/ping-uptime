@@ -19,8 +19,8 @@ import gsap from 'gsap';
 const { logs, loading, fetchLogs, formatDate, channelIcon } = useNotificationLogs();
 
 const searchQuery = ref('');
-const filterChannel = ref('');
-const filterStatus = ref('');
+const filterChannel = ref('__all__');
+const filterStatus = ref('__all__');
 
 const filteredLogs = computed(() => {
   if (!logs.value) return [];
@@ -34,10 +34,10 @@ const filteredLogs = computed(() => {
       l.event_type?.toLowerCase().includes(q)
     );
   }
-  if (filterChannel.value && filterChannel.value !== 'all-channels') {
+  if (filterChannel.value && filterChannel.value !== '__all__') {
     result = result.filter(l => l.channel_type === filterChannel.value);
   }
-  if (filterStatus.value && filterStatus.value !== 'all-status') {
+  if (filterStatus.value && filterStatus.value !== '__all__') {
     result = result.filter(l => l.status === filterStatus.value);
   }
   return result;
@@ -91,19 +91,19 @@ onMounted(async () => {
 
     <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
       <CardHeader class="pb-3 border-b border-border/40">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <CardTitle class="text-sm font-bold text-foreground">Delivery Log</CardTitle>
             <CardDescription class="text-xs">Filter and review notification delivery status.</CardDescription>
           </div>
 
-          <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex flex-wrap items-center gap-2">
             <Select v-model="filterChannel">
-              <SelectTrigger class="w-full h-9">
+              <SelectTrigger class="w-36 h-8">
                 <SelectValue placeholder="Channel" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all-channels">All Channels</SelectItem>
+                <SelectItem value="__all__">All Channels</SelectItem>
                 <SelectItem value="email">Email</SelectItem>
                 <SelectItem value="discord">Discord</SelectItem>
                 <SelectItem value="discord_bot">Discord Bot</SelectItem>
@@ -114,19 +114,19 @@ onMounted(async () => {
             </Select>
 
             <Select v-model="filterStatus">
-              <SelectTrigger class="w-full h-9">
+              <SelectTrigger class="w-32 h-8">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all-status">All Status</SelectItem>
+                <SelectItem value="__all__">All Status</SelectItem>
                 <SelectItem value="sent">Sent</SelectItem>
                 <SelectItem value="failed">Failed</SelectItem>
               </SelectContent>
             </Select>
 
-            <div class="relative w-full sm:w-56">
-              <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input v-model="searchQuery" placeholder="Search..." class="pl-9 h-9" />
+            <div class="relative w-48">
+              <Search class="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+              <Input v-model="searchQuery" placeholder="Search..." class="pl-8 h-8" />
             </div>
           </div>
         </div>

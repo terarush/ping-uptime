@@ -39,22 +39,29 @@ const fetchAll = async () => {
 };
 
 // Filtered incidents
+const filterIncidentStatus = ref('__all__');
+const filterIncidentMonitorID = ref(0);
+
 const filteredIncidents = computed(() => {
   if (!incidents.value) return [];
-  const query = searchQuery.value.toLowerCase().trim();
-  if (!query) return incidents.value;
-  return incidents.value.filter(inc => {
-    const monitor = monitorsMap.value[inc.monitor_id];
-    const monitorName = monitor ? monitor.name.toLowerCase() : '';
-    const monitorUrl = monitor ? monitor.url.toLowerCase() : '';
-    const errMessage = inc.error_message ? inc.error_message.toLowerCase() : '';
-    const statusStr = inc.status.toLowerCase();
-
-    return monitorName.includes(query) ||
-           monitorUrl.includes(query) ||
-           errMessage.includes(query) ||
-           statusStr.includes(query);
-  });
+  let result = incidents.value;
+  const q = searchQuery.value.toLowerCase().trim();
+  if (q) {
+    result = result.filter(inc => {
+      const monitor = monitorsMap.value[inc.monitor_id];
+      const monitorName = monitor ? monitor.name.toLowerCase() : '';
+      const monitorUrl = monitor ? monitor.url.toLowerCase() : '';
+      const errMessage = inc.error_message ? inc.error_message.toLowerCase() : '';
+      return monitorName.includes(q) || monitorUrl.includes(q) || errMessage.includes(q);
+    });
+  }
+  if (filterIncidentStatus.value && filterIncidentStatus.value !== '__all__') {
+    result = result.filter(inc => inc.status === filterIncidentStatus.value);
+  }
+  if (filterIncidentMonitorID.value && filterIncidentMonitorID.value > 0) {
+    result = result.filter(inc => inc.monitor_id === filterIncidentMonitorID.value);
+  }
+  return result;
 });
 
 // GSAP Animations
@@ -105,14 +112,30 @@ onMounted(() => {
             <CardDescription class="text-xs">Timeline of network failures and latency responses.</CardDescription>
           </div>
 
-          <!-- Search Bar -->
-          <div class="relative w-full sm:w-72">
-            <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              v-model="searchQuery"
-              placeholder="Search incidents..."
-              class="pl-9 h-9"
-            />
+          <div class="flex flex-wrap items-center gap-2">
+            <Select v-model="filterIncidentStatus">
+              <SelectTrigger class="w-28 h-8">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select v-model="filterIncidentMonitorID">
+              <SelectTrigger class="w-40 h-8">
+                <SelectValue placeholder="Monitor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem :value="0">All monitors</SelectItem>
+                <SelectItem v-for="m in Object.values(monitorsMap)" :key="m.id" :value="m.id">{{ m.name }}</SelectItem>
+              </SelectContent>
+            </Select>
+            <div class="relative w-48">
+              <Search class="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+              <Input v-model="searchQuery" placeholder="Search..." class="pl-8 h-8" />
+            </div>
           </div>
         </div>
       </CardHeader>

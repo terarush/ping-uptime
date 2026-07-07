@@ -115,16 +115,30 @@ const fetchAll = async () => {
 };
 
 // Filter monitors list
+const filterType = ref('__all__');
+const filterStatus = ref('__all__');
+const filterTagID = ref(0);
+
 const filteredMonitors = computed(() => {
   if (!monitors.value) return [];
-  const query = searchQuery.value.toLowerCase().trim();
-  if (!query) return monitors.value;
-  return monitors.value.filter(m =>
-    m.name.toLowerCase().includes(query) ||
-    m.url.toLowerCase().includes(query) ||
-    m.type.toLowerCase().includes(query) ||
-    m.status.toLowerCase().includes(query)
-  );
+  let result = monitors.value;
+  const q = searchQuery.value.toLowerCase().trim();
+  if (q) {
+    result = result.filter(m =>
+      m.name.toLowerCase().includes(q) ||
+      m.url.toLowerCase().includes(q)
+    );
+  }
+  if (filterType.value && filterType.value !== '__all__') {
+    result = result.filter(m => m.type === filterType.value);
+  }
+  if (filterStatus.value && filterStatus.value !== '__all__') {
+    result = result.filter(m => m.status === filterStatus.value);
+  }
+  if (filterTagID.value && filterTagID.value > 0) {
+    result = result.filter(m => m.tags?.some(t => t.id === filterTagID.value));
+  }
+  return result;
 });
 
 const selectedMonitorStats = computed(() => {
@@ -420,22 +434,51 @@ onMounted(async () => {
 
     <!-- Main Card -->
     <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
-      <CardHeader class="pb-3 border-b border-border/40">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <CardHeader class="pb-3 border-b border-border/40 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <CardTitle class="text-sm font-bold text-foreground">Registered Monitors</CardTitle>
             <CardDescription class="text-xs">Uptime checks run based on configured intervals.</CardDescription>
           </div>
-
-          <!-- Search Bar -->
-          <div class="relative w-full sm:w-72">
-            <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              v-model="searchQuery"
-              placeholder="Search monitors..."
-              class="pl-9 h-9"
-            />
+          <div class="relative w-full sm:w-56">
+            <Search class="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+            <Input v-model="searchQuery" placeholder="Search monitors..." class="pl-8 h-8" />
           </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <Select v-model="filterType">
+            <SelectTrigger class="w-28 h-8">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All types</SelectItem>
+              <SelectItem value="http">HTTP/HTTPS</SelectItem>
+              <SelectItem value="ping">ICMP Ping</SelectItem>
+              <SelectItem value="heartbeat">Heartbeat</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select v-model="filterStatus">
+            <SelectTrigger class="w-28 h-8">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="paused">Paused</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select v-model="filterTagID">
+            <SelectTrigger class="w-32 h-8">
+              <SelectValue placeholder="Tag" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem :value="0">All tags</SelectItem>
+              <SelectItem v-for="t in tags" :key="t.id" :value="t.id">
+                {{ t.name }}
+              </SelectItem>
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </CardHeader>
 

@@ -2,13 +2,13 @@
 import { ref, onMounted, computed } from 'vue';
 import { useApiTokens, type ApiToken, type CreateTokenResult } from '@/composables/useApiTokens';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'vue-sonner';
-import { KeyRound, Plus, Loader2, RefreshCw, Trash2, Copy, CheckCircle } from '@lucide/vue';
+import { KeyRound, Plus, Loader2, RefreshCw, Trash2, Copy, CheckCircle, Search } from '@lucide/vue';
 import gsap from 'gsap';
 
 const {
@@ -98,12 +98,28 @@ const copyToken = async () => {
   }
 };
 
+const searchQuery = ref('');
+const filterTokenStatus = ref('__all__');
+
+const filteredTokens = computed(() => {
+  let result = tokens.value;
+  const q = searchQuery.value.toLowerCase().trim();
+  if (q) {
+    result = result.filter(t => t.name.toLowerCase().includes(q));
+  }
+  if (filterTokenStatus.value && filterTokenStatus.value !== '__all__') {
+    const revoked = filterTokenStatus.value === 'revoked';
+    result = result.filter(t => t.is_revoked === revoked);
+  }
+  return result;
+});
+
 const activeTokens = computed(() =>
-  tokens.value.filter(t => !t.is_revoked)
+  filteredTokens.value.filter(t => !t.is_revoked)
 );
 
 const revokedTokens = computed(() =>
-  tokens.value.filter(t => t.is_revoked)
+  filteredTokens.value.filter(t => t.is_revoked)
 );
 
 onMounted(async () => {
@@ -146,11 +162,33 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Active Tokens Card -->
+    <!-- Tokens Card -->
     <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
-      <CardHeader class="pb-3 border-b border-border/40">
-        <CardTitle class="text-sm font-bold">Active Tokens</CardTitle>
-        <CardDescription class="text-xs">{{ activeTokens.length }} active token{{ activeTokens.length !== 1 ? 's' : '' }}</CardDescription>
+      <CardHeader class="pb-3 border-b border-border/40 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <CardTitle class="text-sm font-bold">API Tokens</CardTitle>
+            <CardDescription class="text-xs">{{ activeTokens.length }} active, {{ revokedTokens.length }} revoked</CardDescription>
+          </div>
+          <div class="relative w-full sm:w-56">
+            <Search class="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+            <Input v-model="searchQuery" placeholder="Search tokens..." class="pl-8 h-8" />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <Select v-model="filterTokenStatus">
+            <SelectTrigger class="w-32 h-8">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All tokens</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="revoked">Revoked</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+        </div>
       </CardHeader>
       <CardContent class="p-0">
         <div v-if="loading && tokens.length === 0" class="flex justify-center py-20">

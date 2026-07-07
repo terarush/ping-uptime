@@ -35,3 +35,7 @@ func (s *AuditLogService) GetByUserID(ctx context.Context, userID uint) ([]*enti
 func (s *AuditLogService) GetByEntity(ctx context.Context, entityType string, entityID uint) ([]*entity.AuditLog, error) {
 	return s.repo.FindByEntity(ctx, entityType, entityID)
 }
+
+func (s *AuditLogService) FindFiltered(ctx context.Context, filter repository.AuditLogFilter) ([]*entity.AuditLog, error) {
+	return s.repo.FindFiltered(ctx, filter)
+}

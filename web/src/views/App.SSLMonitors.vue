@@ -2,10 +2,11 @@
 import { ref, onMounted, computed } from 'vue';
 import { useSslMonitors } from '@/composables/useSslMonitors';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ShieldCheck, RefreshCw, Loader2, Play, Trash2 } from '@lucide/vue';
+import { ShieldCheck, RefreshCw, Loader2, Play, Trash2, Search } from '@lucide/vue';
 import gsap from 'gsap';
 
 const {
@@ -21,8 +22,21 @@ const {
   statusVariant,
 } = useSslMonitors();
 
+const searchQuery = ref('');
+
 // Fetch monitors too for name resolution
 const monitorsMap = ref<Record<number, { id: number; name: string; url: string }>>({});
+
+const filteredCerts = computed(() => {
+  if (!searchQuery.value.trim()) return certs.value;
+  const q = searchQuery.value.toLowerCase().trim();
+  return certs.value.filter(c =>
+    (c.domain || '').toLowerCase().includes(q) ||
+    (monitorsMap.value[c.monitor_id]?.name || '').toLowerCase().includes(q) ||
+    (c.issuer || '').toLowerCase().includes(q) ||
+    (c.status || '').toLowerCase().includes(q)
+  );
+});
 
 const loadData = async () => {
   try {
@@ -114,8 +128,16 @@ onMounted(() => {
     <!-- Main Container Card -->
     <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
       <CardHeader class="pb-3 border-b border-border/40">
-        <CardTitle class="text-sm font-bold text-foreground">Certificate Status</CardTitle>
-        <CardDescription class="text-xs">TLS certificate checks and expiry tracking.</CardDescription>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle class="text-sm font-bold text-foreground">Certificate Status</CardTitle>
+            <CardDescription class="text-xs">TLS certificate checks and expiry tracking.</CardDescription>
+          </div>
+          <div class="relative w-full sm:w-64">
+            <Search class="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
+            <Input v-model="searchQuery" placeholder="Search certificates..." class="pl-8 h-8" />
+          </div>
+        </div>
       </CardHeader>
       <CardContent class="p-0">
         <!-- Loading State -->
@@ -125,7 +147,7 @@ onMounted(() => {
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="certs.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
+        <div v-else-if="filteredCerts.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
           <ShieldCheck class="w-12 h-12 text-emerald-500/30 mb-3" />
           <p class="text-sm font-bold text-foreground">No SSL certificates</p>
           <p class="text-xs text-muted-foreground mt-1">Check a monitor to begin tracking its TLS certificate.</p>
@@ -146,7 +168,7 @@ onMounted(() => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="cert in certs" :key="cert.id" class="ssl-row text-xs hover:bg-muted/50 transition-colors">
+            <TableRow v-for="cert in filteredCerts" :key="cert.id" class="ssl-row text-xs hover:bg-muted/50 transition-colors">
               <TableCell class="font-medium">{{ cert.domain || '—' }}</TableCell>
               <TableCell class="text-muted-foreground">
                 {{ monitorsMap[cert.monitor_id]?.name || `Monitor #${cert.monitor_id}` }}
