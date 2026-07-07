@@ -30,6 +30,35 @@ func (r AuditLogRepositoryImpl) FindByEntity(ctx context.Context, entityType str
 	return items, err
 }
 
+func (r AuditLogRepositoryImpl) FindFiltered(ctx context.Context, filter AuditLogFilter) ([]*entity.AuditLog, error) {
+	query := database.DB.WithContext(ctx).Model(&entity.AuditLog{}).Order("created_at DESC")
+
+	if filter.UserID != nil && *filter.UserID > 0 {
+		query = query.Where("user_id = ?", *filter.UserID)
+	}
+	if filter.EntityType != nil && *filter.EntityType != "" {
+		query = query.Where("entity_type = ?", *filter.EntityType)
+	}
+	if filter.Action != nil && *filter.Action != "" {
+		query = query.Where("action = ?", *filter.Action)
+	}
+	if filter.From != nil && *filter.From != "" {
+		query = query.Where("created_at >= ?", *filter.From)
+	}
+	if filter.To != nil && *filter.To != "" {
+		query = query.Where("created_at <= ?", *filter.To)
+	}
+
+	limit := filter.Limit
+	if limit <= 0 || limit > 500 {
+		limit = 200
+	}
+
+	var items []*entity.AuditLog
+	err := query.Limit(limit).Find(&items).Error
+	return items, err
+}
+
 func NewAuditLogRepositoryImpl() AuditLogRepository {
 	return AuditLogRepositoryImpl{}
 }

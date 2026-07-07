@@ -7,6 +7,7 @@ import (
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/internal/pkg/middleware"
 	"ping-uptime/internal/pkg/utils"
+	"ping-uptime/modules/audit_logs/domain/repository"
 	"ping-uptime/modules/audit_logs/domain/service"
 	"strconv"
 	"strings"
@@ -26,7 +27,34 @@ func NewAuditLogHandler(log *logger.Logger, svc *service.AuditLogService) *Audit
 
 func (h *AuditLogHandler) getAll(c echo.Context) error {
 	ctx := c.Request().Context()
-	items, err := h.svc.GetAll(ctx)
+
+	filter := repository.AuditLogFilter{}
+
+	if uidStr := c.QueryParam("user_id"); uidStr != "" {
+		if uid, err := strconv.ParseUint(uidStr, 10, 32); err == nil {
+			v := uint(uid)
+			filter.UserID = &v
+		}
+	}
+	if et := c.QueryParam("entity_type"); et != "" {
+		filter.EntityType = &et
+	}
+	if a := c.QueryParam("action"); a != "" {
+		filter.Action = &a
+	}
+	if f := c.QueryParam("from"); f != "" {
+		filter.From = &f
+	}
+	if t := c.QueryParam("to"); t != "" {
+		filter.To = &t
+	}
+	if lStr := c.QueryParam("limit"); lStr != "" {
+		if l, err := strconv.Atoi(lStr); err == nil {
+			filter.Limit = l
+		}
+	}
+
+	items, err := h.svc.FindFiltered(ctx, filter)
 	if err != nil {
 		return h.r.InternalServerErrorResponse(c, err.Error())
 	}
@@ -71,23 +99,22 @@ func (h *AuditLogHandler) SubscribeToEvents(event *bus.EventBus, svc *service.Au
 			entityType := parts[0]
 			action := parts[1]
 
-			// Extract entity ID from payload
-			payloadMap, ok := ev.Payload.(map[string]interface{})
-			if !ok {
-				// Try to marshal/unmarshal to get generic map
-				var pm map[string]interface{}
-				if err := json.Unmarshal(payloadJSON, &pm); err != nil {
-					return
-				}
-				payloadMap = pm
+			var pm map[string]interface{}
+			if err := json.Unmarshal(payloadJSON, &pm); err != nil {
+				return
 			}
 
 			entityID := uint(0)
-			if id, ok := payloadMap["id"].(float64); ok {
+			if id, ok := pm["id"].(float64); ok {
 				entityID = uint(id)
 			}
 
-			if err := svc.Log(ctx, 0, action, entityType, entityID, details); err != nil {
+			userID := uint(0)
+			if uid, ok := pm["user_id"].(float64); ok {
+				userID = uint(uid)
+			}
+
+			if err := svc.Log(ctx, userID, action, entityType, entityID, details); err != nil {
 				h.log.Error("failed to log audit event", "type", ev.Type, "error", err)
 			}
 		})

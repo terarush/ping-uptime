@@ -10,4 +10,14 @@ type AuditLogRepository interface {
 	FindAll(ctx context.Context) ([]*entity.AuditLog, error)
 	FindByUserID(ctx context.Context, userID uint) ([]*entity.AuditLog, error)
 	FindByEntity(ctx context.Context, entityType string, entityID uint) ([]*entity.AuditLog, error)
+	FindFiltered(ctx context.Context, filter AuditLogFilter) ([]*entity.AuditLog, error)
+}
+
+type AuditLogFilter struct {
+	UserID     *uint
+	EntityType *string
+	Action     *string
+	From       *string // ISO date
+	To         *string // ISO date
+	Limit      int
 }
