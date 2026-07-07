@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
 import { useNotificationChannels, type NotificationChannel } from '@/composables/useNotificationChannels';
+import { useIntegrations } from '@/composables/useIntegrations';
 import { useSettings } from '@/composables/useSettings';
 import { notificationChannelSchema } from '@/validations/notification-channel';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -34,13 +35,21 @@ import gsap from 'gsap';
 // Composable states
 const {
   channels,
-  loading,
-  error,
+  loading: notifLoading,
+  error: notifError,
   fetchChannelsData,
   createChannel,
   updateChannel,
   deleteChannel
 } = useNotificationChannels();
+
+const {
+  integrations,
+  loading: intLoading,
+  error: intError,
+  fetchAll: fetchIntegrations,
+  update: updateIntegration,
+} = useIntegrations();
 
 const { settings: globalSettings, fetchSettingsData } = useSettings();
 
@@ -66,7 +75,7 @@ const discordInviteLink = computed(() => {
 const isFormDialogOpen = ref(false);
 const isDeleteDialogOpen = ref(false);
 const formLoading = ref(false);
-const actionChannel = ref<NotificationChannel | null>(null);
+const actionChannel = ref<any>(null);
 
 // Form Fields
 const formName = ref('');
@@ -82,23 +91,32 @@ const configDiscordChannelId = ref('');
 
 const isEditMode = computed(() => !!actionChannel.value);
 
-// Fetch notification channels wrapper
+// Fetch notification channels + integrations
 const fetchAll = async () => {
   try {
-    await fetchChannelsData();
+    await Promise.all([fetchChannelsData(), fetchIntegrations()]);
   } catch (err) {
-    console.error('Failed to load alert channels list:', err);
+    console.error('Failed to load data:', err);
   } finally {
     setTimeout(animateTableRows, 50);
   }
 };
 
+// Merge notification channels + integrations, tag source
+const allChannels = computed(() => {
+  const notifs = (channels.value || []).map(c => ({ ...c, _source: 'channel' as const }));
+  const ints = (integrations.value || []).map(i => ({ ...i, _source: 'integration' as const }));
+  return [...notifs, ...ints];
+});
+
+const loading = computed(() => notifLoading.value || intLoading.value);
+
 // Filtered channels
 const filteredChannels = computed(() => {
-  if (!channels.value) return [];
+  if (!allChannels.value.length) return [];
   const query = searchQuery.value.toLowerCase().trim();
-  if (!query) return channels.value;
-  return channels.value.filter(c =>
+  if (!query) return allChannels.value;
+  return allChannels.value.filter(c =>
     c.name.toLowerCase().includes(query) ||
     c.type.toLowerCase().includes(query)
   );
@@ -131,7 +149,12 @@ const openCreateDialog = () => {
   isFormDialogOpen.value = true;
 };
 
-const openEditDialog = (channel: NotificationChannel) => {
+const openEditDialog = (channel: any) => {
+  if (channel._source === 'integration') {
+    // route to integrations page for editing
+    toast.info('Edit integrations from the Integrations page');
+    return;
+  }
   resetForm();
   actionChannel.value = channel;
   formName.value = channel.name;
@@ -158,7 +181,11 @@ const openEditDialog = (channel: NotificationChannel) => {
   isFormDialogOpen.value = true;
 };
 
-const openDeleteDialog = (channel: NotificationChannel) => {
+const openDeleteDialog = (channel: any) => {
+  if (channel._source === 'integration') {
+    toast.info('Delete integrations from the Integrations page');
+    return;
+  }
   actionChannel.value = channel;
   isDeleteDialogOpen.value = true;
 };
@@ -215,8 +242,8 @@ const handleFormSubmit = async () => {
   }
 };
 
-// Toggle channel state inline
-const handleToggleEnabled = async (item: NotificationChannel) => {
+// Toggle channel/integration state inline
+const handleToggleEnabled = async (item: any) => {
   try {
     const payload = {
       name: item.name,
@@ -224,12 +251,16 @@ const handleToggleEnabled = async (item: NotificationChannel) => {
       config: item.config,
       enabled: !item.enabled,
     };
-    await updateChannel(item.id, payload);
+    if (item._source === 'integration') {
+      await updateIntegration(item.id, payload);
+    } else {
+      await updateChannel(item.id, payload);
+    }
     item.enabled = !item.enabled;
-    toast.success(`Alert channel "${item.name}" ${item.enabled ? 'enabled' : 'disabled'}!`);
+    toast.success(`"${item.name}" ${item.enabled ? 'enabled' : 'disabled'}!`);
   } catch (err: any) {
-    console.error('Failed to toggle channel status:', err);
-    toast.error('Failed to toggle channel status.');
+    console.error('Failed to toggle status:', err);
+    toast.error('Failed to toggle status.');
   }
 };
 
@@ -335,7 +366,7 @@ onMounted(() => {
       </CardHeader>
 
       <CardContent class="p-0">
-        <div v-if="loading && channels.length === 0" class="flex flex-col items-center justify-center py-20 gap-3">
+        <div v-if="loading && allChannels.length === 0" class="flex flex-col items-center justify-center py-20 gap-3">
           <Loader2 class="w-8 h-8 text-primary animate-spin" />
           <p class="text-sm text-muted-foreground">Loading configurations...</p>
         </div>

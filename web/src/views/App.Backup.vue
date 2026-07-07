@@ -5,7 +5,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
   FolderArchive,
@@ -215,10 +214,11 @@ onMounted(async () => {
 
         <!-- Confirmation Checkbox -->
         <div class="flex items-start gap-3 p-3 rounded-lg bg-destructive/5 border border-destructive/20">
-          <Checkbox
+          <input
             id="import-confirm"
-            v-model:checked="importConfirm"
-            class="mt-0.5"
+            type="checkbox"
+            v-model="importConfirm"
+            class="mt-0.5 size-4 shrink-0 rounded-[4px] border border-destructive/40 accent-destructive"
           />
           <Label for="import-confirm" class="text-xs font-normal text-destructive cursor-pointer leading-relaxed">
             I understand this will overwrite existing configuration data. This action cannot be undone.

@@ -13,18 +13,30 @@ import {
   Edit,
   Trash2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  GitBranch,
+  AlertTriangle,
 } from '@lucide/vue';
-import type { NotificationChannel } from '@/stores/notifications';
+// Accept both NotificationChannel and Integration (same shape)
+interface ChannelItem {
+  id: number;
+  name: string;
+  type: string;
+  config: string;
+  enabled: boolean;
+  user_id: number;
+  created_at: string;
+  _source?: string;
+}
 
 const props = defineProps<{
-  channels: NotificationChannel[];
+  channels: ChannelItem[];
 }>();
 
 const emit = defineEmits<{
-  (e: 'edit', channel: NotificationChannel): void;
-  (e: 'delete', channel: NotificationChannel): void;
-  (e: 'toggle', channel: NotificationChannel): void;
+  (e: 'edit', channel: ChannelItem): void;
+  (e: 'delete', channel: ChannelItem): void;
+  (e: 'toggle', channel: ChannelItem): void;
 }>();
 
 const currentPage = ref(1);
@@ -51,20 +63,24 @@ const getTypeIcon = (type: string) => {
   switch (type) {
     case 'email': return Mail;
     case 'slack': return MessageSquare;
-    case 'discord': return MessageCircle;
+    case 'discord':
     case 'discord_bot': return MessageCircle;
     case 'telegram': return Send;
+    case 'github': return GitBranch;
+    case 'pagerduty': return AlertTriangle;
     default: return Webhook;
   }
 };
 
 // Map config info to readable text
-const getConfigSummary = (item: NotificationChannel) => {
+const getConfigSummary = (item: ChannelItem) => {
   try {
     const parsed = JSON.parse(item.config);
     if (item.type === 'email') return 'Account Email';
     if (item.type === 'telegram') return `Chat ID: ${parsed.chat_id || '—'}`;
     if (item.type === 'discord_bot') return `Channel ID: ${parsed.channel_id || '—'}`;
+    if (item.type === 'github') return parsed.webhook_url || parsed.url || '—';
+    if (item.type === 'pagerduty') return parsed.webhook_url || parsed.url || '—';
     return parsed.webhook_url || parsed.url || '—';
   } catch (e) {
     return 'Invalid configuration';
@@ -85,7 +101,7 @@ const getConfigSummary = (item: NotificationChannel) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-for="item in paginatedChannels" :key="item.id">
+        <TableRow v-for="item in paginatedChannels" :key="item._source + '-' + item.id">
           <!-- Toggle switch / status -->
           <TableCell>
             <div class="flex items-center">
