@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"ping-uptime/internal/pkg/bus"
 	"ping-uptime/internal/pkg/database"
+	"ping-uptime/internal/pkg/email"
 	"ping-uptime/internal/pkg/jwt"
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/internal/pkg/utils"
 	"ping-uptime/modules/auth/domain/service"
+	settingEntity "ping-uptime/modules/settings/domain/entity"
 	"ping-uptime/modules/users/domain/entity"
 	"ping-uptime/modules/users/dto/request"
 	"ping-uptime/modules/users/dto/response"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -291,6 +294,117 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	}, "Registered successfully")
 }
 
+// ForgotPassword generates a reset token and sends email with reset link.
+func (h *AuthHandler) ForgotPassword(c echo.Context) error {
+	h.log.Info("Handling forgot password request")
+
+	req := new(request.ForgotPasswordRequest)
+	if err := c.Bind(req); err != nil {
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	if err := c.Validate(req); err != nil {
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	user, token, err := h.authService.RequestPasswordReset(c.Request().Context(), req.Email)
+	if err != nil {
+		h.log.Error("Failed to generate reset token:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to process request")
+	}
+	// Don't reveal whether email exists
+	if user == nil || token == "" {
+		return h.r.SuccessResponse(c, nil, "If the email exists, a reset link has been sent")
+	}
+
+	// Load SMTP config from settings
+	var settings []settingEntity.Setting
+	if err := database.DB.WithContext(c.Request().Context()).Find(&settings).Error; err != nil {
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to load settings")
+	}
+
+	var smtpHost, smtpUsername, smtpPassword, smtpSender, smtpEncryption string
+	var smtpPortVal int
+	for _, s := range settings {
+		switch s.Key {
+		case "smtp_host":
+			smtpHost = s.Value
+		case "smtp_port":
+			smtpPortVal, _ = strconv.Atoi(s.Value)
+		case "smtp_username":
+			smtpUsername = s.Value
+		case "smtp_password":
+			smtpPassword = s.Value
+		case "smtp_sender":
+			smtpSender = s.Value
+		case "smtp_encryption":
+			smtpEncryption = s.Value
+		}
+	}
+
+	if smtpHost == "" {
+		h.log.Warn("SMTP not configured, cannot send password reset email")
+		return h.r.SuccessResponse(c, nil, "If the email exists, a reset link has been sent")
+	}
+
+	baseURL := fmt.Sprintf("%s://%s", c.Scheme(), c.Request().Host)
+	resetURL := fmt.Sprintf("%s/reset-password?token=%s", baseURL, token)
+
+	subject := "Password Reset - " + h.getAppName(settings)
+	body := fmt.Sprintf(`<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2em;max-width:600px">
+		<h2>Password Reset</h2>
+		<p>Click the link below to reset your password. This link expires in 1 hour.</p>
+		<p><a href="%s" style="display:inline-block;padding:12px 24px;background:#059669;color:white;text-decoration:none;border-radius:8px">Reset Password</a></p>
+		<p>If you didn't request this, ignore this email.</p>
+		<hr style="margin-top:2em"><small style="color:#6b7280">%s</small>
+	</body></html>`, resetURL, h.getAppName(settings))
+
+	cfg := email.SMTPConfig{
+		Host: smtpHost, Port: smtpPortVal,
+		Username: smtpUsername, Password: smtpPassword,
+		Sender: smtpSender, Encryption: smtpEncryption,
+	}
+
+	if err := email.SendEmail(cfg, user.Email, subject, body); err != nil {
+		h.log.Error("Failed to send reset email:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to send email")
+	}
+
+	return h.r.SuccessResponse(c, nil, "If the email exists, a reset link has been sent")
+}
+
+// ResetPassword resets the password using a valid reset token.
+func (h *AuthHandler) ResetPassword(c echo.Context) error {
+	h.log.Info("Handling password reset")
+
+	req := new(request.ResetPasswordRequest)
+	if err := c.Bind(req); err != nil {
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+	if err := c.Validate(req); err != nil {
+		return h.r.ErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	if err := h.authService.ResetPassword(c.Request().Context(), req.Token, req.Password); err != nil {
+		if err == service.ErrInvalidResetToken {
+			return h.r.ErrorResponse(c, http.StatusBadRequest, "Invalid or expired reset token")
+		}
+		h.log.Error("Failed to reset password:", err)
+		return h.r.ErrorResponse(c, http.StatusInternalServerError, "Failed to reset password")
+	}
+
+	return h.r.SuccessResponse(c, nil, "Password reset successful")
+}
+
+// getAppName reads system_name from settings slice.
+func (h *AuthHandler) getAppName(settings []settingEntity.Setting) string {
+	for _, s := range settings {
+		if s.Key == "system_name" {
+			return s.Value
+		}
+	}
+	return "Ping Uptime"
+}
+
 // RegisterRoutes sets up the auth routes.
 func (h *AuthHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group := e.Group(basePath + "/auth")
@@ -299,4 +413,6 @@ func (h *AuthHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	group.POST("/login", h.Login)
 	group.POST("/refresh", h.Refresh)
 	group.POST("/register", h.Register)
+	group.POST("/forgot-password", h.ForgotPassword)
+	group.POST("/reset-password", h.ResetPassword)
 }
