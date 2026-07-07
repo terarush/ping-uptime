@@ -88,37 +88,30 @@ onMounted(async () => {
 
     <!-- Filter Bar -->
     <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
-      <CardContent class="p-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 items-end">
-          <div class="space-y-1.5">
-            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Entity</label>
+      <CardContent class="p-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="flex items-center gap-1.5">
             <Select v-model="filterEntity">
-              <SelectTrigger class="w-full h-9">
-                <SelectValue placeholder="All entities" />
+              <SelectTrigger class="w-36 h-8">
+                <SelectValue placeholder="Entity" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all__">All entities</SelectItem>
                 <SelectItem v-for="et in ENTITY_TYPES" :key="et" :value="et">{{ et }}</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Action</label>
             <Select v-model="filterAction">
-              <SelectTrigger class="w-full h-9">
-                <SelectValue placeholder="All actions" />
+              <SelectTrigger class="w-32 h-8">
+                <SelectValue placeholder="Action" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all__">All actions</SelectItem>
                 <SelectItem v-for="a in ACTIONS" :key="a" :value="a">{{ a }}</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">User</label>
             <Select v-model="filterUserID">
-              <SelectTrigger class="w-full h-9">
-                <SelectValue placeholder="All users" />
+              <SelectTrigger class="w-36 h-8">
+                <SelectValue placeholder="User" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem :value="0">All users</SelectItem>
@@ -126,17 +119,14 @@ onMounted(async () => {
               </SelectContent>
             </Select>
           </div>
-          <div class="space-y-1.5">
-            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">From</label>
-            <Input v-model="filterFrom" type="datetime-local" class="w-full h-9" />
+          <div class="flex items-center gap-1.5">
+            <Input v-model="filterFrom" type="datetime-local" class="w-44 h-8" />
+            <span class="text-xs text-muted-foreground">—</span>
+            <Input v-model="filterTo" type="datetime-local" class="w-44 h-8" />
           </div>
-          <div class="space-y-1.5">
-            <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">To</label>
-            <Input v-model="filterTo" type="datetime-local" class="w-full h-9" />
-          </div>
-          <div class="flex items-end gap-2 sm:col-span-2 lg:col-span-3 xl:col-span-5">
-            <Button size="sm" @click="applyFilters" class="h-9">Apply</Button>
-            <Button variant="outline" size="sm" @click="clearFilters" class="h-9">Clear</Button>
+          <div class="flex items-center gap-1.5">
+            <Button size="sm" @click="applyFilters" class="h-8 text-xs px-3">Apply</Button>
+            <Button variant="outline" size="sm" @click="clearFilters" class="h-8 text-xs px-3">Clear</Button>
           </div>
         </div>
       </CardContent>

@@ -244,7 +244,7 @@ onMounted(() => {
 
           <!-- Search Bar -->
           <div class="relative w-full sm:w-72">
-            <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search class="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               v-model="searchQuery"
               placeholder="Search by name, email or role..."

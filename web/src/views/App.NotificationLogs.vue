@@ -91,51 +91,42 @@ onMounted(async () => {
 
     <Card class="border-border/50 bg-card/60 dark:bg-card/40 backdrop-blur-md z-10 relative">
       <CardHeader class="pb-3 border-b border-border/40">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <CardTitle class="text-sm font-bold text-foreground">Delivery Log</CardTitle>
             <CardDescription class="text-xs">Filter and review notification delivery status.</CardDescription>
           </div>
 
-          <div class="flex flex-wrap items-end gap-3">
-            <div class="space-y-1.5">
-              <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Channel</label>
-              <Select v-model="filterChannel">
-                <SelectTrigger class="w-full h-9">
-                  <SelectValue placeholder="All Channels" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">All Channels</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                  <SelectItem value="discord">Discord</SelectItem>
-                  <SelectItem value="discord_bot">Discord Bot</SelectItem>
-                  <SelectItem value="telegram">Telegram</SelectItem>
-                  <SelectItem value="slack">Slack</SelectItem>
-                  <SelectItem value="webhook">Webhook</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <Select v-model="filterChannel">
+              <SelectTrigger class="w-36 h-8">
+                <SelectValue placeholder="Channel" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All Channels</SelectItem>
+                <SelectItem value="email">Email</SelectItem>
+                <SelectItem value="discord">Discord</SelectItem>
+                <SelectItem value="discord_bot">Discord Bot</SelectItem>
+                <SelectItem value="telegram">Telegram</SelectItem>
+                <SelectItem value="slack">Slack</SelectItem>
+                <SelectItem value="webhook">Webhook</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <div class="space-y-1.5">
-              <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Status</label>
-              <Select v-model="filterStatus">
-                <SelectTrigger class="w-full h-9">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">All Status</SelectItem>
-                  <SelectItem value="sent">Sent</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Select v-model="filterStatus">
+              <SelectTrigger class="w-32 h-8">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All Status</SelectItem>
+                <SelectItem value="sent">Sent</SelectItem>
+                <SelectItem value="failed">Failed</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <div class="space-y-1.5">
-              <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Search</label>
-              <div class="relative w-full sm:w-56">
-                <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input v-model="searchQuery" placeholder="Search..." class="pl-9 h-9" />
-              </div>
+            <div class="relative w-48">
+              <Search class="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+              <Input v-model="searchQuery" placeholder="Search..." class="pl-8 h-8" />
             </div>
           </div>
         </div>

@@ -178,11 +178,11 @@ onMounted(async () => {
           </div>
 
           <div class="relative w-full sm:w-72">
-            <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search class="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
             <Input
               v-model="searchQuery"
               placeholder="Search tags..."
-              class="pl-9 h-9"
+              class="pl-8 h-8"
             />
           </div>
         </div>

@@ -134,8 +134,8 @@ onMounted(() => {
             <CardDescription class="text-xs">TLS certificate checks and expiry tracking.</CardDescription>
           </div>
           <div class="relative w-full sm:w-64">
-            <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input v-model="searchQuery" placeholder="Search certificates..." class="pl-9 h-9" />
+            <Search class="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
+            <Input v-model="searchQuery" placeholder="Search certificates..." class="pl-8 h-8" />
           </div>
         </div>
       </CardHeader>

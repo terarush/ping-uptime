@@ -323,8 +323,8 @@ onMounted(() => {
             <CardTitle class="text-sm font-bold text-foreground">All Teams</CardTitle>
             <CardDescription class="text-xs">{{ teams.length }} team{{ teams.length !== 1 ? 's' : '' }}</CardDescription>
             <div class="relative w-full mt-2">
-              <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input v-model="searchQuery" placeholder="Search teams..." class="pl-9 h-9" />
+              <Search class="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
+              <Input v-model="searchQuery" placeholder="Search teams..." class="pl-8 h-8" />
             </div>
           </CardHeader>
           <CardContent class="p-0">
