@@ -248,7 +248,7 @@ onMounted(async () => {
 
     <!-- Create / Edit Dialog -->
     <Dialog :open="showDialog" @update:open="showDialog = $event">
-      <DialogContent class="sm:max-w-md">
+      <DialogContent class="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{{ editingTag ? 'Edit Tag' : 'Create Tag' }}</DialogTitle>
           <DialogDescription>
@@ -256,28 +256,20 @@ onMounted(async () => {
           </DialogDescription>
         </DialogHeader>
 
-        <div class="space-y-4 py-4">
+        <form @submit.prevent="saveTag" class="space-y-4 py-4">
           <div class="space-y-2">
-            <label class="text-sm font-medium text-foreground">Name</label>
-            <Input
-              v-model="formName"
-              placeholder="e.g. production, staging, critical"
-              class="h-9"
-            />
+            <Label for="tagname">Name</Label>
+            <Input id="tagname" v-model="formName" placeholder="e.g. production, staging, critical" class="h-9" />
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-foreground">Colour</label>
+            <Label for="tagcolor">Colour</Label>
             <div class="flex items-center gap-3">
               <div
                 class="w-8 h-8 rounded-full border-2 shrink-0"
                 :style="{ backgroundColor: formColor, borderColor: formColor }"
               ></div>
-              <Input
-                v-model="formColor"
-                placeholder="#6366f1"
-                class="h-9 font-mono flex-1"
-              />
+              <Input id="tagcolor" v-model="formColor" placeholder="#6366f1" class="h-9 font-mono flex-1" />
             </div>
             <div class="flex flex-wrap gap-2 mt-3">
               <button
@@ -291,24 +283,18 @@ onMounted(async () => {
               ></button>
             </div>
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" size="sm" @click="closeDialog" class="h-9">
-            <X class="w-4 h-4 mr-1.5" />
-            <span>Cancel</span>
-          </Button>
-          <Button size="sm" @click="saveTag" :disabled="saving" class="h-9">
-            <Check class="w-4 h-4 mr-1.5" />
-            <span>{{ saving ? 'Saving...' : 'Save' }}</span>
-          </Button>
-        </DialogFooter>
+          <DialogFooter class="pt-4 border-t border-border/40 mt-4">
+            <Button type="button" variant="outline" @click="closeDialog" class="h-9">Cancel</Button>
+            <Button type="submit" :disabled="saving" class="h-9">{{ saving ? 'Saving...' : 'Save' }}</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
 
     <!-- Delete Confirmation Dialog -->
     <Dialog :open="showDeleteConfirm" @update:open="showDeleteConfirm = $event">
-      <DialogContent class="sm:max-w-sm">
+      <DialogContent class="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle>Delete Tag</DialogTitle>
           <DialogDescription>

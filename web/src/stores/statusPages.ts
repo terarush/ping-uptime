@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import ExtendedFetch from '@/lib/fetch';
+import type { Tag } from '@/stores/tags';
 
 export interface Monitor {
   id: number;
@@ -12,6 +13,7 @@ export interface Monitor {
   created_at: string;
   interval: number;
   timeout: number;
+  tags?: Tag[];
 }
 
 export interface StatusPage {

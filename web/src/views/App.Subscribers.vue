@@ -101,7 +101,7 @@ onMounted(async () => {
 
       <div class="flex items-center gap-3">
         <Select v-model="selectedPageID" @update:model-value="loadSubscribers">
-          <SelectTrigger class="w-48 h-9">
+          <SelectTrigger class="w-full h-9">
             <SelectValue placeholder="Select status page" />
           </SelectTrigger>
           <SelectContent>

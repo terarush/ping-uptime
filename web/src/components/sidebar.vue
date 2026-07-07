@@ -81,7 +81,7 @@ const handleLogout = () => {
     </SidebarHeader>
 
     <!-- Content: Nav Groups & Items -->
-    <SidebarContent class="py-2">
+    <SidebarContent class="py-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       <SidebarGroup v-for="group in filteredSidebarContent" :key="group.groupName">
         <SidebarGroupLabel v-if="group.groupName">{{ group.groupName }}</SidebarGroupLabel>
         <SidebarGroupContent>

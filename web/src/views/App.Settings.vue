@@ -254,7 +254,7 @@ onMounted(() => {
             <div class="space-y-2">
               <Label for="allow_reg">Allow Public Registrations</Label>
               <Select v-model="allowRegistration" :disabled="!isAdmin || saveLoading">
-                <SelectTrigger id="allow_reg" class="h-9">
+                <SelectTrigger id="allow_reg" class="w-full h-9">
                   <SelectValue placeholder="Select registration option" />
                 </SelectTrigger>
                 <SelectContent>
@@ -356,7 +356,7 @@ onMounted(() => {
             <div class="space-y-2">
               <Label for="smtp_enc">Security Encryption</Label>
               <Select v-model="smtpEncryption" :disabled="!isAdmin || saveLoading">
-                <SelectTrigger id="smtp_enc" class="h-9">
+                <SelectTrigger id="smtp_enc" class="w-full h-9">
                   <SelectValue placeholder="Select encryption" />
                 </SelectTrigger>
                 <SelectContent>

@@ -24,7 +24,7 @@ func (r MonitorRepositoryImpl) Delete(ctx context.Context, id uint) error {
 
 func (r MonitorRepositoryImpl) FindAll(ctx context.Context) ([]*entity.Monitor, error) {
 	var monitors []*entity.Monitor
-	result := database.DB.WithContext(ctx).Find(&monitors)
+	result := database.DB.WithContext(ctx).Preload("Tags").Find(&monitors)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -33,7 +33,7 @@ func (r MonitorRepositoryImpl) FindAll(ctx context.Context) ([]*entity.Monitor, 
 
 func (r MonitorRepositoryImpl) FindByUserID(ctx context.Context, userID uint) ([]*entity.Monitor, error) {
 	var monitors []*entity.Monitor
-	result := database.DB.WithContext(ctx).Where("user_id = ?", userID).Find(&monitors)
+	result := database.DB.WithContext(ctx).Where("user_id = ?", userID).Preload("Tags").Find(&monitors)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -42,7 +42,7 @@ func (r MonitorRepositoryImpl) FindByUserID(ctx context.Context, userID uint) ([
 
 func (r MonitorRepositoryImpl) FindByID(ctx context.Context, id uint) (*entity.Monitor, error) {
 	var monitor entity.Monitor
-	result := database.DB.WithContext(ctx).First(&monitor, id)
+	result := database.DB.WithContext(ctx).Preload("Tags").First(&monitor, id)
 	if result.Error != nil {
 		return nil, result.Error
 	}

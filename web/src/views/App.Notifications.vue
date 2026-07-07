@@ -373,29 +373,25 @@ onMounted(() => {
             <Input id="name" v-model="formName" placeholder="e.g. Server Admin Discord Webhook" required />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label for="type">Integration Type</Label>
-              <Select v-model="formType">
-                <SelectTrigger id="type" class="h-9">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="webhook">Custom Webhook</SelectItem>
-                  <SelectItem value="slack">Slack Webhook</SelectItem>
-                  <SelectItem v-if="hasDiscordBot" value="discord_bot">Discord Bot</SelectItem>
-                  <SelectItem v-if="hasTelegramBot" value="telegram">Telegram Bot</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div class="space-y-2">
+            <Label for="type">Integration Type</Label>
+            <Select v-model="formType">
+              <SelectTrigger id="type" class="w-full h-9">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="webhook">Custom Webhook</SelectItem>
+                <SelectItem value="slack">Slack Webhook</SelectItem>
+                <SelectItem v-if="hasDiscordBot" value="discord_bot">Discord Bot</SelectItem>
+                <SelectItem v-if="hasTelegramBot" value="telegram">Telegram Bot</SelectItem>
+                <SelectItem value="email">Email</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div class="space-y-2 flex flex-col justify-end pb-2.5 select-none">
-              <div class="flex items-center gap-2">
-                <Switch id="enabled" v-model:checked="formEnabled" />
-                <Label for="enabled" class="cursor-pointer">Enabled</Label>
-              </div>
-            </div>
+          <div class="flex items-center gap-2 select-none">
+            <Switch id="enabled" v-model:checked="formEnabled" />
+            <Label for="enabled" class="cursor-pointer">Enabled</Label>
           </div>
 
           <!-- Dynamic input configurations -->

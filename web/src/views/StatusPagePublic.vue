@@ -227,6 +227,17 @@ onMounted(() => {
                     ]"></span>
                     <span class="text-sm font-bold text-foreground truncate block cursor-pointer underline-offset-2 hover:underline" @click="router.push(`/status/${slug}/monitor/${mon.id}`)">{{ mon.name }}</span>
                   </div>
+                  <div class="flex items-center gap-1.5 flex-wrap" v-if="mon.tags && mon.tags.length">
+                    <span
+                      v-for="t in mon.tags"
+                      :key="t.id"
+                      class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium"
+                      :style="{ backgroundColor: t.color + '20', color: t.color, border: '1px solid ' + t.color + '40' }"
+                    >
+                      <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: t.color }"></span>
+                      {{ t.name }}
+                    </span>
+                  </div>
                   <a :href="mon.url" target="_blank" class="text-[10px] text-muted-foreground hover:underline inline-flex items-center gap-1">
                     <span class="truncate max-w-55 sm:max-w-xs">{{ mon.url }}</span>
                     <ExternalLink class="w-2.5 h-2.5" />

@@ -7,6 +7,7 @@ type CreateMonitorRequest struct {
 	Interval int    `json:"interval" validate:"required,min=1"`
 	Timeout  int    `json:"timeout" validate:"required,min=5"`
 	CheckSSL bool   `json:"check_ssl"`
+	TagIDs   []uint `json:"tag_ids"`
 }
 
 type UpdateMonitorRequest struct {
@@ -17,4 +18,5 @@ type UpdateMonitorRequest struct {
 	Timeout  int    `json:"timeout" validate:"required,min=5"`
 	Status   string `json:"status" validate:"required"`
 	CheckSSL bool   `json:"check_ssl"`
+	TagIDs   []uint `json:"tag_ids"`
 }

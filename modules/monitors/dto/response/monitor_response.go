@@ -2,6 +2,7 @@ package response
 
 import (
 	"ping-uptime/modules/monitors/domain/entity"
+	tagEntity "ping-uptime/modules/tags/domain/entity"
 	"time"
 )
 
@@ -22,6 +23,7 @@ type MonitorResponse struct {
 	UserID         uint       `json:"user_id"`
 	CreatedAt      time.Time  `json:"created_at"`
 	UpdatedAt      time.Time  `json:"updated_at"`
+	Tags           []*tagEntity.Tag `json:"tags,omitempty"`
 }
 
 func FromEntity(m *entity.Monitor) *MonitorResponse {
@@ -52,6 +54,7 @@ func FromEntity(m *entity.Monitor) *MonitorResponse {
 		UserID:         m.UserID,
 		CreatedAt:      m.CreatedAt.Local(),
 		UpdatedAt:      m.UpdatedAt.Local(),
+		Tags:           m.Tags,
 	}
 }
 
