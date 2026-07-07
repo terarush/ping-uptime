@@ -476,7 +476,6 @@ onMounted(async () => {
               <SelectItem v-for="t in tags" :key="t.id" :value="t.id">
                 {{ t.name }}
               </SelectItem>
-              </SelectItem>
             </SelectContent>
           </Select>
         </div>
