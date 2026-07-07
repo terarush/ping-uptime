@@ -379,7 +379,7 @@ onMounted(() => {
           <div class="space-y-2">
             <Label for="type">Type</Label>
             <Select v-model="formType">
-              <SelectTrigger id="type" class="h-9">
+              <SelectTrigger id="type" class="w-full h-9">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>

@@ -155,7 +155,7 @@ onMounted(async () => {
           <div class="space-y-1.5 flex-1">
             <Label class="text-xs">Monitor (optional)</Label>
             <Select v-model="selectedMonitorID">
-              <SelectTrigger class="h-9">
+              <SelectTrigger class="w-full h-9">
                 <SelectValue placeholder="All monitors" />
               </SelectTrigger>
               <SelectContent>

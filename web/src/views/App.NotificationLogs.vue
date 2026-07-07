@@ -99,7 +99,7 @@ onMounted(async () => {
 
           <div class="flex items-center gap-2 flex-wrap">
             <Select v-model="filterChannel">
-              <SelectTrigger class="w-36 h-9">
+              <SelectTrigger class="w-full h-9">
                 <SelectValue placeholder="Channel" />
               </SelectTrigger>
               <SelectContent>
@@ -114,7 +114,7 @@ onMounted(async () => {
             </Select>
 
             <Select v-model="filterStatus">
-              <SelectTrigger class="w-32 h-9">
+              <SelectTrigger class="w-full h-9">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
