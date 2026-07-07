@@ -188,8 +188,6 @@ onMounted(async () => {
           </Select>
         </div>
       </CardHeader>
-        </div>
-      </CardHeader>
       <CardContent class="p-0">
         <div v-if="loading && tokens.length === 0" class="flex justify-center py-20">
           <Loader2 class="w-8 h-8 text-primary animate-spin" />

@@ -266,7 +266,6 @@ onMounted(() => {
             </SelectContent>
           </Select>
         </div>
-        </div>
       </CardHeader>
 
       <CardContent class="p-0">
