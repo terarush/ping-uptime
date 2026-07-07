@@ -422,8 +422,9 @@ func (h *MonitorHandler) HandleHeartbeat(c echo.Context) error {
 func (h *MonitorHandler) RegisterRoutes(e *echo.Echo, basePath string) {
 	e.GET(basePath+"/monitors/events", h.StreamEvents)
 
-	// Public heartbeat endpoint (no auth)
+	// Public endpoints (no auth)
 	e.POST(basePath+"/heartbeat/:token", h.HandleHeartbeat)
+	e.GET(basePath+"/monitors/public/:id/daily", h.GetPublicDailyChart)
 
 	group := e.Group(basePath+"/monitors", middleware.Auth)
 	group.GET("", h.GetAllMonitors)

@@ -106,6 +106,19 @@ func (s *AuthService) ProcessLogin(ctx context.Context, email, password string) 
 	return existingUser, nil
 }
 
+// ValidateUserExists checks if a user exists and is not blocked.
+// Used during token refresh to revoke access for deleted/blocked users.
+func (s *AuthService) ValidateUserExists(ctx context.Context, userID uint) error {
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if user.IsBlocked {
+		return errors.New("user is blocked")
+	}
+	return nil
+}
+
 func (s *AuthService) Register(ctx context.Context, user *entity.User) error {
 	if user.Email == "" || user.Password == "" {
 		return errors.New("email and password cannot be empty")

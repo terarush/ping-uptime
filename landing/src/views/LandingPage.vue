@@ -31,9 +31,7 @@ onMounted(() => {
       <BenefitsSection />
       <FeaturesSection />
       <ServicesSection />
-      <!-- <TestimonialsSection /> -->
       <TeamSection />
-      <!-- <FAQSection /> -->
       <ContactSection />
     </main>
     <AppFooter />

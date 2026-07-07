@@ -18,8 +18,8 @@ const footerLinks = {
   ],
   Help: [
     { name: 'Contact Us', url: '#contact' },
-    { name: 'FAQ', url: '#' },
-    { name: 'Feedback', url: '#' },
+    { name: 'FAQ', url: '/contributing' },
+    { name: 'Feedback', url: '#contact' },
   ],
   Resources: [
     { name: 'How to Contribute', url: '/contributing' },
@@ -36,10 +36,7 @@ const footerLinks = {
       <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <div class="flex items-center gap-2 mb-4">
-            <span class="relative flex h-2.5 w-2.5">
-              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-              <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
-            </span>
+            <span class="flex h-2.5 w-2.5 rounded-full bg-primary shrink-0" />
             <span class="text-lg font-bold tracking-tight">ping-uptime</span>
           </div>
           <p class="text-xs text-muted-foreground leading-relaxed">

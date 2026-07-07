@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { useScrollReveal } from '@/lib/useScrollReveal'
-import { MapPin, Phone, Mail, Clock } from '@lucide/vue'
+import { MapPin, Phone, Mail } from '@lucide/vue'
 
 const { observe } = useScrollReveal()
 
 const contactInfo = [
   { icon: MapPin, label: 'Location', value: 'Malang, East Java\nIndonesia' },
-  { icon: Phone, label: 'Phone', value: '+62 821 4333 8737\nMon-Fri, 9AM-10PM' },
-  { icon: Mail, label: 'Email', value: 'hello@terarush.dev\nWe reply within 24h' },
-  { icon: Clock, label: 'Hours', value: 'Monday - Friday\n8AM - 4PM (WIB)' },
+  { icon: Phone, label: 'Phone', value: '+62 821 4333 8737' },
+  { icon: Mail, label: 'Email', value: 'hello@terarush.dev' },
 ]
 </script>
 
@@ -25,38 +22,30 @@ const contactInfo = [
       </div>
 
       <div class="grid gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
-        <!-- Form -->
+        <!-- Contact card -->
         <div class="lg:col-span-2 reveal" :ref="(el: any) => observe(el)">
           <Card class="border-border/50 bg-card/60 dark:bg-card/40">
-            <CardContent class="p-6 space-y-4">
-              <div class="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label class="text-xs font-medium text-foreground mb-1.5 block" for="first-name">First name</label>
-                  <Input id="first-name" placeholder="Alex" class="rounded-lg" />
-                </div>
-                <div>
-                  <label class="text-xs font-medium text-foreground mb-1.5 block" for="last-name">Last name</label>
-                  <Input id="last-name" placeholder="Rivera" class="rounded-lg" />
-                </div>
+            <CardContent class="p-8 text-center">
+              <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Mail class="h-7 w-7" />
               </div>
-              <div>
-                <label class="text-xs font-medium text-foreground mb-1.5 block" for="email">Email</label>
-                <Input id="email" type="email" placeholder="alex@example.com" class="rounded-lg" />
-              </div>
-              <div>
-                <label class="text-xs font-medium text-foreground mb-1.5 block" for="subject">Subject</label>
-                <Input id="subject" placeholder="How can we help?" class="rounded-lg" />
-              </div>
-              <div>
-                <label class="text-xs font-medium text-foreground mb-1.5 block" for="message">Message</label>
-                <Textarea id="message" placeholder="Tell us more..." class="min-h-30 rounded-lg" />
-              </div>
-              <Button class="w-full rounded-lg font-semibold">Send message</Button>
+              <h3 class="font-display text-2xl font-bold mb-2">hello@terarush.dev</h3>
+              <p class="text-sm text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">
+                Send us an email. We typically reply within 24 hours.
+              </p>
+              <Button
+                size="lg"
+                class="rounded-lg px-8 font-semibold text-base"
+                as="a"
+                href="mailto:hello@terarush.dev"
+              >
+                Send Email
+              </Button>
             </CardContent>
           </Card>
         </div>
 
-        <!-- Contact info -->
+        <!-- Contact info sidebar -->
         <div class="space-y-4 reveal reveal-delay-2" :ref="(el: any) => observe(el)">
           <div
             v-for="item in contactInfo"

@@ -10,36 +10,42 @@ const features = [
     title: 'Real-time alerts',
     desc: 'Get notified via email, Slack, Discord, or Telegram the moment a service goes down.',
     tag: 'Notifications',
-  },
-  {
-    icon: BarChart3,
-    title: 'Detailed analytics',
-    desc: 'Track response times, uptime percentages, and historical trends with interactive charts.',
-    tag: 'Data',
-  },
-  {
-    icon: Globe,
-    title: 'Multi-region checks',
-    desc: 'Monitor from multiple locations worldwide to ensure global accessibility.',
-    tag: 'Infrastructure',
-  },
-  {
-    icon: Users,
-    title: 'Team collaboration',
-    desc: 'Invite team members, assign roles, and share status pages with stakeholders.',
-    tag: 'Team',
+    featured: true,
   },
   {
     icon: Shield,
     title: 'Self-hosted privacy',
     desc: 'Your monitoring data stays on your infrastructure. No third-party cloud, no data leaks.',
     tag: 'Security',
+    featured: true,
+  },
+  {
+    icon: BarChart3,
+    title: 'Detailed analytics',
+    desc: 'Track response times, uptime percentages, and historical trends with interactive charts.',
+    tag: 'Data',
+    featured: false,
+  },
+  {
+    icon: Globe,
+    title: 'Multi-region checks',
+    desc: 'Monitor from multiple locations worldwide to ensure global accessibility.',
+    tag: 'Infrastructure',
+    featured: false,
+  },
+  {
+    icon: Users,
+    title: 'Team collaboration',
+    desc: 'Invite team members, assign roles, and share status pages with stakeholders.',
+    tag: 'Team',
+    featured: false,
   },
   {
     icon: Zap,
     title: 'Lightning fast setup',
     desc: 'Deploy in minutes with a single binary. Go plus a database, and you are online.',
     tag: 'Deploy',
+    featured: false,
   },
 ]
 </script>
@@ -52,16 +58,24 @@ const features = [
         <p class="mt-3 text-lg text-muted-foreground">Built for teams that take uptime seriously</p>
       </div>
 
-      <!-- 2-col bento-style layout -->
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <!-- Bento grid: 2 featured (wider) + 4 compact -->
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div
           v-for="(feature, i) in features"
           :key="feature.title"
           :ref="(el: any) => observe(el)"
-          class="reveal group relative"
-          :class="`reveal-delay-${(i % 3) + 1}`"
+          class="reveal group"
+          :class="[
+            `reveal-delay-${Math.min(i + 1, 5)}`,
+            i < 2 ? 'lg:col-span-2' : '',
+          ]"
         >
-          <div class="relative h-full rounded-xl border border-border/50 bg-card/60 dark:bg-card/40 p-6 hover:shadow-md transition-shadow">
+          <div :class="[
+            'relative h-full rounded-xl border p-6 hover:shadow-md transition-all duration-300',
+            feature.featured
+              ? 'border-primary/20 bg-primary/[0.03] dark:bg-primary/[0.06]'
+              : 'border-border/50 bg-card/60 dark:bg-card/40 hover:-translate-y-0.5'
+          ]">
             <div
               class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-4 group-hover:bg-primary/20 transition-colors"
             >

@@ -100,12 +100,7 @@ const navLinks = [
           @click.prevent="navigateTo('#hero')"
           class="flex items-center gap-2.5 shrink-0 group"
         >
-          <span class="relative flex h-2.5 w-2.5">
-            <span
-              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"
-            />
-            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
-          </span>
+          <span class="flex h-2.5 w-2.5 rounded-full bg-primary shrink-0" />
           <span class="font-display text-lg font-bold tracking-tight text-foreground"
             >ping-uptime</span
           >

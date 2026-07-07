@@ -22,7 +22,7 @@ const { observe } = useScrollReveal()
         </p>
         <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button size="lg" class="rounded-lg px-8 font-semibold text-base">
-            Start Monitoring
+            Get Started
             <ArrowRight class="h-4 w-4 ml-0.5" />
           </Button>
           <Button

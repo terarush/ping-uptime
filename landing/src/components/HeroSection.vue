@@ -5,6 +5,7 @@ import { ArrowRight } from '@lucide/vue'
 
 const isDark = ref(false)
 let observer: MutationObserver | null = null
+let reducedMotion = false
 
 const lightImages = ['/dashboard_preview_light.png', '/analycis_preview_light.png']
 const darkImages = ['/dashboard_preview_dark.png', '/analycis_preview_dark.png']
@@ -43,12 +44,13 @@ function goTo(i: number) {
 }
 
 onMounted(() => {
+  reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   isDark.value = document.documentElement.classList.contains('dark')
   observer = new MutationObserver(() => {
     isDark.value = document.documentElement.classList.contains('dark')
   })
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-  startInterval()
+  if (!reducedMotion) startInterval()
 })
 
 onUnmounted(() => {
@@ -64,43 +66,31 @@ onUnmounted(() => {
     <div class="absolute top-[-12%] left-[15%] w-[40%] h-[40%] rounded-full bg-primary/8 blur-[140px] pointer-events-none" />
 
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <!-- Version badge -->
-      <div class="flex justify-center mb-8">
-        <span
-          class="inline-flex items-center gap-2 rounded-full border border-border bg-background/50 px-4 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-sm"
-        >
-          <span class="relative flex h-2 w-2">
-            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-            <span class="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-          </span>
-          Now open source
-        </span>
-      </div>
 
       <div class="mx-auto max-w-3xl text-center">
         <!-- Headline -->
-        <h1 class="font-display text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08]">
+        <h1 class="font-display text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08] animate-fade-in-up">
           <span class="text-foreground">Monitor uptime.</span>
           <br />
           <span class="bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">Ship with confidence.</span>
         </h1>
 
         <!-- Subtext -->
-        <p class="mt-6 text-base text-muted-foreground sm:text-lg max-w-2xl mx-auto leading-relaxed">
+        <p class="mt-6 text-base text-muted-foreground sm:text-lg max-w-2xl mx-auto leading-relaxed motion-safe:animate-fade-in-up motion-safe:[animation-delay:150ms] motion-safe:opacity-0 motion-safe:[animation-fill-mode:forwards]">
           Self-hosted, open-source uptime monitoring built with Go and Vue.
           Track websites, APIs, and services with real-time alerts, detailed analytics, and a clean status dashboard.
         </p>
 
         <!-- CTAs -->
-        <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button size="lg" class="rounded-lg px-8 font-semibold text-base">
+        <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 motion-safe:animate-fade-in-up motion-safe:[animation-delay:250ms] motion-safe:opacity-0 motion-safe:[animation-fill-mode:forwards]">
+          <Button size="lg" class="rounded-lg px-8 font-semibold text-base active:scale-[0.97] transition-transform motion-reduce:active:scale-100">
             Get Started
             <ArrowRight class="h-4 w-4 ml-0.5" />
           </Button>
           <Button
             variant="outline"
             size="lg"
-            class="rounded-lg px-8 font-semibold text-base"
+            class="rounded-lg px-8 font-semibold text-base active:scale-[0.97] transition-transform motion-reduce:active:scale-100"
             as="a"
             href="https://github.com/terarush/ping-uptime"
             target="_blank"
@@ -111,7 +101,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Screenshot carousel -->
-      <div class="mt-16 mx-auto max-w-5xl">
+      <div class="mt-16 mx-auto max-w-5xl motion-safe:animate-fade-in motion-safe:[animation-delay:400ms] motion-safe:opacity-0 motion-safe:[animation-fill-mode:forwards]">
         <div
           class="group relative rounded-xl border border-border/50 bg-card shadow-2xl overflow-hidden"
         >

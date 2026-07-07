@@ -217,6 +217,18 @@ func (h *AuthHandler) Refresh(c echo.Context) error {
 		return h.r.ErrorResponse(c, http.StatusUnauthorized, "Failed to parse token claims")
 	}
 
+	// Validate user still exists in DB and is not blocked
+	userID := uint(0)
+	if uid, ok := claims["user_id"].(float64); ok {
+		userID = uint(uid)
+	}
+	if userID > 0 {
+		if err := h.authService.ValidateUserExists(c.Request().Context(), userID); err != nil {
+			h.log.Warn("Refresh denied — user not found or blocked: %v", err)
+			return h.r.UnauthorizedResponse(c, "Account not available")
+		}
+	}
+
 	// Generate a new access token (15 mins)
 	accessClaims := map[string]interface{}{
 		"user_id": claims["user_id"],
