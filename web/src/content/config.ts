@@ -4,5 +4,4 @@ export const siteConfig = {
   appPath: "/app",
   repoOwner: "terarush",
   repoName: "ping-uptime",
-  currentVersion: "v0.1.25",
 };

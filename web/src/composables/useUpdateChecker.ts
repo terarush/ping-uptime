@@ -15,8 +15,10 @@ const error = ref(false)
 let intervalId: ReturnType<typeof setInterval> | null = null
 
 function compareVersions(a: string, b: string): number {
-  const aParts = a.replace(/^v/, '').split('.').map(Number)
-  const bParts = b.replace(/^v/, '').split('.').map(Number)
+  const aClean = a.startsWith('v') ? a.slice(1) : a
+  const bClean = b.startsWith('v') ? b.slice(1) : b
+  const aParts = aClean.split('.').map(Number)
+  const bParts = bClean.split('.').map(Number)
   for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
     const an = aParts[i] || 0
     const bn = bParts[i] || 0
@@ -39,7 +41,7 @@ async function checkForUpdate() {
     const data: GitHubRelease = await res.json()
     latestRelease.value = data
     isUpdateAvailable.value =
-      compareVersions(data.tag_name, siteConfig.currentVersion) > 0
+      compareVersions(data.tag_name, __APP_VERSION__) > 0
   } catch {
     error.value = true
   } finally {
