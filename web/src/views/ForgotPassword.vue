@@ -88,7 +88,7 @@ const onSubmit = async (values: GenericObject) => {
             <span>If that email is registered, you'll receive a password reset link shortly.</span>
           </div>
 
-          <Form v-if="!sent" :validation-schema="formSchema" @submit="onSubmit" class="space-y-4">
+          <Form v-if="!sent" :validation-schema="formSchema" @submit="onSubmit as any" class="space-y-4">
             <FormField name="email" v-slot="{ componentField }">
               <FormItem class="space-y-1.5">
                 <FormLabel class="text-xs font-bold text-foreground/80">Email Address</FormLabel>

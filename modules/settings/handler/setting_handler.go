@@ -105,6 +105,7 @@ func (h *SettingHandler) GetSetting(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(setting), "Setting retrieved successfully")
 }
 
+// @Summary      [Admin] Save setting
 func (h *SettingHandler) SaveSetting(c echo.Context) error {
 	ctx := c.Request().Context()
 	_, role, err := h.getAuthUser(c)
@@ -136,6 +137,7 @@ func (h *SettingHandler) SaveSetting(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(setting), "Setting saved successfully")
 }
 
+// @Summary      [Admin] Delete setting
 func (h *SettingHandler) DeleteSetting(c echo.Context) error {
 	ctx := c.Request().Context()
 	_, role, err := h.getAuthUser(c)

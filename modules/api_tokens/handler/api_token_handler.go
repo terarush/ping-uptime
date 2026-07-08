@@ -60,6 +60,15 @@ func (h *ApiTokenHandler) getAuthUser(c echo.Context) (uint, string, error) {
 }
 
 // GetAll returns tokens. Users see their own, admins see all.
+//
+// @Summary      List API tokens
+// @Description  Get all API tokens for the authenticated user (admins see all)
+// @Tags         API Tokens
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {array}   response.TokenResponse
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api-tokens [get]
 func (h *ApiTokenHandler) GetAll(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -97,6 +106,18 @@ func (h *ApiTokenHandler) GetAll(c echo.Context) error {
 }
 
 // Create generates a new API token and returns it (raw token shown once).
+//
+// @Summary      Create API token
+// @Description  Generate a new API token. Raw token is only returned once.
+// @Tags         API Tokens
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        body  body  request.CreateTokenRequest  true  "Token details"
+// @Success      201  {object}  response.CreateTokenResponse
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api-tokens [post]
 func (h *ApiTokenHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, _, err := h.getAuthUser(c)
@@ -131,6 +152,18 @@ func (h *ApiTokenHandler) Create(c echo.Context) error {
 }
 
 // Revoke marks a token as revoked.
+//
+// @Summary      Revoke API token
+// @Description  Revoke an API token by ID. Immediate loss of access.
+// @Tags         API Tokens
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path  int  true  "Token ID"
+// @Success      200  {object}  utils.SuccessResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api-tokens/{id} [delete]
 func (h *ApiTokenHandler) Revoke(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)

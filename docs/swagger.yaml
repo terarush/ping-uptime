@@ -1,0 +1,2975 @@
+definitions:
+  entity.DailyChartPoint:
+    properties:
+      date:
+        type: string
+      failed:
+        type: integer
+      status:
+        type: string
+      total:
+        type: integer
+      uptime_pct:
+        type: number
+    type: object
+  entity.NotificationLog:
+    properties:
+      channel_type:
+        type: string
+      error_message:
+        type: string
+      event_type:
+        type: string
+      id:
+        type: integer
+      incident_id:
+        type: integer
+      monitor_id:
+        type: integer
+      notification_id:
+        type: integer
+      recipient:
+        type: string
+      sent_at:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  entity.Tag:
+    properties:
+      color:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  handler.attachTagsRequest:
+    properties:
+      tag_ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - tag_ids
+    type: object
+  handler.createTagRequest:
+    properties:
+      color:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  handler.subscribeRequest:
+    properties:
+      email:
+        type: string
+      status_page_id:
+        type: integer
+    required:
+    - email
+    - status_page_id
+    type: object
+  handler.unsubscribeRequest:
+    properties:
+      email:
+        type: string
+      status_page_id:
+        type: integer
+    required:
+    - email
+    - status_page_id
+    type: object
+  handler.updateTagRequest:
+    properties:
+      color:
+        type: string
+      name:
+        type: string
+    type: object
+  request.CreateChannelRequest:
+    properties:
+      config:
+        description: JSON config
+        type: string
+      enabled:
+        type: boolean
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - config
+    - name
+    - type
+    type: object
+  request.CreateIncidentRequest:
+    properties:
+      error_message:
+        type: string
+      latency:
+        type: integer
+      monitor_id:
+        type: integer
+      status:
+        type: string
+    required:
+    - monitor_id
+    - status
+    type: object
+  request.CreateMaintenanceRequest:
+    properties:
+      description:
+        type: string
+      end_at:
+        type: string
+      monitor_ids:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      start_at:
+        type: string
+    required:
+    - end_at
+    - name
+    - start_at
+    type: object
+  request.CreateMonitorRequest:
+    properties:
+      check_ssl:
+        type: boolean
+      interval:
+        minimum: 1
+        type: integer
+      name:
+        type: string
+      tag_ids:
+        items:
+          type: integer
+        type: array
+      timeout:
+        minimum: 5
+        type: integer
+      type:
+        type: string
+      url:
+        type: string
+    required:
+    - interval
+    - name
+    - timeout
+    - type
+    - url
+    type: object
+  request.CreateStatusPageRequest:
+    properties:
+      description:
+        type: string
+      monitor_ids:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      slug:
+        type: string
+    required:
+    - name
+    - slug
+    type: object
+  request.CreateTeamRequest:
+    properties:
+      name:
+        maxLength: 100
+        type: string
+    required:
+    - name
+    type: object
+  request.CreateTokenRequest:
+    properties:
+      expires_at:
+        description: optional RFC3339
+        type: string
+      name:
+        maxLength: 100
+        type: string
+    required:
+    - name
+    type: object
+  request.InviteMemberRequest:
+    properties:
+      role:
+        enum:
+        - admin
+        - member
+        type: string
+      user_id:
+        type: integer
+    required:
+    - user_id
+    type: object
+  request.UpdateChannelRequest:
+    properties:
+      config:
+        type: string
+      enabled:
+        type: boolean
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - config
+    - name
+    - type
+    type: object
+  request.UpdateIncidentRequest:
+    properties:
+      error_message:
+        type: string
+      latency:
+        type: integer
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  request.UpdateMaintenanceRequest:
+    properties:
+      description:
+        type: string
+      end_at:
+        type: string
+      monitor_ids:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      start_at:
+        type: string
+    required:
+    - end_at
+    - name
+    - start_at
+    type: object
+  request.UpdateMemberRequest:
+    properties:
+      role:
+        enum:
+        - admin
+        - member
+        type: string
+    required:
+    - role
+    type: object
+  request.UpdateMonitorRequest:
+    properties:
+      check_ssl:
+        type: boolean
+      interval:
+        minimum: 1
+        type: integer
+      name:
+        type: string
+      status:
+        type: string
+      tag_ids:
+        items:
+          type: integer
+        type: array
+      timeout:
+        minimum: 5
+        type: integer
+      type:
+        type: string
+      url:
+        type: string
+    required:
+    - interval
+    - name
+    - status
+    - timeout
+    - type
+    - url
+    type: object
+  request.UpdateStatusPageRequest:
+    properties:
+      description:
+        type: string
+      monitor_ids:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      slug:
+        type: string
+    required:
+    - name
+    - slug
+    type: object
+  request.UpdateTeamRequest:
+    properties:
+      name:
+        maxLength: 100
+        type: string
+    required:
+    - name
+    type: object
+  response.ChannelResponse:
+    properties:
+      config:
+        type: string
+      created_at:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: integer
+      name:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  response.CreateTokenResponse:
+    properties:
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: integer
+      is_revoked:
+        type: boolean
+      last_used_at:
+        type: string
+      name:
+        type: string
+      raw_token:
+        description: only returned once on create
+        type: string
+      token_prefix:
+        type: string
+    type: object
+  response.IncidentResponse:
+    properties:
+      created_at:
+        type: string
+      error_message:
+        type: string
+      id:
+        type: integer
+      latency:
+        type: integer
+      monitor_id:
+        type: integer
+      resolved_at:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  response.MaintenanceResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      end_at:
+        type: string
+      id:
+        type: integer
+      monitor_ids:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      start_at:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  response.MonitorResponse:
+    properties:
+      check_ssl:
+        type: boolean
+      created_at:
+        type: string
+      heartbeat_token:
+        type: string
+      id:
+        type: integer
+      interval:
+        type: integer
+      last_checked_at:
+        type: string
+      last_latency:
+        type: integer
+      name:
+        type: string
+      ssl_expires_at:
+        type: string
+      status:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/entity.Tag'
+        type: array
+      timeout:
+        type: integer
+      type:
+        type: string
+      updated_at:
+        type: string
+      uptime_status:
+        type: string
+      url:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  response.StatusPageResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      monitors:
+        items:
+          $ref: '#/definitions/response.MonitorResponse'
+        type: array
+      name:
+        type: string
+      slug:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  response.TeamMemberResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      invited_by:
+        type: integer
+      role:
+        type: string
+      status:
+        type: string
+      team_id:
+        type: integer
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/response.TeamMemberUser'
+      user_id:
+        type: integer
+    type: object
+  response.TeamMemberUser:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  response.TeamResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      member_count:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  response.TokenResponse:
+    properties:
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: integer
+      is_revoked:
+        type: boolean
+      last_used_at:
+        type: string
+      name:
+        type: string
+      token_prefix:
+        type: string
+    type: object
+  utils.ErrorResponseModel:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+  utils.SuccessResponseModel:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api-tokens:
+    get:
+      description: Get all API tokens for the authenticated user (admins see all)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.TokenResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: List API tokens
+      tags:
+      - API Tokens
+    post:
+      consumes:
+      - application/json
+      description: Generate a new API token. Raw token is only returned once.
+      parameters:
+      - description: Token details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.CreateTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Create API token
+      tags:
+      - API Tokens
+  /api-tokens/{id}:
+    delete:
+      description: Revoke an API token by ID. Immediate loss of access.
+      parameters:
+      - description: Token ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Revoke API token
+      tags:
+      - API Tokens
+  /api/audit-logs:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve audit logs with optional filtering. Requires admin privileges.
+      parameters:
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: integer
+      - description: Filter by entity type (e.g. monitor, incident)
+        in: query
+        name: entity_type
+        type: string
+      - description: Filter by action (e.g. created, updated, deleted)
+        in: query
+        name: action
+        type: string
+      - description: Start date/time (RFC3339)
+        in: query
+        name: from
+        type: string
+      - description: End date/time (RFC3339)
+        in: query
+        name: to
+        type: string
+      - description: Max results to return
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: '[Admin] List audit logs'
+      tags:
+      - AuditLogs
+  /api/audit-logs/search:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve audit logs filtered by entity type and entity ID. Requires
+        admin privileges.
+      parameters:
+      - description: Entity type (e.g. monitor, incident)
+        in: query
+        name: entity_type
+        required: true
+        type: string
+      - description: Entity ID
+        in: query
+        name: entity_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: '[Admin] Search audit logs'
+      tags:
+      - AuditLogs
+  /api/backup/download:
+    get:
+      consumes:
+      - application/json
+      description: Download a JSON backup file as an attachment. Requires admin privileges.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Backup JSON file download
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: '[Admin] Download backup as file'
+      tags:
+      - Backup
+  /api/backup/export:
+    get:
+      consumes:
+      - application/json
+      description: Export all configuration data as a JSON backup. Requires admin
+        privileges.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: '[Admin] Export backup data'
+      tags:
+      - Backup
+  /api/backup/history:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve backup/import history records. Requires admin privileges.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: '[Admin] List backup history'
+      tags:
+      - Backup
+  /api/backup/history/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a backup/import history record by ID. Requires admin privileges.
+      parameters:
+      - description: Backup record ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: '[Admin] Delete backup history record'
+      tags:
+      - Backup
+  /api/backup/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Import configuration from a JSON backup file upload (multipart).
+        Requires admin privileges.
+      parameters:
+      - description: Backup JSON file to import
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: '[Admin] Import backup data'
+      tags:
+      - Backup
+  /api/heartbeat/{token}:
+    post:
+      consumes:
+      - application/json
+      description: Public endpoint to register a heartbeat ping from a monitor via
+        its heartbeat token. Updates uptime status to "up" and resolves any active
+        incidents.
+      parameters:
+      - description: Heartbeat token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.MonitorResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      summary: Receive heartbeat ping
+      tags:
+      - Monitors
+  /api/incidents:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all incidents. Admins see all, regular users see only
+        their own.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.IncidentResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: List all incidents
+      tags:
+      - Incidents
+    post:
+      consumes:
+      - application/json
+      description: Creates a new incident for a monitor. Only the monitor owner or
+        an admin can create incidents.
+      parameters:
+      - description: Incident details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateIncidentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.IncidentResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Create an incident
+      tags:
+      - Incidents
+  /api/incidents/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an incident by ID. Only the owner or an admin can delete.
+      parameters:
+      - description: Incident ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Delete an incident
+      tags:
+      - Incidents
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single incident by ID. Users can only access their
+        own incidents; admins can access any.
+      parameters:
+      - description: Incident ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.IncidentResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get incident by ID
+      tags:
+      - Incidents
+    put:
+      consumes:
+      - application/json
+      description: Updates an incident by ID. Only the owner or an admin can update.
+      parameters:
+      - description: Incident ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated incident details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateIncidentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.IncidentResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update an incident
+      tags:
+      - Incidents
+  /api/incidents/monitor/{monitorId}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all incidents for a specific monitor. Users can only
+        access their own monitors' incidents; admins can access any.
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: monitorId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.IncidentResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get incidents by monitor ID
+      tags:
+      - Incidents
+  /api/maintenances:
+    get:
+      description: Get all maintenances. Users see their own, admins see all.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.MaintenanceResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: List maintenances
+      tags:
+      - Maintenances
+    post:
+      consumes:
+      - application/json
+      description: Create a new maintenance window for one or more monitors
+      parameters:
+      - description: Maintenance details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateMaintenanceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.MaintenanceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Create maintenance
+      tags:
+      - Maintenances
+  /api/maintenances/{id}:
+    delete:
+      description: Delete a maintenance window by ID
+      parameters:
+      - description: Maintenance ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Delete maintenance
+      tags:
+      - Maintenances
+    get:
+      description: Get a single maintenance by its ID
+      parameters:
+      - description: Maintenance ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.MaintenanceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get maintenance by ID
+      tags:
+      - Maintenances
+    put:
+      consumes:
+      - application/json
+      description: Update an existing maintenance window by ID
+      parameters:
+      - description: Maintenance ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated maintenance details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateMaintenanceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.MaintenanceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update maintenance
+      tags:
+      - Maintenances
+  /api/monitors:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all monitors. Admins see all, regular users see only
+        their own.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.MonitorResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: List all monitors
+      tags:
+      - Monitors
+    post:
+      consumes:
+      - application/json
+      description: Creates a new uptime monitor. Non-admin users get enforced defaults
+        (60s interval, 10s timeout). Admin users can set custom values.
+      parameters:
+      - description: Monitor details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateMonitorRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.MonitorResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Create a monitor
+      tags:
+      - Monitors
+  /api/monitors/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a monitor by ID. Only the owner or an admin can delete.
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Delete a monitor
+      tags:
+      - Monitors
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single monitor by its ID. Users can only access their
+        own monitors; admins can access any.
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.MonitorResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get monitor by ID
+      tags:
+      - Monitors
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing monitor by ID. Non-admin users get enforced
+        default interval/timeout. Only the owner or an admin can update.
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated monitor details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateMonitorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.MonitorResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update a monitor
+      tags:
+      - Monitors
+  /api/monitors/{id}/tags:
+    get:
+      consumes:
+      - application/json
+      description: Get all tags attached to a monitor
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/entity.Tag'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get monitor tags
+      tags:
+      - Tags
+    post:
+      consumes:
+      - application/json
+      description: Attach tags to a monitor
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Tag IDs to attach
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.attachTagsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Attach tags to monitor
+      tags:
+      - Tags
+  /api/monitors/{id}/tags/{tagID}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a tag from a monitor
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Tag ID
+        in: path
+        name: tagID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Detach tag from monitor
+      tags:
+      - Tags
+  /api/monitors/events:
+    get:
+      consumes:
+      - application/json
+      description: Server-sent events stream for real-time monitor and incident updates.
+        No authentication required.
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+      summary: Stream monitor events (SSE)
+      tags:
+      - Monitors
+  /api/monitors/public/{id}/daily:
+    get:
+      consumes:
+      - application/json
+      description: Returns daily uptime chart data for a public monitor. No authentication
+        required.
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Number of days (1-365, default 30)
+        in: query
+        name: days
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/entity.DailyChartPoint'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      summary: Get public daily chart data
+      tags:
+      - Monitors
+  /api/status-pages:
+    get:
+      consumes:
+      - application/json
+      description: Get all status pages for the authenticated user (admin sees all)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.StatusPageResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: List status pages
+      tags:
+      - Status Pages
+    post:
+      consumes:
+      - application/json
+      description: Create a new status page with selected monitors
+      parameters:
+      - description: Status page details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateStatusPageRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.StatusPageResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Create a status page
+      tags:
+      - Status Pages
+  /api/status-pages/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a status page by ID
+      parameters:
+      - description: Status page ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Delete a status page
+      tags:
+      - Status Pages
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single status page by its ID
+      parameters:
+      - description: Status page ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.StatusPageResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get status page by ID
+      tags:
+      - Status Pages
+    put:
+      consumes:
+      - application/json
+      description: Update an existing status page
+      parameters:
+      - description: Status page ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated status page details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateStatusPageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.StatusPageResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update a status page
+      tags:
+      - Status Pages
+  /api/status-pages/{pageID}/subscribers:
+    get:
+      consumes:
+      - application/json
+      description: 'Admin-only: get all subscribers for a status page'
+      parameters:
+      - description: Status page ID
+        in: path
+        name: pageID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      - AdminAuth: []
+      summary: '[Admin] List subscribers'
+      tags:
+      - Subscribers
+  /api/status-pages/{pageID}/subscribers/count:
+    get:
+      consumes:
+      - application/json
+      description: Get the number of verified subscribers for a status page
+      parameters:
+      - description: Status page ID
+        in: path
+        name: pageID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Count subscribers
+      tags:
+      - Subscribers
+  /api/status-pages/{pageID}/subscribers/unsubscribe:
+    post:
+      consumes:
+      - application/json
+      description: 'Admin-only: unsubscribe a user from a status page'
+      parameters:
+      - description: Status page ID
+        in: path
+        name: pageID
+        required: true
+        type: integer
+      - description: Unsubscribe details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.unsubscribeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      - AdminAuth: []
+      summary: '[Admin] Admin unsubscribe subscriber'
+      tags:
+      - Subscribers
+  /api/status-pages/{slug}/badge.svg:
+    get:
+      description: Get a Shields.io-style SVG badge for a status page
+      parameters:
+      - description: Status page slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Get status badge SVG
+      tags:
+      - Status Pages
+  /api/status-pages/slug/{slug}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a status page publicly by its slug
+      parameters:
+      - description: Status page slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.StatusPageResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      summary: Get public status page by slug
+      tags:
+      - Status Pages
+  /api/status-pages/subscribe:
+    post:
+      consumes:
+      - application/json
+      description: Subscribe an email address to receive status page notifications
+      parameters:
+      - description: Subscription details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.subscribeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      summary: Subscribe to status page
+      tags:
+      - Subscribers
+  /api/status-pages/subscribe/verify:
+    get:
+      consumes:
+      - application/json
+      description: Verify email address for a subscription using a token
+      parameters:
+      - description: Verification token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      summary: Verify subscription email
+      tags:
+      - Subscribers
+  /api/status-pages/unsubscribe:
+    get:
+      consumes:
+      - application/json
+      description: Unsubscribe from a status page using an unsubscribe token
+      parameters:
+      - description: Unsubscribe token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      summary: Unsubscribe by token
+      tags:
+      - Subscribers
+  /api/tags:
+    get:
+      consumes:
+      - application/json
+      description: Get all tags
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/entity.Tag'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: List all tags
+      tags:
+      - Tags
+    post:
+      consumes:
+      - application/json
+      description: Create a new tag
+      parameters:
+      - description: Tag details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.createTagRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Tag'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Create a tag
+      tags:
+      - Tags
+  /api/tags/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a tag by ID
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Delete a tag
+      tags:
+      - Tags
+    put:
+      consumes:
+      - application/json
+      description: Update an existing tag
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated tag details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.updateTagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Tag'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update a tag
+      tags:
+      - Tags
+  /api/teams:
+    get:
+      consumes:
+      - application/json
+      description: Get all teams. Admin sees all; user sees own teams.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.TeamResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: List teams
+      tags:
+      - Teams
+    post:
+      consumes:
+      - application/json
+      description: Create a new team. Creator becomes team admin.
+      parameters:
+      - description: Team details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateTeamRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.TeamResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Create a team
+      tags:
+      - Teams
+  /api/teams/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a team. Only admins.
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: '[Admin] Delete team'
+      tags:
+      - Teams
+    put:
+      consumes:
+      - application/json
+      description: Update a team's name. Only team admins.
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated team details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateTeamRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.TeamResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update a team
+      tags:
+      - Teams
+  /api/teams/{id}/members:
+    get:
+      consumes:
+      - application/json
+      description: Get all members of a team. Accessible by team members and admins.
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.TeamMemberResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: List team members
+      tags:
+      - Teams
+    post:
+      consumes:
+      - application/json
+      description: Invite a user to join a team. Only team admins.
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Invitation details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.InviteMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.TeamMemberResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Invite team member
+      tags:
+      - Teams
+  /api/teams/{id}/members/{memberID}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a member from a team. Only team admins.
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Member ID
+        in: path
+        name: memberID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Remove team member
+      tags:
+      - Teams
+    put:
+      consumes:
+      - application/json
+      description: Update a team member's role. Only team admins.
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Member ID
+        in: path
+        name: memberID
+        required: true
+        type: integer
+      - description: Updated role
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.TeamMemberResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update team member role
+      tags:
+      - Teams
+  /api/teams/{id}/members/accept:
+    post:
+      consumes:
+      - application/json
+      description: Accept a pending team invitation
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Accept team invitation
+      tags:
+      - Teams
+  /api/teams/{id}/members/reject:
+    post:
+      consumes:
+      - application/json
+      description: Reject a pending team invitation
+      parameters:
+      - description: Team ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Reject team invitation
+      tags:
+      - Teams
+  /notification-channels:
+    get:
+      consumes:
+      - application/json
+      description: Get all notification channels for the authenticated user (admin
+        sees all)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.ChannelResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: List notification channels
+      tags:
+      - Notification Channels
+    post:
+      consumes:
+      - application/json
+      description: Create a new notification channel for the authenticated user
+      parameters:
+      - description: Channel details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateChannelRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ChannelResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Create notification channel
+      tags:
+      - Notification Channels
+  /notification-channels/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a notification channel by ID
+      parameters:
+      - description: Channel ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Delete notification channel
+      tags:
+      - Notification Channels
+    get:
+      consumes:
+      - application/json
+      description: Get a single notification channel by its ID
+      parameters:
+      - description: Channel ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ChannelResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get notification channel by ID
+      tags:
+      - Notification Channels
+    put:
+      consumes:
+      - application/json
+      description: Update an existing notification channel by ID
+      parameters:
+      - description: Channel ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated channel details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateChannelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ChannelResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update notification channel
+      tags:
+      - Notification Channels
+  /notification-logs:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated notification logs for the authenticated user (admin
+        sees all)
+      parameters:
+      - description: Filter by channel type
+        in: query
+        name: channel_type
+        type: string
+      - description: Filter by status (sent/failed)
+        in: query
+        name: status
+        type: string
+      - description: Filter by event type
+        in: query
+        name: event_type
+        type: string
+      - description: Filter logs from date (RFC3339)
+        in: query
+        name: date_from
+        type: string
+      - description: Filter logs to date (RFC3339)
+        in: query
+        name: date_to
+        type: string
+      - description: Results per page
+        in: query
+        name: limit
+        type: integer
+      - description: Result offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/entity.NotificationLog'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: List notification logs
+      tags:
+      - Notification Logs
+swagger: "2.0"

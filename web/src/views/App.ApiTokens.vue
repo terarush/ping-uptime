@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'vue-sonner';
-import { KeyRound, Plus, Loader2, RefreshCw, Trash2, Copy, CheckCircle, Search } from '@lucide/vue';
+import { KeyRound, Plus, Loader2, RefreshCw, Trash2, Copy, CheckCircle, Search, BookOpen } from '@lucide/vue';
 import gsap from 'gsap';
 
 const {
@@ -99,17 +99,12 @@ const copyToken = async () => {
 };
 
 const searchQuery = ref('');
-const filterTokenStatus = ref('__all__');
 
 const filteredTokens = computed(() => {
   let result = tokens.value;
   const q = searchQuery.value.toLowerCase().trim();
   if (q) {
     result = result.filter(t => t.name.toLowerCase().includes(q));
-  }
-  if (filterTokenStatus.value && filterTokenStatus.value !== '__all__') {
-    const revoked = filterTokenStatus.value === 'revoked';
-    result = result.filter(t => t.is_revoked === revoked);
   }
   return result;
 });
@@ -121,6 +116,10 @@ const activeTokens = computed(() =>
 const revokedTokens = computed(() =>
   filteredTokens.value.filter(t => t.is_revoked)
 );
+
+const openApiDocs = () => {
+  window.open('/api/docs/index.html', '_blank');
+};
 
 onMounted(async () => {
   await fetchAll();
@@ -155,6 +154,10 @@ onMounted(async () => {
           <RefreshCw class="w-4 h-4 mr-1.5" :class="{ 'animate-spin': loading }" />
           Refresh
         </Button>
+        <Button variant="outline" size="sm" class="h-9" @click="openApiDocs">
+          <BookOpen class="w-4 h-4 mr-1.5" />
+          API Docs
+        </Button>
         <Button @click="openCreate" size="sm" class="h-9">
           <Plus class="w-4 h-4 mr-1.5" />
           Generate Token
@@ -174,18 +177,6 @@ onMounted(async () => {
             <Search class="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <Input v-model="searchQuery" placeholder="Search tokens..." class="pl-8 h-8" />
           </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <Select v-model="filterTokenStatus">
-            <SelectTrigger class="w-32 h-8">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">All tokens</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="revoked">Revoked</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </CardHeader>
       <CardContent class="p-0">

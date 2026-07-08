@@ -71,6 +71,15 @@ func (h *StatusPageHandler) getAuthUser(c echo.Context) (uint, string, error) {
 	return userID, roleVal, nil
 }
 
+// @Summary      Get public status page by slug
+// @Description  Retrieve a status page publicly by its slug
+// @Tags         Status Pages
+// @Accept       json
+// @Produce      json
+// @Param        slug   path    string  true  "Status page slug"
+// @Success      200  {object}  utils.SuccessResponseModel{data=response.StatusPageResponse}
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/status-pages/slug/{slug} [get]
 func (h *StatusPageHandler) GetPublicStatusPage(c echo.Context) error {
 	ctx := c.Request().Context()
 	slug := c.Param("slug")
@@ -86,6 +95,15 @@ func (h *StatusPageHandler) GetPublicStatusPage(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(page), "Status page retrieved successfully")
 }
 
+// @Summary      List status pages
+// @Description  Get all status pages for the authenticated user (admin sees all)
+// @Tags         Status Pages
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  utils.SuccessResponseModel{data=[]response.StatusPageResponse}
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api/status-pages [get]
 func (h *StatusPageHandler) GetAllStatusPages(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -107,6 +125,17 @@ func (h *StatusPageHandler) GetAllStatusPages(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntities(pages), "Status pages retrieved successfully")
 }
 
+// @Summary      Get status page by ID
+// @Description  Retrieve a single status page by its ID
+// @Tags         Status Pages
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path    int  true  "Status page ID"
+// @Success      200  {object}  utils.SuccessResponseModel{data=response.StatusPageResponse}
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/status-pages/{id} [get]
 func (h *StatusPageHandler) GetStatusPage(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -131,6 +160,17 @@ func (h *StatusPageHandler) GetStatusPage(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(page), "Status page retrieved successfully")
 }
 
+// @Summary      Create a status page
+// @Description  Create a new status page with selected monitors
+// @Tags         Status Pages
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body  request.CreateStatusPageRequest  true  "Status page details"
+// @Success      201  {object}  utils.SuccessResponseModel{data=response.StatusPageResponse}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api/status-pages [post]
 func (h *StatusPageHandler) CreateStatusPage(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -175,6 +215,19 @@ func (h *StatusPageHandler) CreateStatusPage(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.FromEntity(page), "Status page created successfully")
 }
 
+// @Summary      Update a status page
+// @Description  Update an existing status page
+// @Tags         Status Pages
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id       path    int                            true  "Status page ID"
+// @Param        request  body    request.UpdateStatusPageRequest  true  "Updated status page details"
+// @Success      200  {object}  utils.SuccessResponseModel{data=response.StatusPageResponse}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/status-pages/{id} [put]
 func (h *StatusPageHandler) UpdateStatusPage(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -235,6 +288,17 @@ func (h *StatusPageHandler) UpdateStatusPage(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(page), "Status page updated successfully")
 }
 
+// @Summary      Delete a status page
+// @Description  Delete a status page by ID
+// @Tags         Status Pages
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path    int  true  "Status page ID"
+// @Success      204  "No Content"
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/status-pages/{id} [delete]
 func (h *StatusPageHandler) DeleteStatusPage(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -266,6 +330,13 @@ func (h *StatusPageHandler) DeleteStatusPage(c echo.Context) error {
 	return h.r.NoContentResponse(c)
 }
 
+// @Summary      Get status badge SVG
+// @Description  Get a Shields.io-style SVG badge for a status page
+// @Tags         Status Pages
+// @Produce      application/xml
+// @Param        slug   path    string  true  "Status page slug"
+// @Success      200  {string}  string
+// @Router       /api/status-pages/{slug}/badge.svg [get]
 func (h *StatusPageHandler) BadgeSVG(c echo.Context) error {
 	slug := c.Param("slug")
 	if slug == "" {

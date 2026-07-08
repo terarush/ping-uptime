@@ -46,6 +46,16 @@ func (h *MaintenanceHandler) getAuthUser(c echo.Context) (uint, string, error) {
 	return userID, roleVal, nil
 }
 
+// GetAll returns all maintenances. Users see their own, admins see all.
+//
+// @Summary      List maintenances
+// @Description  Get all maintenances. Users see their own, admins see all.
+// @Tags         Maintenances
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {array}   response.MaintenanceResponse
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api/maintenances [get]
 func (h *MaintenanceHandler) GetAll(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -76,6 +86,19 @@ func (h *MaintenanceHandler) GetAll(c echo.Context) error {
 	return h.r.SuccessResponse(c, resp, "Maintenances retrieved")
 }
 
+// GetByID returns a single maintenance by ID.
+//
+// @Summary      Get maintenance by ID
+// @Description  Get a single maintenance by its ID
+// @Tags         Maintenances
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path  int  true  "Maintenance ID"
+// @Success      200  {object}  response.MaintenanceResponse
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/maintenances/{id} [get]
 func (h *MaintenanceHandler) GetByID(c echo.Context) error {
 	ctx := c.Request().Context()
 	_, _, err := h.getAuthUser(c)
@@ -102,6 +125,19 @@ func (h *MaintenanceHandler) GetByID(c echo.Context) error {
 	return h.r.SuccessResponse(c, resp, "Maintenance retrieved")
 }
 
+// Create creates a new maintenance window.
+//
+// @Summary      Create maintenance
+// @Description  Create a new maintenance window for one or more monitors
+// @Tags         Maintenances
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        body  body  request.CreateMaintenanceRequest  true  "Maintenance details"
+// @Success      201  {object}  response.MaintenanceResponse
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api/maintenances [post]
 func (h *MaintenanceHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, _, err := h.getAuthUser(c)
@@ -161,6 +197,21 @@ func (h *MaintenanceHandler) Create(c echo.Context) error {
 	return h.r.CreatedResponse(c, resp, "Maintenance created")
 }
 
+// Update updates an existing maintenance window.
+//
+// @Summary      Update maintenance
+// @Description  Update an existing maintenance window by ID
+// @Tags         Maintenances
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id    path  int                            true  "Maintenance ID"
+// @Param        body  body  request.UpdateMaintenanceRequest  true  "Updated maintenance details"
+// @Success      200  {object}  response.MaintenanceResponse
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/maintenances/{id} [put]
 func (h *MaintenanceHandler) Update(c echo.Context) error {
 	ctx := c.Request().Context()
 	_, _, err := h.getAuthUser(c)
@@ -223,6 +274,18 @@ func (h *MaintenanceHandler) Update(c echo.Context) error {
 	return h.r.SuccessResponse(c, resp, "Maintenance updated")
 }
 
+// Delete deletes a maintenance window by ID.
+//
+// @Summary      Delete maintenance
+// @Description  Delete a maintenance window by ID
+// @Tags         Maintenances
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path  int  true  "Maintenance ID"
+// @Success      204  {object}  utils.SuccessResponseModel
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api/maintenances/{id} [delete]
 func (h *MaintenanceHandler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
 	_, _, err := h.getAuthUser(c)
