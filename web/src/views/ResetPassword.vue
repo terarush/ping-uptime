@@ -104,7 +104,7 @@ const onSubmit = async (values: { password: string }) => {
             <span>Password reset successfully! Redirecting to sign in...</span>
           </div>
 
-          <Form v-if="!success" :validation-schema="formSchema" @submit="onSubmit" class="space-y-4">
+          <Form v-if="!success" :validation-schema="formSchema" @submit="onSubmit as any" class="space-y-4">
             <FormField name="password" v-slot="{ componentField }">
               <FormItem class="space-y-1.5">
                 <FormLabel class="text-xs font-bold text-foreground/80">New Password</FormLabel>
