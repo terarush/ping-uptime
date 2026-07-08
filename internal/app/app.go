@@ -16,6 +16,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	_ "ping-uptime/docs"
 	"gorm.io/gorm"
 )
 
@@ -84,6 +85,26 @@ func (a *App) Initialize() error {
 
 	// validate request
 	a.r.Validator = _validator.NewCustomValidator()
+
+		// Scalar API docs
+		a.r.GET("/api/docs/*", func(c echo.Context) error {
+			if c.Param("*") == "openapi.json" {
+				return c.File("docs/swagger.json")
+			}
+			html := `<!DOCTYPE html>
+<html>
+<head>
+  <title>Ping Uptime API</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <script id="api-reference" data-url="/api/docs/openapi.json"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+</body>
+</html>`
+			return c.HTML(http.StatusOK, html)
+		})
 
 	// Initialize modules
 	for _, module := range a.modules {
