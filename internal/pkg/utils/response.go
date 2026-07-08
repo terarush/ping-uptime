@@ -9,14 +9,16 @@ import (
 // Response is a standard structure for JSON responses.
 type Response struct{}
 
-// SuccessResponseModel is the standard success response shape (for swagger docs).
+// SuccessResponseModel represents the shape of a successful JSON response.
+// It is used for swagger documentation purposes.
 type SuccessResponseModel struct {
 	Data    interface{} `json:"data"`
 	Message string      `json:"message"`
 	Error   string      `json:"error"`
 }
 
-// ErrorResponseModel is the standard error response shape (for swagger docs).
+// ErrorResponseModel represents the shape of an error JSON response.
+// It is used for swagger documentation purposes.
 type ErrorResponseModel struct {
 	Data    interface{} `json:"data"`
 	Message string      `json:"message"`
