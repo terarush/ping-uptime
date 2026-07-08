@@ -84,6 +84,8 @@ jobs:
           cache-dependency-path: './web/package-lock.json'
 
       - name: Build Frontend
+        env:
+          VITE_APP_VERSION: ${{ steps.determine_tag.outputs.tag }}
         run: |
           cd web
           npm ci
