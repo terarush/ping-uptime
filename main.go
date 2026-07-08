@@ -51,6 +51,7 @@ import (
 )
 
 //go:embed static
+//go:embed docs/swagger.json
 var staticFS embed.FS
 
 func main() {
