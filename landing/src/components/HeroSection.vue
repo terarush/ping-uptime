@@ -83,9 +83,25 @@ onUnmounted(() => {
 
         <!-- CTAs -->
         <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 motion-safe:animate-fade-in-up motion-safe:[animation-delay:250ms] motion-safe:opacity-0 motion-safe:[animation-fill-mode:forwards]">
-          <Button size="lg" class="rounded-lg px-8 font-semibold text-base active:scale-[0.97] transition-transform motion-reduce:active:scale-100">
-            Get Started
+          <Button
+            size="lg"
+            class="rounded-lg px-8 font-semibold text-base active:scale-[0.97] transition-transform motion-reduce:active:scale-100"
+            as="a"
+            href="https://demo-ping.terarush.dev"
+            target="_blank"
+          >
+            Live Demo
             <ArrowRight class="h-4 w-4 ml-0.5" />
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            class="rounded-lg px-8 font-semibold text-base active:scale-[0.97] transition-transform motion-reduce:active:scale-100"
+            as="a"
+            href="https://demo-ping.terarush.dev/api/docs/"
+            target="_blank"
+          >
+            API Docs
           </Button>
           <Button
             variant="outline"

@@ -7,6 +7,7 @@ import BenefitsSection from '@/components/BenefitsSection.vue'
 import FeaturesSection from '@/components/FeaturesSection.vue'
 import ServicesSection from '@/components/ServicesSection.vue'
 import TeamSection from '@/components/TeamSection.vue'
+import CtaSection from '@/components/CtaSection.vue'
 import ContactSection from '@/components/ContactSection.vue'
 import AppFooter from '@/components/AppFooter.vue'
 
@@ -32,6 +33,7 @@ onMounted(() => {
       <FeaturesSection />
       <ServicesSection />
       <TeamSection />
+      <CtaSection />
       <ContactSection />
     </main>
     <AppFooter />

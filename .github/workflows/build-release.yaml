@@ -5,6 +5,9 @@ on:
     types: [closed]
     branches:
       - main
+    paths-ignore:
+      - 'landing/**'
+      - '.github/workflows/deploy-landing.yaml'
   release:
     types:
       - published
