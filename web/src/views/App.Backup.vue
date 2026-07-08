@@ -4,7 +4,6 @@ import { useBackup } from '@/composables/useBackup';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import {
   FolderArchive,
@@ -220,9 +219,9 @@ onMounted(async () => {
             v-model="importConfirm"
             class="mt-0.5 size-4 shrink-0 rounded-[4px] border border-destructive/40 accent-destructive"
           />
-          <Label for="import-confirm" class="text-xs font-normal text-destructive cursor-pointer leading-relaxed">
+          <label for="import-confirm" class="text-xs font-normal text-destructive cursor-pointer leading-relaxed">
             I understand this will overwrite existing configuration data. This action cannot be undone.
-          </Label>
+          </label>
         </div>
 
         <Button

@@ -40,7 +40,7 @@ func (h *UserHandler) Handle(event bus.Event) {
 	fmt.Printf("User created: %v", event.Payload)
 }
 
-// GetAllUsers gets all users
+// @Summary      [Admin] List all users
 func (h *UserHandler) GetAllUsers(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -52,7 +52,7 @@ func (h *UserHandler) GetAllUsers(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntities(users), "Users retrieved successfully")
 }
 
-// GetUser gets a user by ID
+// @Summary      [Admin] Get user by ID
 func (h *UserHandler) GetUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -72,7 +72,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(user), "User retrieved successfully")
 }
 
-// CreateUser creates a new user
+// @Summary      [Admin] Create user
 func (h *UserHandler) CreateUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -105,7 +105,7 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.FromEntity(user), "User created successfully")
 }
 
-// UpdateUser updates a user
+// @Summary      [Admin] Update user
 func (h *UserHandler) UpdateUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -149,7 +149,7 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(user), "User updated successfully")
 }
 
-// DeleteUser deletes a user
+// @Summary      [Admin] Delete user
 func (h *UserHandler) DeleteUser(c echo.Context) error {
 	ctx := c.Request().Context()
 

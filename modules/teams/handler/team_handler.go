@@ -55,7 +55,15 @@ func (h *TeamHandler) getAuthUser(c echo.Context) (uint, string, error) {
 	return userID, roleVal, nil
 }
 
-// GetAll returns teams. Admin sees all; user sees own teams.
+// @Summary      List teams
+// @Description  Get all teams. Admin sees all; user sees own teams.
+// @Tags         Teams
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  utils.SuccessResponseModel{data=[]response.TeamResponse}
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api/teams [get]
 func (h *TeamHandler) GetAll(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -113,6 +121,17 @@ func (h *TeamHandler) GetAll(c echo.Context) error {
 	return h.r.SuccessResponse(c, resp, "Teams retrieved successfully")
 }
 
+// @Summary      Create a team
+// @Description  Create a new team. Creator becomes team admin.
+// @Tags         Teams
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body  request.CreateTeamRequest  true  "Team details"
+// @Success      201  {object}  utils.SuccessResponseModel{data=response.TeamResponse}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api/teams [post]
 func (h *TeamHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, _, err := h.getAuthUser(c)
@@ -136,6 +155,20 @@ func (h *TeamHandler) Create(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.TeamFromEntity(team), "Team created successfully")
 }
 
+// @Summary      Update a team
+// @Description  Update a team's name. Only team admins.
+// @Tags         Teams
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id       path    int                        true  "Team ID"
+// @Param        request  body    request.UpdateTeamRequest  true  "Updated team details"
+// @Success      200  {object}  utils.SuccessResponseModel{data=response.TeamResponse}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/teams/{id} [put]
 func (h *TeamHandler) Update(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, _, err := h.getAuthUser(c)
@@ -173,6 +206,18 @@ func (h *TeamHandler) Update(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.TeamFromEntity(team), "Team updated successfully")
 }
 
+// @Summary      [Admin] Delete team
+// @Description  Delete a team. Only admins.
+// @Tags         Teams
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path    int  true  "Team ID"
+// @Success      204  "No Content"
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Router       /api/teams/{id} [delete]
 func (h *TeamHandler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
 	_, role, err := h.getAuthUser(c)
@@ -196,6 +241,18 @@ func (h *TeamHandler) Delete(c echo.Context) error {
 	return h.r.NoContentResponse(c)
 }
 
+// @Summary      List team members
+// @Description  Get all members of a team. Accessible by team members and admins.
+// @Tags         Teams
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path    int  true  "Team ID"
+// @Success      200  {object}  utils.SuccessResponseModel{data=[]response.TeamMemberResponse}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Router       /api/teams/{id}/members [get]
 func (h *TeamHandler) GetMembers(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -248,6 +305,20 @@ func (h *TeamHandler) GetMembers(c echo.Context) error {
 	return h.r.SuccessResponse(c, resp, "Team members retrieved successfully")
 }
 
+// @Summary      Invite team member
+// @Description  Invite a user to join a team. Only team admins.
+// @Tags         Teams
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id       path    int                         true  "Team ID"
+// @Param        request  body    request.InviteMemberRequest  true  "Invitation details"
+// @Success      201  {object}  utils.SuccessResponseModel{data=response.TeamMemberResponse}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      409  {object}  utils.ErrorResponseModel
+// @Router       /api/teams/{id}/members [post]
 func (h *TeamHandler) InviteMember(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, _, err := h.getAuthUser(c)
@@ -285,6 +356,21 @@ func (h *TeamHandler) InviteMember(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.TeamMemberFromEntity(member), "Invitation sent successfully")
 }
 
+// @Summary      Update team member role
+// @Description  Update a team member's role. Only team admins.
+// @Tags         Teams
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id        path    int                         true  "Team ID"
+// @Param        memberID  path    int                         true  "Member ID"
+// @Param        request   body    request.UpdateMemberRequest  true  "Updated role"
+// @Success      200  {object}  utils.SuccessResponseModel{data=response.TeamMemberResponse}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/teams/{id}/members/{memberID} [put]
 func (h *TeamHandler) UpdateMember(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, _, err := h.getAuthUser(c)
@@ -327,6 +413,20 @@ func (h *TeamHandler) UpdateMember(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.TeamMemberFromEntity(member), "Member role updated successfully")
 }
 
+// @Summary      Remove team member
+// @Description  Remove a member from a team. Only team admins.
+// @Tags         Teams
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id        path    int  true  "Team ID"
+// @Param        memberID  path    int  true  "Member ID"
+// @Success      204  "No Content"
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/teams/{id}/members/{memberID} [delete]
 func (h *TeamHandler) RemoveMember(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, _, err := h.getAuthUser(c)
@@ -360,6 +460,18 @@ func (h *TeamHandler) RemoveMember(c echo.Context) error {
 	return h.r.NoContentResponse(c)
 }
 
+// @Summary      Accept team invitation
+// @Description  Accept a pending team invitation
+// @Tags         Teams
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path    int  true  "Team ID"
+// @Success      200  {object}  utils.SuccessResponseModel
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/teams/{id}/members/accept [post]
 func (h *TeamHandler) AcceptInvitation(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, _, err := h.getAuthUser(c)
@@ -385,6 +497,18 @@ func (h *TeamHandler) AcceptInvitation(c echo.Context) error {
 	return h.r.SuccessResponse(c, nil, "Invitation accepted successfully")
 }
 
+// @Summary      Reject team invitation
+// @Description  Reject a pending team invitation
+// @Tags         Teams
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path    int  true  "Team ID"
+// @Success      200  {object}  utils.SuccessResponseModel
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/teams/{id}/members/reject [post]
 func (h *TeamHandler) RejectInvitation(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, _, err := h.getAuthUser(c)

@@ -62,6 +62,15 @@ func (h *NotificationHandler) getAuthUser(c echo.Context) (uint, string, error) 
 	return userID, roleVal, nil
 }
 
+// @Summary      List notification channels
+// @Description  Get all notification channels for the authenticated user (admin sees all)
+// @Tags         Notification Channels
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  utils.SuccessResponseModel{data=[]response.ChannelResponse}
+// @Failure      500  {object}  utils.ErrorResponseModel
+// @Router       /notification-channels [get]
 func (h *NotificationHandler) GetAllChannels(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -99,6 +108,19 @@ func (h *NotificationHandler) GetAllChannels(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntities(channels), "Notification channels retrieved successfully")
 }
 
+// @Summary      Get notification channel by ID
+// @Description  Get a single notification channel by its ID
+// @Tags         Notification Channels
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Channel ID"
+// @Success      200  {object}  utils.SuccessResponseModel{data=response.ChannelResponse}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /notification-channels/{id} [get]
 func (h *NotificationHandler) GetChannel(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -123,6 +145,18 @@ func (h *NotificationHandler) GetChannel(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(channel), "Notification channel retrieved successfully")
 }
 
+// @Summary      Create notification channel
+// @Description  Create a new notification channel for the authenticated user
+// @Tags         Notification Channels
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      request.CreateChannelRequest  true  "Channel details"
+// @Success      201   {object}  utils.SuccessResponseModel{data=response.ChannelResponse}
+// @Failure      400   {object}  utils.ErrorResponseModel
+// @Failure      401   {object}  utils.ErrorResponseModel
+// @Failure      500   {object}  utils.ErrorResponseModel
+// @Router       /notification-channels [post]
 func (h *NotificationHandler) CreateChannel(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, _, err := h.getAuthUser(c)
@@ -150,6 +184,21 @@ func (h *NotificationHandler) CreateChannel(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.FromEntity(channel), "Notification channel created successfully")
 }
 
+// @Summary      Update notification channel
+// @Description  Update an existing notification channel by ID
+// @Tags         Notification Channels
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int                          true  "Channel ID"
+// @Param        body  body      request.UpdateChannelRequest  true  "Updated channel details"
+// @Success      200   {object}  utils.SuccessResponseModel{data=response.ChannelResponse}
+// @Failure      400   {object}  utils.ErrorResponseModel
+// @Failure      401   {object}  utils.ErrorResponseModel
+// @Failure      403   {object}  utils.ErrorResponseModel
+// @Failure      404   {object}  utils.ErrorResponseModel
+// @Failure      500   {object}  utils.ErrorResponseModel
+// @Router       /notification-channels/{id} [put]
 func (h *NotificationHandler) UpdateChannel(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -195,6 +244,20 @@ func (h *NotificationHandler) UpdateChannel(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(channel), "Notification channel updated successfully")
 }
 
+// @Summary      Delete notification channel
+// @Description  Delete a notification channel by ID
+// @Tags         Notification Channels
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Channel ID"
+// @Success      204  "No Content"
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Failure      500  {object}  utils.ErrorResponseModel
+// @Router       /notification-channels/{id} [delete]
 func (h *NotificationHandler) DeleteChannel(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)

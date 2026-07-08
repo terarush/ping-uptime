@@ -71,6 +71,16 @@ func (h *IncidentHandler) getAuthUser(c echo.Context) (uint, string, error) {
 	return userID, roleVal, nil
 }
 
+// @Summary      List all incidents
+// @Description  Retrieves all incidents. Admins see all, regular users see only their own.
+// @Tags         Incidents
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  utils.SuccessResponseModel{data=[]response.IncidentResponse}
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      500  {object}  utils.ErrorResponseModel
+// @Router       /api/incidents [get]
 func (h *IncidentHandler) GetAllIncidents(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -93,6 +103,19 @@ func (h *IncidentHandler) GetAllIncidents(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntities(incidents), "Incidents retrieved successfully")
 }
 
+// @Summary      Get incident by ID
+// @Description  Retrieves a single incident by ID. Users can only access their own incidents; admins can access any.
+// @Tags         Incidents
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Incident ID"
+// @Success      200  {object}  utils.SuccessResponseModel{data=response.IncidentResponse}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/incidents/{id} [get]
 func (h *IncidentHandler) GetIncident(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -117,6 +140,20 @@ func (h *IncidentHandler) GetIncident(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(incident), "Incident retrieved successfully")
 }
 
+// @Summary      Get incidents by monitor ID
+// @Description  Retrieves all incidents for a specific monitor. Users can only access their own monitors' incidents; admins can access any.
+// @Tags         Incidents
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        monitorId  path      int  true  "Monitor ID"
+// @Success      200        {object}  utils.SuccessResponseModel{data=[]response.IncidentResponse}
+// @Failure      400        {object}  utils.ErrorResponseModel
+// @Failure      401        {object}  utils.ErrorResponseModel
+// @Failure      403        {object}  utils.ErrorResponseModel
+// @Failure      404        {object}  utils.ErrorResponseModel
+// @Failure      500        {object}  utils.ErrorResponseModel
+// @Router       /api/incidents/monitor/{monitorId} [get]
 func (h *IncidentHandler) GetIncidentsByMonitor(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -147,6 +184,19 @@ func (h *IncidentHandler) GetIncidentsByMonitor(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntities(incidents), "Monitor incidents retrieved successfully")
 }
 
+// @Summary      Create an incident
+// @Description  Creates a new incident for a monitor. Only the monitor owner or an admin can create incidents.
+// @Tags         Incidents
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      request.CreateIncidentRequest  true  "Incident details"
+// @Success      201   {object}  utils.SuccessResponseModel{data=response.IncidentResponse}
+// @Failure      400   {object}  utils.ErrorResponseModel
+// @Failure      401   {object}  utils.ErrorResponseModel
+// @Failure      403   {object}  utils.ErrorResponseModel
+// @Failure      500   {object}  utils.ErrorResponseModel
+// @Router       /api/incidents [post]
 func (h *IncidentHandler) CreateIncident(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -184,6 +234,21 @@ func (h *IncidentHandler) CreateIncident(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.FromEntity(incident), "Incident created successfully")
 }
 
+// @Summary      Update an incident
+// @Description  Updates an incident by ID. Only the owner or an admin can update.
+// @Tags         Incidents
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int                        true  "Incident ID"
+// @Param        body  body      request.UpdateIncidentRequest  true  "Updated incident details"
+// @Success      200   {object}  utils.SuccessResponseModel{data=response.IncidentResponse}
+// @Failure      400   {object}  utils.ErrorResponseModel
+// @Failure      401   {object}  utils.ErrorResponseModel
+// @Failure      403   {object}  utils.ErrorResponseModel
+// @Failure      404   {object}  utils.ErrorResponseModel
+// @Failure      500   {object}  utils.ErrorResponseModel
+// @Router       /api/incidents/{id} [put]
 func (h *IncidentHandler) UpdateIncident(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -234,6 +299,20 @@ func (h *IncidentHandler) UpdateIncident(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(incident), "Incident updated successfully")
 }
 
+// @Summary      Delete an incident
+// @Description  Deletes an incident by ID. Only the owner or an admin can delete.
+// @Tags         Incidents
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Incident ID"
+// @Success      204  {object}  utils.SuccessResponseModel
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Failure      500  {object}  utils.ErrorResponseModel
+// @Router       /api/incidents/{id} [delete]
 func (h *IncidentHandler) DeleteIncident(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)

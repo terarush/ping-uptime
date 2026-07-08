@@ -9,6 +9,20 @@ import (
 // Response is a standard structure for JSON responses.
 type Response struct{}
 
+// SuccessResponseModel is the standard success response shape (for swagger docs).
+type SuccessResponseModel struct {
+	Data    interface{} `json:"data"`
+	Message string      `json:"message"`
+	Error   string      `json:"error"`
+}
+
+// ErrorResponseModel is the standard error response shape (for swagger docs).
+type ErrorResponseModel struct {
+	Data    interface{} `json:"data"`
+	Message string      `json:"message"`
+	Error   string      `json:"error"`
+}
+
 // JSONResponse sends a standard JSON response.
 func (r *Response) JSONResponse(c echo.Context, statusCode int, data interface{}, message string, err string) error {
 	response := map[string]interface{}{

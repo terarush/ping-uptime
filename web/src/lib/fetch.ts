@@ -120,7 +120,9 @@ ExtendedFetch.uploadForm = async <T = unknown>(
 	url: string,
 	data: FormData,
 ): Promise<T> => {
-	const response = await Fetch.post(url, data);
+	const response = await Fetch.post(url, data, {
+		headers: { 'Content-Type': null },
+	});
 	return response.data;
 };
 
