@@ -10,6 +10,7 @@ import ExtendedFetch from '@/lib/fetch';
 import gsap from 'gsap';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { toTypedSchema } from '@vee-validate/zod';
+import type { GenericObject } from 'vee-validate';
 import { z } from 'zod';
 
 const route = useRoute();
@@ -54,7 +55,7 @@ onMounted(() => {
   }
 });
 
-const onSubmit = async (values: { password: string }) => {
+const onSubmit = async (values: GenericObject) => {
   if (!token) { error.value = 'Invalid reset token.'; return; }
   error.value = '';
   loading.value = true;
