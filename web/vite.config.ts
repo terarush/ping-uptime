@@ -9,6 +9,8 @@ import tailwindcss from '@tailwindcss/vite'
 let appVersion = '0.0.0'
 try {
   appVersion = execSync('git describe --tags --always', { encoding: 'utf-8' }).trim()
+  // Strip commit count & hash suffix: v0.1.24-18-g7cd03bb -> v0.1.24
+  appVersion = appVersion.replace(/-[0-9]+-g[0-9a-f]+$/, '')
 } catch { /* git not available */ }
 
 // https://vite.dev/config/
