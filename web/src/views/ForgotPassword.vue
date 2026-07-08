@@ -9,6 +9,7 @@ import ExtendedFetch from '@/lib/fetch';
 import gsap from 'gsap';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { toTypedSchema } from '@vee-validate/zod';
+import type { GenericObject } from 'vee-validate';
 import { z } from 'zod';
 
 const forgotSchema = z.object({
@@ -39,7 +40,7 @@ onMounted(() => {
   );
 });
 
-const onSubmit = async (values: { email: string }) => {
+const onSubmit = async (values: GenericObject) => {
   error.value = '';
   loading.value = true;
   try {

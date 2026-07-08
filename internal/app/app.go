@@ -210,6 +210,30 @@ func (a *App) Initialize() error {
 	return nil
 }
 
+// registerDocsRoute registers the Scalar-powered interactive API
+// documentation. Requests for /api/docs/openapi.json serve the raw OpenAPI
+// spec file; any other path under /api/docs/ serves the HTML viewer page.
+func (a *App) registerDocsRoute() {
+	a.r.GET("/api/docs/*", func(c echo.Context) error {
+		if c.Param("*") == "openapi.json" {
+			return c.File("docs/swagger.json")
+		}
+		html := `<!DOCTYPE html>
+<html>
+<head>
+  <title>Ping Uptime API</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <script id="api-reference" data-url="/api/docs/openapi.json"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+</body>
+</html>`
+		return c.HTML(http.StatusOK, html)
+	})
+}
+
 // Start starts the application
 func (a *App) Start() {
 	a.logger.Info("Starting server on %s", a.server.Host)
