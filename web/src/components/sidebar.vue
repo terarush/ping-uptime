@@ -22,9 +22,11 @@ import {
 import { sidebarContent } from '@/content/sidebar'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import ThemeButton from '@/components/theme-button.vue'
-import { LogOut } from '@lucide/vue'
+import { LogOut, Download } from '@lucide/vue'
 import { useAuth } from '@/composables/useAuth'
 import { useAppTitle } from '@/composables/useAppTitle'
+import { useUpdateChecker } from '@/composables/useUpdateChecker'
+import { siteConfig } from '@/content/config'
 
 // Initialize router and auth dependencies
 const { appTitle, fetchAppTitle } = useAppTitle()
@@ -32,6 +34,7 @@ const route = useRoute()
 const router = useRouter()
 const { currentUser, logout } = useAuth()
 const { isMobile, setOpenMobile } = useSidebar()
+const { isUpdateAvailable, latestRelease } = useUpdateChecker()
 
 onMounted(fetchAppTitle)
 
@@ -46,9 +49,7 @@ const handleItemClick = () => {
 // Filter sidebar content based on permissions
 const filteredSidebarContent = computed(() => {
   return sidebarContent.filter(group => {
-    if (group.admin && !isAdmin.value) {
-      return false
-    }
+    if (group.admin && !isAdmin.value) return false
     return true
   })
 })
@@ -111,6 +112,24 @@ const handleLogout = () => {
 
     <!-- Footer: Theme Toggle & Logout/User profile -->
     <SidebarFooter class="border-t border-border/50 p-4 flex flex-col gap-2">
+      <!-- Update available banner -->
+      <SidebarMenu v-if="isUpdateAvailable">
+        <SidebarMenuItem>
+          <SidebarMenuButton as-child variant="default" tooltip="Update available">
+            <a
+              :href="latestRelease?.html_url || `https://github.com/${siteConfig.repoOwner}/${siteConfig.repoName}/releases/latest`"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center gap-3 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 w-full cursor-pointer"
+            >
+              <Download class="w-4 h-4 shrink-0" />
+              <span class="group-data-[collapsible=icon]:hidden text-sm font-semibold">
+                {{ latestRelease?.tag_name }} available
+              </span>
+            </a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
       <!-- Theme switcher item -->
       <SidebarMenu>
         <SidebarMenuItem>
