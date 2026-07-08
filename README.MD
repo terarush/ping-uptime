@@ -1,36 +1,33 @@
 # ping-uptime
 
-A self-hosted **uptime monitoring** service built with Go (Echo v4) and Vue 3. Monitor your websites, APIs, and services — get instant **Discord notifications** when something goes down or comes back up.
+Self-hosted uptime monitoring service built with Go (Echo v4) and Vue 3.
+Monitor websites, APIs, and services — get Discord notifications on status changes.
 
 ---
 
-## ✨ Features
+## Features
 
-- 🔍 **HTTP/HTTPS uptime monitoring** — ping your endpoints at configurable intervals
-- 🔔 **Discord webhook notifications** — instant alerts on status change (down / recovered)
-- 📊 **Dashboard** — view real-time status, response time, and uptime history
-- 🔐 **JWT authentication** — secure API and dashboard access
-- 🗄️ **Multi-database support** — MySQL or PostgreSQL via GORM
-- 🧩 **Modular architecture** — Domain-Driven Design, easy to extend
-- ⚡ **Single binary** — Go backend serves the Vue frontend from `static/`
+- HTTP/HTTPS uptime monitoring — ping endpoints at configurable intervals
+- Discord webhook notifications — alerts on down/recovered status changes
+- Dashboard — real-time status, response time, uptime history
+- JWT authentication — secure API and dashboard access
+- Multi-database support — MySQL or PostgreSQL via GORM
+- Modular architecture — domain-driven design, easy to extend
+- Single binary — Go backend serves Vue frontend from static/
 
 ---
 
-## 🚀 Getting Started (Docker Installation)
+## Getting Started (Docker)
 
-The easiest way to run `ping-uptime` is using Docker.
+Easiest way to run ping-uptime is with Docker.
 
-## Run on Linux System
-
-Run the ping-uptime on your Linux system without Docker.
+### Run on Linux (no Docker)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/terarush/ping-uptime/main/install.sh | bash
 ```
 
 ### Run with Docker
-
-Run the container using the following command, passing your `.env` file:
 
 ```bash
 docker run -d \
@@ -39,7 +36,7 @@ docker run -d \
   rafia9005/ping-uptime:latest
 ```
 
-Run the container with custom volume mounts for configuration:
+With custom volume mounts:
 
 ```bash
 docker run -d \
