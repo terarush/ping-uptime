@@ -21,7 +21,7 @@ COPY . .
 
 COPY --from=frontend-builder /static ./static
 
-RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -o main .
+RUN go install github.com/swaggo/swag/cmd/swag@latest && swag init --parseDependency --parseDepth 2 -g main.go && CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -o main .
 
 FROM alpine:3.20
 

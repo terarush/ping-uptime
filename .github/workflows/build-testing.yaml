@@ -44,6 +44,9 @@ jobs:
       - name: Install Dependencies
         run: go mod download
 
+      - name: Generate Swagger Docs
+        run: go install github.com/swaggo/swag/cmd/swag@latest && swag init --parseDependency --parseDepth 2 -g main.go
+
       - name: Run Go Tests
         run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 
