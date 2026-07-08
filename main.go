@@ -1,5 +1,27 @@
 package main
 
+// Ping Uptime API
+//
+// Website monitoring and uptime tracking API.
+//
+//	 Schemes: http
+//	 BasePath: /api
+//	 Version: 1.0.0
+//	 Host: localhost:3000
+//
+//	 SecurityDefinitions:
+//	 BearerAuth:
+//	   type: apiKey
+//	   name: Authorization
+//	   in: header
+//	   description: "JWT access token. Format: Bearer <token>"
+//	 AdminAuth:
+//	   type: apiKey
+//	   name: X-Admin-Role
+//	   in: header
+//	   description: "Admin role required"
+//
+// swagger:meta
 import (
 	"embed"
 	"fmt"

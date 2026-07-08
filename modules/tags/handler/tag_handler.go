@@ -32,6 +32,15 @@ type attachTagsRequest struct {
 	TagIDs []uint `json:"tag_ids" validate:"required"`
 }
 
+// @Summary      List all tags
+// @Description  Get all tags
+// @Tags         Tags
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  utils.SuccessResponseModel{data=[]entity.Tag}
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api/tags [get]
 func (h *TagHandler) GetAll(c echo.Context) error {
 	ctx := c.Request().Context()
 	tags, err := h.svc.GetAll(ctx)
@@ -41,6 +50,17 @@ func (h *TagHandler) GetAll(c echo.Context) error {
 	return h.r.SuccessResponse(c, tags, "Tags retrieved successfully")
 }
 
+// @Summary      Create a tag
+// @Description  Create a new tag
+// @Tags         Tags
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body  createTagRequest  true  "Tag details"
+// @Success      201  {object}  utils.SuccessResponseModel{data=entity.Tag}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api/tags [post]
 func (h *TagHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
 	req := new(createTagRequest)
@@ -61,6 +81,19 @@ func (h *TagHandler) Create(c echo.Context) error {
 	return h.r.CreatedResponse(c, tag, "Tag created successfully")
 }
 
+// @Summary      Update a tag
+// @Description  Update an existing tag
+// @Tags         Tags
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id       path    int                true  "Tag ID"
+// @Param        request  body    updateTagRequest   true  "Updated tag details"
+// @Success      200  {object}  utils.SuccessResponseModel{data=entity.Tag}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/tags/{id} [put]
 func (h *TagHandler) Update(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -83,6 +116,18 @@ func (h *TagHandler) Update(c echo.Context) error {
 	return h.r.SuccessResponse(c, tag, "Tag updated successfully")
 }
 
+// @Summary      Delete a tag
+// @Description  Delete a tag by ID
+// @Tags         Tags
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path    int  true  "Tag ID"
+// @Success      204  "No Content"
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/tags/{id} [delete]
 func (h *TagHandler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -99,6 +144,19 @@ func (h *TagHandler) Delete(c echo.Context) error {
 	return h.r.NoContentResponse(c)
 }
 
+// @Summary      Attach tags to monitor
+// @Description  Attach tags to a monitor
+// @Tags         Tags
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id       path    int                  true  "Monitor ID"
+// @Param        request  body    attachTagsRequest    true  "Tag IDs to attach"
+// @Success      200  {object}  utils.SuccessResponseModel
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/monitors/{id}/tags [post]
 func (h *TagHandler) AttachTags(c echo.Context) error {
 	ctx := c.Request().Context()
 	monitorID, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -123,6 +181,17 @@ func (h *TagHandler) AttachTags(c echo.Context) error {
 	return h.r.SuccessResponse(c, nil, "Tags attached successfully")
 }
 
+// @Summary      Get monitor tags
+// @Description  Get all tags attached to a monitor
+// @Tags         Tags
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path    int  true  "Monitor ID"
+// @Success      200  {object}  utils.SuccessResponseModel{data=[]entity.Tag}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api/monitors/{id}/tags [get]
 func (h *TagHandler) GetMonitorTags(c echo.Context) error {
 	ctx := c.Request().Context()
 	monitorID, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -137,6 +206,18 @@ func (h *TagHandler) GetMonitorTags(c echo.Context) error {
 	return h.r.SuccessResponse(c, tags, "Monitor tags retrieved successfully")
 }
 
+// @Summary      Detach tag from monitor
+// @Description  Remove a tag from a monitor
+// @Tags         Tags
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id     path    int  true  "Monitor ID"
+// @Param        tagID  path    int  true  "Tag ID"
+// @Success      204  "No Content"
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Router       /api/monitors/{id}/tags/{tagID} [delete]
 func (h *TagHandler) DetachTag(c echo.Context) error {
 	ctx := c.Request().Context()
 	monitorID, err := strconv.ParseUint(c.Param("id"), 10, 32)

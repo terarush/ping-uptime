@@ -50,6 +50,23 @@ func (h *NotificationLogHandler) getAuthUser(c echo.Context) (uint, string, erro
 	return userID, roleVal, nil
 }
 
+// @Summary      List notification logs
+// @Description  Get paginated notification logs for the authenticated user (admin sees all)
+// @Tags         Notification Logs
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        channel_type  query  string  false  "Filter by channel type"
+// @Param        status        query  string  false  "Filter by status (sent/failed)"
+// @Param        event_type    query  string  false  "Filter by event type"
+// @Param        date_from     query  string  false  "Filter logs from date (RFC3339)"
+// @Param        date_to       query  string  false  "Filter logs to date (RFC3339)"
+// @Param        limit         query  int     false  "Results per page"
+// @Param        offset        query  int     false  "Result offset"
+// @Success      200  {object}  utils.SuccessResponseModel{data=[]entity.NotificationLog}
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      500  {object}  utils.ErrorResponseModel
+// @Router       /notification-logs [get]
 func (h *NotificationLogHandler) GetAll(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)

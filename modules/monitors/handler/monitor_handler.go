@@ -121,6 +121,16 @@ func (h *MonitorHandler) getAuthUser(c echo.Context) (uint, string, error) {
 	return userID, roleVal, nil
 }
 
+// @Summary      List all monitors
+// @Description  Retrieves all monitors. Admins see all, regular users see only their own.
+// @Tags         Monitors
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  utils.SuccessResponseModel{data=[]response.MonitorResponse}
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      500  {object}  utils.ErrorResponseModel
+// @Router       /api/monitors [get]
 func (h *MonitorHandler) GetAllMonitors(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -142,6 +152,19 @@ func (h *MonitorHandler) GetAllMonitors(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntities(monitors), "Monitors retrieved successfully")
 }
 
+// @Summary      Get monitor by ID
+// @Description  Retrieves a single monitor by its ID. Users can only access their own monitors; admins can access any.
+// @Tags         Monitors
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Monitor ID"
+// @Success      200  {object}  utils.SuccessResponseModel{data=response.MonitorResponse}
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Router       /api/monitors/{id} [get]
 func (h *MonitorHandler) GetMonitor(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -167,6 +190,18 @@ func (h *MonitorHandler) GetMonitor(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(monitor), "Monitor retrieved successfully")
 }
 
+// @Summary      Create a monitor
+// @Description  Creates a new uptime monitor. Non-admin users get enforced defaults (60s interval, 10s timeout). Admin users can set custom values.
+// @Tags         Monitors
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      request.CreateMonitorRequest  true  "Monitor details"
+// @Success      201   {object}  utils.SuccessResponseModel{data=response.MonitorResponse}
+// @Failure      400   {object}  utils.ErrorResponseModel
+// @Failure      401   {object}  utils.ErrorResponseModel
+// @Failure      500   {object}  utils.ErrorResponseModel
+// @Router       /api/monitors [post]
 func (h *MonitorHandler) CreateMonitor(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -217,6 +252,21 @@ func (h *MonitorHandler) CreateMonitor(c echo.Context) error {
 	return h.r.CreatedResponse(c, response.FromEntity(monitor), "Monitor created successfully")
 }
 
+// @Summary      Update a monitor
+// @Description  Updates an existing monitor by ID. Non-admin users get enforced default interval/timeout. Only the owner or an admin can update.
+// @Tags         Monitors
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int                        true  "Monitor ID"
+// @Param        body  body      request.UpdateMonitorRequest  true  "Updated monitor details"
+// @Success      200   {object}  utils.SuccessResponseModel{data=response.MonitorResponse}
+// @Failure      400   {object}  utils.ErrorResponseModel
+// @Failure      401   {object}  utils.ErrorResponseModel
+// @Failure      403   {object}  utils.ErrorResponseModel
+// @Failure      404   {object}  utils.ErrorResponseModel
+// @Failure      500   {object}  utils.ErrorResponseModel
+// @Router       /api/monitors/{id} [put]
 func (h *MonitorHandler) UpdateMonitor(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -291,6 +341,20 @@ func (h *MonitorHandler) UpdateMonitor(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(monitor), "Monitor updated successfully")
 }
 
+// @Summary      Delete a monitor
+// @Description  Deletes a monitor by ID. Only the owner or an admin can delete.
+// @Tags         Monitors
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Monitor ID"
+// @Success      204  {object}  utils.SuccessResponseModel
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      404  {object}  utils.ErrorResponseModel
+// @Failure      500  {object}  utils.ErrorResponseModel
+// @Router       /api/monitors/{id} [delete]
 func (h *MonitorHandler) DeleteMonitor(c echo.Context) error {
 	ctx := c.Request().Context()
 	userID, role, err := h.getAuthUser(c)
@@ -346,6 +410,13 @@ func (h *MonitorHandler) broadcastEvent(event bus.Event) {
 	}
 }
 
+// @Summary      Stream monitor events (SSE)
+// @Description  Server-sent events stream for real-time monitor and incident updates. No authentication required.
+// @Tags         Monitors
+// @Accept       json
+// @Produce      text/event-stream
+// @Success      200  {object}  utils.SuccessResponseModel
+// @Router       /api/monitors/events [get]
 func (h *MonitorHandler) StreamEvents(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, "text/event-stream")
 	c.Response().Header().Set(echo.HeaderCacheControl, "no-cache")
@@ -379,6 +450,16 @@ func (h *MonitorHandler) StreamEvents(c echo.Context) error {
 	}
 }
 
+// @Summary      Receive heartbeat ping
+// @Description  Public endpoint to register a heartbeat ping from a monitor via its heartbeat token. Updates uptime status to "up" and resolves any active incidents.
+// @Tags         Monitors
+// @Accept       json
+// @Produce      json
+// @Param        token  path      string  true  "Heartbeat token"
+// @Success      200    {object}  utils.SuccessResponseModel{data=response.MonitorResponse}
+// @Failure      400    {object}  utils.ErrorResponseModel
+// @Failure      404    {object}  utils.ErrorResponseModel
+// @Router       /api/heartbeat/{token} [post]
 func (h *MonitorHandler) HandleHeartbeat(c echo.Context) error {
 	token := c.Param("token")
 	if token == "" {
@@ -419,7 +500,17 @@ func (h *MonitorHandler) HandleHeartbeat(c echo.Context) error {
 	return h.r.SuccessResponse(c, response.FromEntity(&mon), "Heartbeat received")
 }
 
-// GetPublicDailyChart returns daily chart data for a public monitor (no auth).
+// @Summary      Get public daily chart data
+// @Description  Returns daily uptime chart data for a public monitor. No authentication required.
+// @Tags         Monitors
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int     true  "Monitor ID"
+// @Param        days  query     int     false  "Number of days (1-365, default 30)"
+// @Success      200   {object}  utils.SuccessResponseModel{data=[]entity.DailyChartPoint}
+// @Failure      400   {object}  utils.ErrorResponseModel
+// @Failure      500   {object}  utils.ErrorResponseModel
+// @Router       /api/monitors/public/{id}/daily [get]
 func (h *MonitorHandler) GetPublicDailyChart(c echo.Context) error {
 	ctx := c.Request().Context()
 

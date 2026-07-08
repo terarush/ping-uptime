@@ -25,6 +25,24 @@ func NewAuditLogHandler(log *logger.Logger, svc *service.AuditLogService) *Audit
 	return &AuditLogHandler{svc: svc, log: log, r: &utils.Response{}}
 }
 
+// @Summary      [Admin] List audit logs
+// @Description  Retrieve audit logs with optional filtering. Requires admin privileges.
+// @Tags         AuditLogs
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        user_id      query  int     false  "Filter by user ID"
+// @Param        entity_type  query  string  false  "Filter by entity type (e.g. monitor, incident)"
+// @Param        action       query  string  false  "Filter by action (e.g. created, updated, deleted)"
+// @Param        from         query  string  false  "Start date/time (RFC3339)"
+// @Param        to           query  string  false  "End date/time (RFC3339)"
+// @Param        limit        query  int     false  "Max results to return"
+// @Success      200  {object}  utils.SuccessResponseModel
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      500  {object}  utils.ErrorResponseModel
+// @Router       /api/audit-logs [get]
 func (h *AuditLogHandler) getAll(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -61,6 +79,20 @@ func (h *AuditLogHandler) getAll(c echo.Context) error {
 	return h.r.SuccessResponse(c, items, "Audit logs retrieved")
 }
 
+// @Summary      [Admin] Search audit logs
+// @Description  Retrieve audit logs filtered by entity type and entity ID. Requires admin privileges.
+// @Tags         AuditLogs
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        entity_type  query  string  true  "Entity type (e.g. monitor, incident)"
+// @Param        entity_id    query  int     true  "Entity ID"
+// @Success      200  {object}  utils.SuccessResponseModel
+// @Failure      400  {object}  utils.ErrorResponseModel
+// @Failure      401  {object}  utils.ErrorResponseModel
+// @Failure      403  {object}  utils.ErrorResponseModel
+// @Failure      500  {object}  utils.ErrorResponseModel
+// @Router       /api/audit-logs/search [get]
 func (h *AuditLogHandler) getByEntity(c echo.Context) error {
 	ctx := c.Request().Context()
 	entityType := c.QueryParam("entity_type")
