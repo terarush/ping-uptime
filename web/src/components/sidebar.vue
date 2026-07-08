@@ -46,17 +46,7 @@ const handleItemClick = () => {
   }
 }
 
-// Reactive badge map: title -> badge text (null = hide)
-const badgeMap = computed<Record<string, string | null>>(() => {
-  const downCount = monitorsStore.monitors.filter(m => m.status === 'active' && m.uptime_status === 'down').length
-  const activeIncidents = incidentsStore.incidents.filter(i => i.status === 'active').length
-  return {
-    Monitors: downCount > 0 ? String(downCount) : null,
-    'Incident Logs': activeIncidents > 0 ? String(activeIncidents) : null,
-  }
-})
-
-// Filter sidebar content based on permissions and inject badges
+// Filter sidebar content based on permissions
 const filteredSidebarContent = computed(() => {
   return sidebarContent.filter(group => {
     if (group.admin && !isAdmin.value) return false
