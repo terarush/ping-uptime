@@ -86,10 +86,14 @@ func (a *App) Initialize() error {
 	// validate request
 	a.r.Validator = _validator.NewCustomValidator()
 
-		// Scalar API docs
+		// Scalar API docs (swagger.json embedded via //go:embed in main.go)
 		a.r.GET("/api/docs/*", func(c echo.Context) error {
 			if c.Param("*") == "openapi.json" {
-				return c.File("docs/swagger.json")
+				data, err := a.staticFS.ReadFile("docs/swagger.json")
+				if err != nil {
+					return c.String(http.StatusNotFound, "openapi.json not found")
+				}
+				return c.JSONBlob(http.StatusOK, data)
 			}
 			html := `<!DOCTYPE html>
 <html>
