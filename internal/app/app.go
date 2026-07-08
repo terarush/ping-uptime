@@ -86,8 +86,29 @@ func (a *App) Initialize() error {
 	// validate request
 	a.r.Validator = _validator.NewCustomValidator()
 
-	// Scalar API docs
-	a.registerDocsRoute()
+		// Scalar API docs (swagger.json embedded via //go:embed in main.go)
+		a.r.GET("/api/docs/*", func(c echo.Context) error {
+			if c.Param("*") == "openapi.json" {
+				data, err := a.staticFS.ReadFile("docs/swagger.json")
+				if err != nil {
+					return c.String(http.StatusNotFound, "openapi.json not found")
+				}
+				return c.JSONBlob(http.StatusOK, data)
+			}
+			html := `<!DOCTYPE html>
+<html>
+<head>
+  <title>Ping Uptime API</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <script id="api-reference" data-url="/api/docs/openapi.json"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+</body>
+</html>`
+			return c.HTML(http.StatusOK, html)
+		})
 
 	// Initialize modules
 	for _, module := range a.modules {
