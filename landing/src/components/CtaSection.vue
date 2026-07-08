@@ -21,8 +21,14 @@ const { observe } = useScrollReveal()
           Self-hosted uptime tracking with alerts, analytics, and a clean status dashboard.
         </p>
         <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button size="lg" class="rounded-lg px-8 font-semibold text-base">
-            Get Started
+          <Button
+            size="lg"
+            class="rounded-lg px-8 font-semibold text-base"
+            as="a"
+            href="https://demo-ping.terarush.dev"
+            target="_blank"
+          >
+            Live Demo
             <ArrowRight class="h-4 w-4 ml-0.5" />
           </Button>
           <Button
@@ -30,10 +36,10 @@ const { observe } = useScrollReveal()
             size="lg"
             class="rounded-lg px-8 font-semibold text-base"
             as="a"
-            href="https://github.com/terarush/ping-uptime"
+            href="https://demo-ping.terarush.dev/api/docs/"
             target="_blank"
           >
-            View on GitHub
+            API Docs
           </Button>
         </div>
       </div>

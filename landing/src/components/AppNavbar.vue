@@ -24,14 +24,14 @@ function navigateTo(href: string) {
   if (href.startsWith('#')) {
     const currentRoute = router.currentRoute.value
     if (currentRoute.path === '/') {
-      // Already on landing page, just scroll to element
       const id = href.slice(1)
       const el = document.getElementById(id)
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     } else {
-      // Navigate to landing page with hash
       router.push({ path: '/', hash: href })
     }
+  } else if (href.startsWith('http')) {
+    window.open(href, '_blank', 'noopener,noreferrer')
   } else {
     router.push(href)
   }
@@ -77,6 +77,7 @@ const navLinks = [
   { label: 'Contributors', href: '#contributors' },
   { label: 'Contact', href: '#contact' },
   { label: 'Contributing', href: '/contributing', external: true },
+  { label: 'API Docs', href: 'https://demo-ping.terarush.dev/api/docs/', external: 'blank' },
 ]
 </script>
 
