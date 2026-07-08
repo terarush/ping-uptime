@@ -40,8 +40,11 @@ async function checkForUpdate() {
     if (!res.ok) throw new Error('Failed to fetch')
     const data: GitHubRelease = await res.json()
     latestRelease.value = data
+    // Skip if current version is unknown (dev build without git)
+    const current = __APP_VERSION__
+    if (current === '0.0.0') return
     isUpdateAvailable.value =
-      compareVersions(data.tag_name, __APP_VERSION__) > 0
+      compareVersions(data.tag_name, current) > 0
   } catch {
     error.value = true
   } finally {
