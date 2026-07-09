@@ -60,18 +60,20 @@ describe('auth store', () => {
     cookiesMock.get.mockReturnValueOnce('bad-token')
     fetchMock.get.mockRejectedValueOnce(new Error('unauthorized'))
 
-    await expect(store.verifyToken()).resolves.toBe(false)
+    try {
+      await expect(store.verifyToken()).resolves.toBe(false)
 
-    expect(warnSpy).toHaveBeenCalledWith(
-      'Token verification failed on server, clearing session:',
-      expect.any(Error),
-    )
-    expect(cookiesMock.remove).toHaveBeenCalledWith('accessToken')
-    expect(cookiesMock.remove).toHaveBeenCalledWith('refreshToken')
-    expect(store.currentUser).toBeNull()
-    expect(store.isAuthenticated).toBe(false)
-
-    warnSpy.mockRestore()
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Token verification failed on server, clearing session:',
+        expect.any(Error),
+      )
+      expect(cookiesMock.remove).toHaveBeenCalledWith('accessToken')
+      expect(cookiesMock.remove).toHaveBeenCalledWith('refreshToken')
+      expect(store.currentUser).toBeNull()
+      expect(store.isAuthenticated).toBe(false)
+    } finally {
+      warnSpy.mockRestore()
+    }
   })
 
   it('sets and clears the session through cookies', () => {

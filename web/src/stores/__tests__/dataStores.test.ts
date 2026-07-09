@@ -63,14 +63,16 @@ describe('data stores', () => {
 
     fetchMock.get.mockRejectedValueOnce(error)
 
-    await expect(store.fetchChart(4)).rejects.toBe(error)
+    try {
+      await expect(store.fetchChart(4)).rejects.toBe(error)
 
-    expect(errorSpy).toHaveBeenCalledWith('Failed to fetch chart:', error)
-    expect(store.chartPoints).toEqual([])
-    expect(store.error).toBe('chart failed')
-    expect(store.loading).toBe(false)
-
-    errorSpy.mockRestore()
+      expect(errorSpy).toHaveBeenCalledWith('Failed to fetch chart:', error)
+      expect(store.chartPoints).toEqual([])
+      expect(store.error).toBe('chart failed')
+      expect(store.loading).toBe(false)
+    } finally {
+      errorSpy.mockRestore()
+    }
   })
 
   it('api tokens store fetches, creates, and revokes tokens', async () => {
