@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
-    "test:unit": "vitest",
+    "test:unit": "mkdir -p node_modules/.tmp && node --localstorage-file=node_modules/.tmp/vitest-localstorage ./node_modules/vitest/vitest.mjs",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "format": "prettier --write --experimental-cli src/"
