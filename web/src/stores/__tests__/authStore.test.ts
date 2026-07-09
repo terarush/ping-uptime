@@ -55,16 +55,25 @@ describe('auth store', () => {
 
   it('clears the session and cookies when token verification fails', async () => {
     const store = useAuthStore()
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     cookiesMock.get.mockReturnValueOnce('bad-token')
     fetchMock.get.mockRejectedValueOnce(new Error('unauthorized'))
 
-    await expect(store.verifyToken()).resolves.toBe(false)
+    try {
+      await expect(store.verifyToken()).resolves.toBe(false)
 
-    expect(cookiesMock.remove).toHaveBeenCalledWith('accessToken')
-    expect(cookiesMock.remove).toHaveBeenCalledWith('refreshToken')
-    expect(store.currentUser).toBeNull()
-    expect(store.isAuthenticated).toBe(false)
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Token verification failed on server, clearing session:',
+        expect.any(Error),
+      )
+      expect(cookiesMock.remove).toHaveBeenCalledWith('accessToken')
+      expect(cookiesMock.remove).toHaveBeenCalledWith('refreshToken')
+      expect(store.currentUser).toBeNull()
+      expect(store.isAuthenticated).toBe(false)
+    } finally {
+      warnSpy.mockRestore()
+    }
   })
 
   it('sets and clears the session through cookies', () => {

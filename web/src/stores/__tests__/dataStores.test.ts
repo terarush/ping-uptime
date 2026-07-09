@@ -57,16 +57,22 @@ describe('data stores', () => {
 
   it('analytics store clears chart points and records the error when chart fetch fails', async () => {
     const store = useAnalyticsStore()
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     store.chartPoints = [{ date: 'stale' }] as any
     const error = { response: { data: { error: 'chart failed' } } }
 
     fetchMock.get.mockRejectedValueOnce(error)
 
-    await expect(store.fetchChart(4)).rejects.toBe(error)
+    try {
+      await expect(store.fetchChart(4)).rejects.toBe(error)
 
-    expect(store.chartPoints).toEqual([])
-    expect(store.error).toBe('chart failed')
-    expect(store.loading).toBe(false)
+      expect(errorSpy).toHaveBeenCalledWith('Failed to fetch chart:', error)
+      expect(store.chartPoints).toEqual([])
+      expect(store.error).toBe('chart failed')
+      expect(store.loading).toBe(false)
+    } finally {
+      errorSpy.mockRestore()
+    }
   })
 
   it('api tokens store fetches, creates, and revokes tokens', async () => {

@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node --disable-warning=DEP0205 ./node_modules/vite/bin/vite.js",
     "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vite preview",
-    "test:unit": "vitest",
-    "build-only": "vite build",
+    "preview": "node --disable-warning=DEP0205 ./node_modules/vite/bin/vite.js preview",
+    "test:unit": "node --disable-warning=DEP0205 ./node_modules/vitest/vitest.mjs",
+    "build-only": "node --disable-warning=DEP0205 ./node_modules/vite/bin/vite.js build",
     "type-check": "vue-tsc --build",
     "format": "prettier --write --experimental-cli src/"
   },
