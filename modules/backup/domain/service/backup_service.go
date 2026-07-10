@@ -83,7 +83,7 @@ func (s *BackupService) Import(ctx context.Context, data []byte, importUserID ui
 	if err := s.restoreTable(ctx, "tags", backup.Data.Tags, 0); err != nil {
 		return fmt.Errorf("restore tags: %w", err)
 	}
-	if err := s.restoreTable(ctx, "integrations", backup.Data.Integrations, 0); err != nil {
+	if err := s.restoreTable(ctx, "integrations", backup.Data.Integrations, importUserID); err != nil {
 		return fmt.Errorf("restore integrations: %w", err)
 	}
 	if err := s.restoreTable(ctx, "ssl_certs", backup.Data.SSLCerts, 0); err != nil {
