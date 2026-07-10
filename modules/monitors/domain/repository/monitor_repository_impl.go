@@ -59,12 +59,12 @@ func (r MonitorRepositoryImpl) CreateCheckRecord(ctx context.Context, rec *entit
 
 func (r MonitorRepositoryImpl) GetDailyChart(ctx context.Context, monitorID uint, days int) ([]entity.DailyChartPoint, error) {
 	var points []entity.DailyChartPoint
-	startTime := time.Now().AddDate(0, 0, -days)
+	startTime := time.Now().UTC().AddDate(0, 0, -days)
 	err := database.DB.WithContext(ctx).
 		Table("check_records").
-		Select("DATE(checked_at, 'localtime') as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed_count, COUNT(*) as total_count").
+		Select("DATE(checked_at) as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed_count, COUNT(*) as total_count").
 		Where("monitor_id = ? AND checked_at >= ?", monitorID, startTime).
-		Group("DATE(checked_at, 'localtime')").
+		Group("DATE(checked_at)").
 		Order("date ASC").
 		Scan(&points).Error
 	if err != nil {

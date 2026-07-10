@@ -21,6 +21,6 @@ func NewCheckRecord(monitorID uint, success bool, latency, statusCode int) *Chec
 		Success:    success,
 		Latency:    latency,
 		StatusCode: statusCode,
-		CheckedAt:  time.Now(),
+		CheckedAt:  time.Now().UTC(),
 	}
 }
