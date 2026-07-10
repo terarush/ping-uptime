@@ -40,8 +40,9 @@ func (c *DBModel) OpenDB() (*gorm.DB, *error) {
 		}
 	}
 
-	// Enable WAL mode and busy timeout to handle concurrent read/writes smoothly
-	dsn := fmt.Sprintf("%s?_journal_mode=WAL&_busy_timeout=5000", dbPath)
+	// Use DELETE journal mode for single-file DB (no .db-wal/.db-shm).
+	// Switch to _journal_mode=WAL if concurrent read/write throughput matters.
+	dsn := fmt.Sprintf("%s?_journal_mode=DELETE&_busy_timeout=5000", dbPath)
 	connection := sqlite.Open(dsn)
 
 	db, err := gorm.Open(connection, &gorm.Config{})
