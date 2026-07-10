@@ -113,15 +113,17 @@ func (h *BackupHandler) Import(c echo.Context) error {
 		return h.r.BadRequestResponse(c, "Failed to read file: "+err.Error())
 	}
 
-	if err := h.svc.Import(ctx, data); err != nil {
-		return h.r.BadRequestResponse(c, "Import failed: "+err.Error())
-	}
-
-	// Record import
+	// Resolve importing user for user_id remap
 	userID, err := h.getAuthUser(c)
 	if err != nil {
 		userID = 0
 	}
+
+	if err := h.svc.Import(ctx, data, userID); err != nil {
+		return h.r.BadRequestResponse(c, "Import failed: "+err.Error())
+	}
+
+	// Record import
 	if err := h.svc.CreateRecord(ctx, "import-"+header.Filename, header.Size, userID); err != nil {
 		c.Logger().Error("failed to record import history: " + err.Error())
 	}
