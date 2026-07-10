@@ -444,83 +444,83 @@ onMounted(fetchAllData)
         </CardHeader>
         <CardContent class="p-4">
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-            <div @click="navigateTo('monitors')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
+            <button type="button" @click="navigateTo('monitors')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
               <div class="p-1.5 rounded-md shrink-0 bg-emerald-500/10"><Activity class="w-3.5 h-3.5 text-emerald-500" /></div>
               <div class="min-w-0">
                 <p class="text-[11px] font-bold truncate">Monitors</p>
                 <p class="text-[9px] text-muted-foreground">{{ monitors.length }}</p>
               </div>
-            </div>
-            <div @click="navigateTo('ssl-monitors')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
+            </button>
+            <button type="button" @click="navigateTo('ssl-monitors')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
               <div class="p-1.5 rounded-md shrink-0 bg-blue-500/10"><ShieldCheck class="w-3.5 h-3.5 text-blue-500" /></div>
               <div class="min-w-0">
                 <p class="text-[11px] font-bold truncate">SSL</p>
                 <p class="text-[9px] text-muted-foreground">{{ certs.length }}</p>
               </div>
-            </div>
-            <div @click="navigateTo('status-pages')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
+            </button>
+            <button type="button" @click="navigateTo('status-pages')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
               <div class="p-1.5 rounded-md shrink-0 bg-indigo-500/10"><Globe class="w-3.5 h-3.5 text-indigo-500" /></div>
               <div class="min-w-0">
                 <p class="text-[11px] font-bold truncate">Status Pages</p>
                 <p class="text-[9px] text-muted-foreground">{{ statusPages.length }}</p>
               </div>
-            </div>
-            <div @click="navigateTo('incidents')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
+            </button>
+            <button type="button" @click="navigateTo('incidents')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
               <div class="p-1.5 rounded-md shrink-0 bg-rose-500/10"><AlertCircle class="w-3.5 h-3.5 text-rose-500" /></div>
               <div class="min-w-0">
                 <p class="text-[11px] font-bold truncate">Incidents</p>
                 <p class="text-[9px] text-muted-foreground">{{ incidents.length }}</p>
               </div>
-            </div>
-            <div @click="navigateTo('maintenances')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
+            </button>
+            <button type="button" @click="navigateTo('maintenances')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
               <div class="p-1.5 rounded-md shrink-0 bg-amber-500/10"><Wrench class="w-3.5 h-3.5 text-amber-500" /></div>
               <div class="min-w-0">
                 <p class="text-[11px] font-bold truncate">Maintenances</p>
                 <p class="text-[9px] text-muted-foreground">{{ maintenances.length }}</p>
               </div>
-            </div>
-            <div @click="navigateTo('settings/notifications')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
+            </button>
+            <button type="button" @click="navigateTo('settings/notifications')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
               <div class="p-1.5 rounded-md shrink-0 bg-purple-500/10"><Bell class="w-3.5 h-3.5 text-purple-500" /></div>
               <div class="min-w-0">
                 <p class="text-[11px] font-bold truncate">Channels</p>
                 <p class="text-[9px] text-muted-foreground">{{ channels.length }}</p>
               </div>
-            </div>
-            <div @click="navigateTo('integrations')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
+            </button>
+            <button type="button" @click="navigateTo('integrations')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
               <div class="p-1.5 rounded-md shrink-0 bg-cyan-500/10"><Link class="w-3.5 h-3.5 text-cyan-500" /></div>
               <div class="min-w-0">
                 <p class="text-[11px] font-bold truncate">Integrations</p>
                 <p class="text-[9px] text-muted-foreground">{{ integrations.length }}</p>
               </div>
-            </div>
-            <div @click="navigateTo('tags')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
+            </button>
+            <button type="button" @click="navigateTo('tags')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
               <div class="p-1.5 rounded-md shrink-0 bg-pink-500/10"><Tag class="w-3.5 h-3.5 text-pink-500" /></div>
               <div class="min-w-0">
                 <p class="text-[11px] font-bold truncate">Tags</p>
                 <p class="text-[9px] text-muted-foreground">{{ tags.length }}</p>
               </div>
-            </div>
-            <div @click="navigateTo('api-tokens')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
+            </button>
+            <button type="button" @click="navigateTo('api-tokens')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
               <div class="p-1.5 rounded-md shrink-0 bg-orange-500/10"><KeyRound class="w-3.5 h-3.5 text-orange-500" /></div>
               <div class="min-w-0">
                 <p class="text-[11px] font-bold truncate">API Tokens</p>
                 <p class="text-[9px] text-muted-foreground">{{ tokens.length }}</p>
               </div>
-            </div>
-            <div v-if="isAdmin" @click="navigateTo('users')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
+            </button>
+            <button v-if="isAdmin" type="button" @click="navigateTo('users')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
               <div class="p-1.5 rounded-md shrink-0 bg-sky-500/10"><Users class="w-3.5 h-3.5 text-sky-500" /></div>
               <div class="min-w-0">
                 <p class="text-[11px] font-bold truncate">Users</p>
                 <p class="text-[9px] text-muted-foreground">{{ users.length }}</p>
               </div>
-            </div>
-            <div v-if="isAdmin" @click="navigateTo('teams')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
+            </button>
+            <button v-if="isAdmin" type="button" @click="navigateTo('teams')" class="flex items-center gap-2 p-2.5 rounded-lg border border-border/30 bg-muted/10 hover:bg-muted/20 cursor-pointer transition-colors">
               <div class="p-1.5 rounded-md shrink-0 bg-violet-500/10"><UsersRound class="w-3.5 h-3.5 text-violet-500" /></div>
               <div class="min-w-0">
                 <p class="text-[11px] font-bold truncate">Teams</p>
                 <p class="text-[9px] text-muted-foreground">{{ teams.length }} ({{ teams.reduce((s, t) => s + (t.member_count || 0), 0) }} members)</p>
               </div>
-            </div>
+            </button>
           </div>
         </CardContent>
       </Card>
