@@ -4,8 +4,8 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"mime"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"os"
 	"ping-uptime/internal/pkg/bus"
@@ -163,17 +163,48 @@ func (a *App) Initialize() error {
 	// otherwise fall back to index.html so Vue Router handles the path.
 	// e.g: /dashboard, /profile, /about → serve static/index.html
 	//      /assets/main.js, /favicon.ico → serve the real file
-	// Explicitly register MIME types that may be missing on some Linux systems.
-	// Without these, .js files can be served as text/html, breaking ES module
-	// loading (the browser enforces strict MIME checking for module scripts).
-	_ = mime.AddExtensionType(".js", "application/javascript")
-	_ = mime.AddExtensionType(".mjs", "application/javascript")
-	_ = mime.AddExtensionType(".css", "text/css")
+	//
+	// mimeTypes maps file extensions to their correct Content-Type values.
+	// We bypass the system MIME database entirely to guarantee that JS/CSS/WASM
+	// assets are always served with the right type — even on minimal Linux
+	// installs where /etc/mime.types may be missing or incomplete. Browsers
+	// enforce strict MIME checking for ES module scripts, so serving JS as
+	// text/html will cause a hard failure.
+	mimeTypes := map[string]string{
+		".js":   "application/javascript; charset=utf-8",
+		".mjs":  "application/javascript; charset=utf-8",
+		".css":  "text/css; charset=utf-8",
+		".html": "text/html; charset=utf-8",
+		".json": "application/json; charset=utf-8",
+		".wasm": "application/wasm",
+		".svg":  "image/svg+xml",
+		".png":  "image/png",
+		".jpg":  "image/jpeg",
+		".jpeg": "image/jpeg",
+		".ico":  "image/x-icon",
+		".webp": "image/webp",
+		".gif":  "image/gif",
+		".ttf":  "font/ttf",
+		".woff": "font/woff",
+		".woff2": "font/woff2",
+		".eot":  "application/vnd.ms-fontobject",
+	}
 
 	staticContent, fsErr := fs.Sub(a.staticFS, "static")
 	if fsErr != nil {
 		a.logger.Error("Failed to get subdirectory in static embed FS: %v", fsErr)
 	}
+
+	// Validate that the frontend was built before the Go binary was compiled.
+	// The embed directive captures static/ at compile time, so if index.html is
+	// missing it means `make build-frontend` (or `npm run build`) was never run
+	// before `go build`. Fail fast here with a clear message instead of silently
+	// serving 404s for every JS/CSS asset request (which the browser reports as
+	// a confusing MIME-type error because it receives an error HTML page).
+	if _, checkErr := staticContent.Open("index.html"); checkErr != nil {
+		panic("static/index.html not found in embedded FS — run `make build-frontend` before `go build`")
+	}
+
 	httpFS := http.FS(staticContent)
 
 	a.r.GET("/*", func(c echo.Context) error {
@@ -189,9 +220,24 @@ func (a *App) Initialize() error {
 				defer file.Close()
 				info, err := file.Stat()
 				if err == nil && !info.IsDir() {
+					// Explicitly set Content-Type from our own MIME map so that
+					// http.ServeContent never falls back to content sniffing or
+					// the (potentially broken) system MIME database.
+					ext := strings.ToLower(filepath.Ext(info.Name()))
+					if ct, ok := mimeTypes[ext]; ok {
+						c.Response().Header().Set("Content-Type", ct)
+					}
 					http.ServeContent(c.Response(), c.Request(), info.Name(), info.ModTime(), file)
 					return nil
 				}
+			}
+			// Missing path has a file extension → it's a static asset, not an
+			// SPA route. Return a real 404. Serving index.html here makes the
+			// browser receive text/html for a .js/.css import, which it rejects
+			// with a cryptic "Expected a JavaScript module but got text/html"
+			// error whenever the Go binary and the frontend build are out of sync.
+			if filepath.Ext(urlPath) != "" {
+				return c.String(http.StatusNotFound, "asset not found: "+fsPath)
 			}
 		}
 
@@ -205,6 +251,7 @@ func (a *App) Initialize() error {
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
+		c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
 		http.ServeContent(c.Response(), c.Request(), info.Name(), info.ModTime(), indexFile)
 		return nil
 	})

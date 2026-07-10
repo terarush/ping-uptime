@@ -50,7 +50,7 @@ import (
 	statusPage "ping-uptime/modules/status_pages"
 )
 
-//go:embed static
+//go:embed all:static
 //go:embed docs/swagger.json
 var staticFS embed.FS
 
