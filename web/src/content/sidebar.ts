@@ -17,6 +17,7 @@ import {
   Link,
   FolderArchive,
   UserPlus,
+  GalleryVerticalEnd,
 } from '@lucide/vue'
 import { siteConfig } from './config'
 
@@ -62,6 +63,11 @@ export const sidebarContent: SidebarGroup[] = [
         title: 'Status Pages',
         href: `${siteConfig.appPath}/status-pages`,
         icon: Globe,
+      },
+      {
+        title: 'Overview',
+        href: `${siteConfig.appPath}/overview`,
+        icon: GalleryVerticalEnd,
       },
       {
         title: 'Subscribers',
