@@ -4,7 +4,9 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
+	"mime"
 	"net/http"
+	"strings"
 	"os"
 	"ping-uptime/internal/pkg/bus"
 	"ping-uptime/internal/pkg/config"
@@ -161,6 +163,13 @@ func (a *App) Initialize() error {
 	// otherwise fall back to index.html so Vue Router handles the path.
 	// e.g: /dashboard, /profile, /about → serve static/index.html
 	//      /assets/main.js, /favicon.ico → serve the real file
+	// Explicitly register MIME types that may be missing on some Linux systems.
+	// Without these, .js files can be served as text/html, breaking ES module
+	// loading (the browser enforces strict MIME checking for module scripts).
+	_ = mime.AddExtensionType(".js", "application/javascript")
+	_ = mime.AddExtensionType(".mjs", "application/javascript")
+	_ = mime.AddExtensionType(".css", "text/css")
+
 	staticContent, fsErr := fs.Sub(a.staticFS, "static")
 	if fsErr != nil {
 		a.logger.Error("Failed to get subdirectory in static embed FS: %v", fsErr)
@@ -170,9 +179,12 @@ func (a *App) Initialize() error {
 	a.r.GET("/*", func(c echo.Context) error {
 		urlPath := c.Param("*")
 
-		// If a path is specified, check if it exists in the embedded FS
+		// If a path is specified, check if it exists in the embedded FS.
+		// http.FileSystem.Open requires paths starting with "/".
+		// Echo's c.Param("*") strips the leading slash, so we must add it back.
 		if urlPath != "" {
-			file, err := httpFS.Open(urlPath)
+			fsPath := "/" + strings.TrimPrefix(urlPath, "/")
+			file, err := httpFS.Open(fsPath)
 			if err == nil {
 				defer file.Close()
 				info, err := file.Stat()
@@ -184,7 +196,7 @@ func (a *App) Initialize() error {
 		}
 
 		// Otherwise → return index.html, let Vue Router take over
-		indexFile, err := httpFS.Open("index.html")
+		indexFile, err := httpFS.Open("/index.html")
 		if err != nil {
 			return c.String(http.StatusNotFound, "index.html not found")
 		}
