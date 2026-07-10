@@ -6,12 +6,14 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"path/filepath"
 	"ping-uptime/internal/pkg/bus"
 	"ping-uptime/internal/pkg/config"
 	"ping-uptime/internal/pkg/database"
 	"ping-uptime/internal/pkg/logger"
 	"ping-uptime/internal/pkg/server"
 	_validator "ping-uptime/internal/pkg/validator"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -161,6 +163,11 @@ func (a *App) Initialize() error {
 	// otherwise fall back to index.html so Vue Router handles the path.
 	// e.g: /dashboard, /profile, /about → serve static/index.html
 	//      /assets/main.js, /favicon.ico → serve the real file
+	//
+	// For missing paths that look like asset files (have extensions like .js,
+	// .ts, .css, .png, etc.), return 404 instead of index.html. This prevents
+	// the browser from receiving HTML when it expects JS/Wasm — the root cause
+	// of the "Failed to load module script: MIME type text/html" error.
 	staticContent, fsErr := fs.Sub(a.staticFS, "static")
 	if fsErr != nil {
 		a.logger.Error("Failed to get subdirectory in static embed FS: %v", fsErr)
@@ -180,6 +187,14 @@ func (a *App) Initialize() error {
 					http.ServeContent(c.Response(), c.Request(), info.Name(), info.ModTime(), file)
 					return nil
 				}
+			}
+
+			// Path has a file extension but doesn't exist in embedded FS →
+			// return 404 instead of serving index.html as text/html.
+			// This prevents JavsScript modules from receiving HTML content.
+			ext := strings.ToLower(filepath.Ext(urlPath))
+			if ext != "" {
+				return c.NoContent(http.StatusNotFound)
 			}
 		}
 
