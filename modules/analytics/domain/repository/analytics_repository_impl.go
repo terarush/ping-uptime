@@ -14,26 +14,26 @@ func (r AnalyticsRepositoryImpl) GetChartData(ctx context.Context, monitorID uin
 
 	startTime := getWindowStartTime(window)
 	if startTime.IsZero() {
-		startTime = time.Now().AddDate(0, -1, 0)
+		startTime = time.Now().UTC().AddDate(0, -1, 0)
 	}
 
 	var selectExpr, groupExpr string
 	switch window {
 	case "1h":
-		selectExpr = "strftime('%Y-%m-%d %H:%M:00', checked_at, 'localtime') as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
-		groupExpr = "strftime('%Y-%m-%d %H:%M:00', checked_at, 'localtime')"
+		selectExpr = "strftime('%Y-%m-%d %H:%M:00', checked_at) as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
+		groupExpr = "strftime('%Y-%m-%d %H:%M:00', checked_at)"
 	case "1d":
-		selectExpr = "strftime('%Y-%m-%d %H:00:00', checked_at, 'localtime') as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
-		groupExpr = "strftime('%Y-%m-%d %H:00:00', checked_at, 'localtime')"
+		selectExpr = "strftime('%Y-%m-%d %H:00:00', checked_at) as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
+		groupExpr = "strftime('%Y-%m-%d %H:00:00', checked_at)"
 	case "1w", "1m":
-		selectExpr = "strftime('%Y-%m-%d', checked_at, 'localtime') as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
-		groupExpr = "strftime('%Y-%m-%d', checked_at, 'localtime')"
+		selectExpr = "strftime('%Y-%m-%d', checked_at) as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
+		groupExpr = "strftime('%Y-%m-%d', checked_at)"
 	case "1y", "all":
-		selectExpr = "strftime('%Y-W%W', checked_at, 'localtime') as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
-		groupExpr = "strftime('%Y-W%W', checked_at, 'localtime')"
+		selectExpr = "strftime('%Y-W%W', checked_at) as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
+		groupExpr = "strftime('%Y-W%W', checked_at)"
 	default:
-		selectExpr = "strftime('%Y-%m-%d', checked_at, 'localtime') as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
-		groupExpr = "strftime('%Y-%m-%d', checked_at, 'localtime')"
+		selectExpr = "strftime('%Y-%m-%d', checked_at) as date, SUM(CASE WHEN success THEN 0 ELSE 1 END) as failed, COUNT(*) as total, AVG(latency) as latency"
+		groupExpr = "strftime('%Y-%m-%d', checked_at)"
 	}
 
 	err := database.DB.WithContext(ctx).
@@ -87,7 +87,9 @@ func (r AnalyticsRepositoryImpl) GetMonitorStats(ctx context.Context, userID uin
 	if userID != 0 {
 		db = db.Where("user_id = ?", userID)
 	}
-	db.Scan(&monitors)
+	if err := db.Scan(&monitors).Error; err != nil {
+			return nil, err
+		}
 
 	stats := make([]entity.MonitorStats, 0, len(monitors))
 	for _, m := range monitors {
@@ -148,7 +150,7 @@ func (r AnalyticsRepositoryImpl) GetMonitorStats(ctx context.Context, userID uin
 }
 
 func getWindowStartTime(window string) time.Time {
-	now := time.Now()
+	now := time.Now().UTC()
 	switch window {
 	case "1h":
 		return now.Add(-time.Hour)

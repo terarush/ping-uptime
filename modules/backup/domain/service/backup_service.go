@@ -19,6 +19,7 @@ type BackupData struct {
 
 type BackupPayload struct {
 	Monitors            []map[string]interface{} `json:"monitors,omitempty"`
+	CheckRecords        []map[string]interface{} `json:"check_records,omitempty"`
 	Incidents           []map[string]interface{} `json:"incidents,omitempty"`
 	StatusPages         []map[string]interface{} `json:"status_pages,omitempty"`
 	Settings            []map[string]interface{} `json:"settings,omitempty"`
@@ -50,7 +51,7 @@ func (s *BackupService) Export(ctx context.Context) (*BackupData, error) {
 	}, nil
 }
 
-func (s *BackupService) Import(ctx context.Context, data []byte) error {
+func (s *BackupService) Import(ctx context.Context, data []byte, importUserID uint) error {
 	var backup BackupData
 	if err := json.Unmarshal(data, &backup); err != nil {
 		return fmt.Errorf("invalid json: %w", err)
@@ -60,31 +61,35 @@ func (s *BackupService) Import(ctx context.Context, data []byte) error {
 		return fmt.Errorf("unsupported backup version: %s", backup.Version)
 	}
 
-	if err := s.restoreTable(ctx, "monitors", backup.Data.Monitors); err != nil {
+	if err := s.restoreTable(ctx, "monitors", backup.Data.Monitors, importUserID); err != nil {
 		return fmt.Errorf("restore monitors: %w", err)
 	}
-	if err := s.restoreTable(ctx, "incidents", backup.Data.Incidents); err != nil {
+	// check_records has no user_id; monitor_id preserved, so no remap.
+	if err := s.restoreTable(ctx, "check_records", backup.Data.CheckRecords, 0); err != nil {
+		return fmt.Errorf("restore check_records: %w", err)
+	}
+	if err := s.restoreTable(ctx, "incidents", backup.Data.Incidents, importUserID); err != nil {
 		return fmt.Errorf("restore incidents: %w", err)
 	}
-	if err := s.restoreTable(ctx, "status_pages", backup.Data.StatusPages); err != nil {
+	if err := s.restoreTable(ctx, "status_pages", backup.Data.StatusPages, importUserID); err != nil {
 		return fmt.Errorf("restore status_pages: %w", err)
 	}
-	if err := s.restoreTable(ctx, "settings", backup.Data.Settings); err != nil {
+	if err := s.restoreTable(ctx, "settings", backup.Data.Settings, 0); err != nil {
 		return fmt.Errorf("restore settings: %w", err)
 	}
-	if err := s.restoreTable(ctx, "notification_channels", backup.Data.NotificationChannels); err != nil {
+	if err := s.restoreTable(ctx, "notification_channels", backup.Data.NotificationChannels, importUserID); err != nil {
 		return fmt.Errorf("restore notification_channels: %w", err)
 	}
-	if err := s.restoreTable(ctx, "tags", backup.Data.Tags); err != nil {
+	if err := s.restoreTable(ctx, "tags", backup.Data.Tags, 0); err != nil {
 		return fmt.Errorf("restore tags: %w", err)
 	}
-	if err := s.restoreTable(ctx, "integrations", backup.Data.Integrations); err != nil {
+	if err := s.restoreTable(ctx, "integrations", backup.Data.Integrations, 0); err != nil {
 		return fmt.Errorf("restore integrations: %w", err)
 	}
-	if err := s.restoreTable(ctx, "ssl_certs", backup.Data.SSLCerts); err != nil {
+	if err := s.restoreTable(ctx, "ssl_certs", backup.Data.SSLCerts, 0); err != nil {
 		return fmt.Errorf("restore ssl_certs: %w", err)
 	}
-	if err := s.restoreTable(ctx, "api_tokens", backup.Data.ApiTokens); err != nil {
+	if err := s.restoreTable(ctx, "api_tokens", backup.Data.ApiTokens, importUserID); err != nil {
 		return fmt.Errorf("restore api_tokens: %w", err)
 	}
 
@@ -109,6 +114,11 @@ func (s *BackupService) dumpAllTables(ctx context.Context) (*BackupPayload, erro
 	var err error
 
 	payload.Monitors, err = s.queryTable(ctx, "monitors")
+	if err != nil {
+		return nil, err
+	}
+
+	payload.CheckRecords, err = s.queryTable(ctx, "check_records")
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +175,7 @@ func (s *BackupService) queryTable(ctx context.Context, table string) ([]map[str
 	return results, nil
 }
 
-func (s *BackupService) restoreTable(ctx context.Context, table string, records []map[string]interface{}) error {
+func (s *BackupService) restoreTable(ctx context.Context, table string, records []map[string]interface{}, importUserID uint) error {
 	if len(records) == 0 {
 		return nil
 	}
@@ -175,7 +185,13 @@ func (s *BackupService) restoreTable(ctx context.Context, table string, records 
 		return fmt.Errorf("truncate %s: %w", table, err)
 	}
 
+	needsUserRemap := importUserID > 0
+
 	for _, record := range records {
+		if needsUserRemap {
+			delete(record, "user_id")
+			record["user_id"] = importUserID
+		}
 		if err := database.DB.WithContext(ctx).Table(table).Create(record).Error; err != nil {
 			return fmt.Errorf("insert into %s: %w", table, err)
 		}
